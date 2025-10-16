@@ -19,11 +19,13 @@ interface AttributeStore {
   attributeLibrary: Attribute[];
   categories: Category[];
   manufacturers: Manufacturer[];
+  enableParentInheritance: boolean;
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
+  toggleParentInheritance: () => void;
 
   // Helper functions for hierarchical categories
   getCategoryPath: (categoryId: string) => Category[];
@@ -58,6 +60,16 @@ interface AttributeStore {
   deleteModel: (manufacturerId: string, modelId: string) => void;
 }
 
+// Load enableParentInheritance from localStorage, default to true
+const getInitialParentInheritance = (): boolean => {
+  try {
+    const stored = localStorage.getItem("enableParentInheritance");
+    return stored !== null ? JSON.parse(stored) : true;
+  } catch {
+    return true;
+  }
+};
+
 export const useAttributeStore = create<AttributeStore>((set) => ({
   // Initial state
   currentCategoryId: "boiler",
@@ -66,6 +78,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   attributeLibrary: initialAttributeLibrary,
   categories: initialCategories,
   manufacturers: initialManufacturers,
+  enableParentInheritance: getInitialParentInheritance(),
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -81,6 +94,14 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
 
   setCurrentSettingsTab: (tab) => {
     set({ currentSettingsTab: tab });
+  },
+
+  toggleParentInheritance: () => {
+    set((state) => {
+      const newValue = !state.enableParentInheritance;
+      localStorage.setItem("enableParentInheritance", JSON.stringify(newValue));
+      return { enableParentInheritance: newValue };
+    });
   },
 
   // Get the full path of categories from root to the given category

@@ -6,6 +6,7 @@ import { CategoryManagement } from "@/components/category-management";
 import { CategoryDetail } from "@/components/category-detail";
 import { AttributeLibrary } from "@/components/attribute-library";
 import { ManufacturersView } from "@/components/manufacturers-view";
+import { FeatureSettingsButton } from "@/components/feature-settings-button";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           </div>
         </div>
 
+        <FeatureSettingsButton />
         <Toaster position="bottom-right" />
       </TooltipProvider>
     </BrowserRouter>

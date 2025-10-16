@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { useAttributeStore } from "@/lib/store";
 
 interface CategoryTreeProps {
   categories: Category[];
@@ -23,6 +24,7 @@ function TreeNode({
   level,
 }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { enableParentInheritance } = useAttributeStore();
   const hasChildren = category.children && category.children.length > 0;
 
   const childCategories = hasChildren
@@ -38,6 +40,11 @@ function TreeNode({
   };
 
   const attributeCount = getAttributeCount(category);
+
+  // Only show badge if:
+  // - Parent inheritance is enabled, OR
+  // - Category has no children (is a leaf node)
+  const shouldShowBadge = enableParentInheritance || !hasChildren;
 
   return (
     <div>
@@ -66,7 +73,7 @@ function TreeNode({
           <span className="w-5" />
         )}
         <span className="flex-1 text-sm">{category.name}</span>
-        {attributeCount > 0 && (
+        {shouldShowBadge && attributeCount > 0 && (
           <Badge variant="secondary" className="text-xs h-5 px-1.5">
             {attributeCount}
           </Badge>

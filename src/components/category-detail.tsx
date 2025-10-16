@@ -47,6 +47,7 @@ export function CategoryDetail() {
     toggleAttribute,
     togglePreferred,
     removeAttributeFromCategory,
+    enableParentInheritance,
   } = useAttributeStore();
 
   if (!categoryId) {
@@ -71,7 +72,9 @@ export function CategoryDetail() {
   }
 
   const path = getCategoryPath(categoryId);
-  const inheritedAttrs = getInheritedAttributes(categoryId);
+  const inheritedAttrs = enableParentInheritance
+    ? getInheritedAttributes(categoryId)
+    : { system: [], custom: [] };
 
   // Combine all attributes into a single list with source information
   type AttributeWithSource = {
@@ -87,53 +90,59 @@ export function CategoryDetail() {
 
   const allAttributes: AttributeWithSource[] = [];
 
-  // Add inherited attributes (read-only)
-  inheritedAttrs.system.forEach((config) => {
-    const attribute = attributeLibrary.find((a) => a.id === config.attributeId);
-    // Filter out system-wide attributes (manufacturer and model)
-    if (
-      attribute &&
-      attribute.id !== "manufacturer" &&
-      attribute.id !== "model"
-    ) {
-      // Find parent category name
-      const parentCategory = category.parentId
-        ? categories.find((c) => c.id === category.parentId)
-        : undefined;
+  // Add inherited attributes (read-only) - only if parent inheritance is enabled
+  if (enableParentInheritance) {
+    inheritedAttrs.system.forEach((config) => {
+      const attribute = attributeLibrary.find(
+        (a) => a.id === config.attributeId
+      );
+      // Filter out system-wide attributes (manufacturer and model)
+      if (
+        attribute &&
+        attribute.id !== "manufacturer" &&
+        attribute.id !== "model"
+      ) {
+        // Find parent category name
+        const parentCategory = category.parentId
+          ? categories.find((c) => c.id === category.parentId)
+          : undefined;
 
-      allAttributes.push({
-        ...config,
-        attribute,
-        source: "inherited",
-        isDeletable: false,
-        isToggleable: false,
-        parentName: parentCategory?.name,
-      });
-    }
-  });
+        allAttributes.push({
+          ...config,
+          attribute,
+          source: "inherited",
+          isDeletable: false,
+          isToggleable: false,
+          parentName: parentCategory?.name,
+        });
+      }
+    });
 
-  inheritedAttrs.custom.forEach((config) => {
-    const attribute = attributeLibrary.find((a) => a.id === config.attributeId);
-    // Filter out system-wide attributes (manufacturer and model)
-    if (
-      attribute &&
-      attribute.id !== "manufacturer" &&
-      attribute.id !== "model"
-    ) {
-      const parentCategory = category.parentId
-        ? categories.find((c) => c.id === category.parentId)
-        : undefined;
+    inheritedAttrs.custom.forEach((config) => {
+      const attribute = attributeLibrary.find(
+        (a) => a.id === config.attributeId
+      );
+      // Filter out system-wide attributes (manufacturer and model)
+      if (
+        attribute &&
+        attribute.id !== "manufacturer" &&
+        attribute.id !== "model"
+      ) {
+        const parentCategory = category.parentId
+          ? categories.find((c) => c.id === category.parentId)
+          : undefined;
 
-      allAttributes.push({
-        ...config,
-        attribute,
-        source: "inherited",
-        isDeletable: false,
-        isToggleable: false,
-        parentName: parentCategory?.name,
-      });
-    }
-  });
+        allAttributes.push({
+          ...config,
+          attribute,
+          source: "inherited",
+          isDeletable: false,
+          isToggleable: false,
+          parentName: parentCategory?.name,
+        });
+      }
+    });
+  }
 
   // Add direct system attributes (toggleable)
   category.systemAttributes.forEach((config) => {
