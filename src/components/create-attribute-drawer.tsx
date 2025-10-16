@@ -99,7 +99,7 @@ export function CreateAttributeDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Create Attribute</SheetTitle>
           <SheetDescription>

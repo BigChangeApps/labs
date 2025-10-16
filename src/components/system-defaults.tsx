@@ -36,7 +36,7 @@ export function SystemDefaults() {
       </CardHeader>
       <CardContent className="space-y-4">
         {hasDisabled && (
-          <Alert variant="info" className="text-xs">
+          <Alert variant="default" className="text-xs">
             <AlertDescription>
               Hidden system attributes are not deleted, just hidden for this
               category.
@@ -57,7 +57,7 @@ export function SystemDefaults() {
                     <span className="font-medium text-sm">
                       {item.attribute.label}
                     </span>
-                    <Badge variant="muted" className="text-xs">
+                    <Badge variant="secondary" className="text-xs">
                       System
                     </Badge>
                   </div>

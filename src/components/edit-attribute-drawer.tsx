@@ -138,7 +138,7 @@ export function EditAttributeDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Edit Attribute</SheetTitle>
           <SheetDescription>Modify this custom attribute</SheetDescription>
@@ -146,7 +146,7 @@ export function EditAttributeDrawer({
 
         <div className="space-y-6 py-6">
           {isShared && (
-            <Alert variant="warning">
+            <Alert variant="destructive">
               <AlertDescription className="text-xs">
                 This attribute is shared across{" "}
                 {attribute.appliedToCategories.length} categories. Changes will

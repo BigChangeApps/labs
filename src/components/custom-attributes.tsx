@@ -77,11 +77,8 @@ function SortableAttributeRow({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{item.attribute.label}</span>
-            <Badge variant="default" className="text-xs">
-              Custom
-            </Badge>
             {item.attribute.appliedToCategories.length >= 3 && (
-              <Badge variant="amber" className="text-xs">
+              <Badge variant="destructive" className="text-xs">
                 Shared ({item.attribute.appliedToCategories.length})
               </Badge>
             )}

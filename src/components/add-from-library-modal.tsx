@@ -94,7 +94,7 @@ export function AddFromLibraryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add from Library</DialogTitle>
           <DialogDescription>
@@ -112,7 +112,7 @@ export function AddFromLibraryModal({
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-6">
           {systemAttributes.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground">
@@ -131,7 +131,7 @@ export function AddFromLibraryModal({
                           <span className="font-medium text-sm">
                             {attr.label}
                           </span>
-                          <Badge variant="muted" className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             System
                           </Badge>
                         </div>
@@ -191,7 +191,7 @@ export function AddFromLibraryModal({
                             Custom
                           </Badge>
                           {attr.appliedToCategories.length >= 3 && (
-                            <Badge variant="amber" className="text-xs">
+                            <Badge variant="destructive" className="text-xs">
                               Shared ({attr.appliedToCategories.length})
                             </Badge>
                           )}
