@@ -16,7 +16,12 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAttributeStore } from "@/lib/store";
 import { UnifiedAddAttribute } from "./unified-add-attribute";
-import type { Attribute, AttributeType } from "@/types";
+import type {
+  Attribute,
+  AttributeType,
+  Category,
+  CategoryAttributeConfig,
+} from "@/types";
 
 // Helper function to get icon for attribute type
 const getAttributeIcon = (type: AttributeType) => {
@@ -58,7 +63,7 @@ export function CategoryDetail() {
     );
   }
 
-  const category = categories.find((c) => c.id === categoryId);
+  const category = categories.find((c: Category) => c.id === categoryId);
   if (!category) {
     return (
       <div className="container max-w-6xl mx-auto py-8 px-6">
@@ -92,9 +97,9 @@ export function CategoryDetail() {
 
   // Add inherited attributes (read-only) - only if parent inheritance is enabled
   if (enableParentInheritance) {
-    inheritedAttrs.system.forEach((config) => {
+    inheritedAttrs.system.forEach((config: CategoryAttributeConfig) => {
       const attribute = attributeLibrary.find(
-        (a) => a.id === config.attributeId
+        (a: Attribute) => a.id === config.attributeId
       );
       // Filter out system-wide attributes (manufacturer and model)
       if (
@@ -104,7 +109,7 @@ export function CategoryDetail() {
       ) {
         // Find parent category name
         const parentCategory = category.parentId
-          ? categories.find((c) => c.id === category.parentId)
+          ? categories.find((c: Category) => c.id === category.parentId)
           : undefined;
 
         allAttributes.push({
@@ -118,9 +123,9 @@ export function CategoryDetail() {
       }
     });
 
-    inheritedAttrs.custom.forEach((config) => {
+    inheritedAttrs.custom.forEach((config: CategoryAttributeConfig) => {
       const attribute = attributeLibrary.find(
-        (a) => a.id === config.attributeId
+        (a: Attribute) => a.id === config.attributeId
       );
       // Filter out system-wide attributes (manufacturer and model)
       if (
@@ -129,7 +134,7 @@ export function CategoryDetail() {
         attribute.id !== "model"
       ) {
         const parentCategory = category.parentId
-          ? categories.find((c) => c.id === category.parentId)
+          ? categories.find((c: Category) => c.id === category.parentId)
           : undefined;
 
         allAttributes.push({
@@ -145,8 +150,10 @@ export function CategoryDetail() {
   }
 
   // Add direct system attributes (toggleable)
-  category.systemAttributes.forEach((config) => {
-    const attribute = attributeLibrary.find((a) => a.id === config.attributeId);
+  category.systemAttributes.forEach((config: CategoryAttributeConfig) => {
+    const attribute = attributeLibrary.find(
+      (a: Attribute) => a.id === config.attributeId
+    );
     // Filter out system-wide attributes (manufacturer and model)
     if (
       attribute &&
@@ -164,8 +171,10 @@ export function CategoryDetail() {
   });
 
   // Add direct custom attributes (deletable and toggleable)
-  category.customAttributes.forEach((config) => {
-    const attribute = attributeLibrary.find((a) => a.id === config.attributeId);
+  category.customAttributes.forEach((config: CategoryAttributeConfig) => {
+    const attribute = attributeLibrary.find(
+      (a: Attribute) => a.id === config.attributeId
+    );
     // Filter out system-wide attributes (manufacturer and model)
     if (
       attribute &&
@@ -213,7 +222,7 @@ export function CategoryDetail() {
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            {path.map((cat, idx) => (
+            {path.map((cat: Category, idx: number) => (
               <div key={cat.id} className="flex items-center gap-2">
                 {idx > 0 && <ChevronRight className="h-3 w-3" />}
                 <span>{cat.name}</span>

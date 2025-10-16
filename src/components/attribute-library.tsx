@@ -15,6 +15,7 @@ import { useAttributeStore } from "@/lib/store";
 import { CreateAttributeDrawer } from "./create-attribute-drawer";
 import { EditAttributeDrawer } from "./edit-attribute-drawer";
 import { toast } from "sonner";
+import type { Attribute, Category } from "@/types";
 
 export function AttributeLibrary() {
   const { attributeLibrary, categories, deleteAttribute } = useAttributeStore();
@@ -26,10 +27,10 @@ export function AttributeLibrary() {
 
   // Filter to show only custom attributes (not system attributes)
   const customAttributesOnly = attributeLibrary.filter(
-    (attr) => !attr.isSystem
+    (attr: Attribute) => !attr.isSystem
   );
 
-  const filteredAttributes = customAttributesOnly.filter((attr) => {
+  const filteredAttributes = customAttributesOnly.filter((attr: Attribute) => {
     const query = searchQuery.toLowerCase();
     return (
       attr.label.toLowerCase().includes(query) ||
@@ -40,7 +41,7 @@ export function AttributeLibrary() {
 
   const getCategoryNames = (categoryIds: string[]) => {
     return categoryIds
-      .map((id) => categories.find((c) => c.id === id)?.name)
+      .map((id) => categories.find((c: Category) => c.id === id)?.name)
       .filter(Boolean);
   };
 
@@ -112,7 +113,7 @@ export function AttributeLibrary() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAttributes.map((attr) => {
+                {filteredAttributes.map((attr: Attribute) => {
                   const appliedCategories = getCategoryNames(
                     attr.appliedToCategories
                   );
