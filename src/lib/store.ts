@@ -14,12 +14,23 @@ import {
 interface AttributeStore {
   // State
   currentCategoryId: string;
+  selectedCategoryView: string | null; // null = category list view, categoryId = category detail view
+  currentSettingsTab: "categories" | "library";
   attributeLibrary: Attribute[];
   categories: Category[];
   manufacturers: Manufacturer[];
 
-  // Actions
+  // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
+  setSelectedCategoryView: (categoryId: string | null) => void;
+  setCurrentSettingsTab: (tab: "categories" | "library") => void;
+
+  // Helper functions for hierarchical categories
+  getCategoryPath: (categoryId: string) => Category[];
+  getInheritedAttributes: (categoryId: string) => {
+    system: CategoryAttributeConfig[];
+    custom: CategoryAttributeConfig[];
+  };
 
   // Attribute actions
   toggleAttribute: (
@@ -27,6 +38,7 @@ interface AttributeStore {
     attributeId: string,
     isSystem: boolean
   ) => void;
+  togglePreferred: (attributeId: string) => void;
   reorderAttributes: (categoryId: string, attributeIds: string[]) => void;
   addAttribute: (attribute: Omit<Attribute, "id" | "isSystem">) => string;
   editAttribute: (attributeId: string, updates: Partial<Attribute>) => void;
@@ -49,13 +61,69 @@ interface AttributeStore {
 export const useAttributeStore = create<AttributeStore>((set) => ({
   // Initial state
   currentCategoryId: "boiler",
+  selectedCategoryView: null, // Start at category list view
+  currentSettingsTab: "categories",
   attributeLibrary: initialAttributeLibrary,
   categories: initialCategories,
   manufacturers: initialManufacturers,
 
-  // Set current category
+  // Navigation actions
   setCurrentCategory: (categoryId) => {
     set({ currentCategoryId: categoryId });
+  },
+
+  setSelectedCategoryView: (categoryId) => {
+    set({ selectedCategoryView: categoryId });
+    if (categoryId) {
+      set({ currentCategoryId: categoryId });
+    }
+  },
+
+  setCurrentSettingsTab: (tab) => {
+    set({ currentSettingsTab: tab });
+  },
+
+  // Get the full path of categories from root to the given category
+  getCategoryPath: (categoryId) => {
+    const state = useAttributeStore.getState();
+    const path: Category[] = [];
+    let currentId: string | undefined = categoryId;
+
+    while (currentId) {
+      const category = state.categories.find((c) => c.id === currentId);
+      if (category) {
+        path.unshift(category);
+        currentId = category.parentId;
+      } else {
+        break;
+      }
+    }
+
+    return path;
+  },
+
+  // Get inherited attributes from parent categories
+  getInheritedAttributes: (categoryId) => {
+    const state = useAttributeStore.getState();
+    const category = state.categories.find((c) => c.id === categoryId);
+
+    if (!category || !category.parentId) {
+      return { system: [], custom: [] };
+    }
+
+    // Get parent category
+    const parent = state.categories.find((c) => c.id === category.parentId);
+    if (!parent) {
+      return { system: [], custom: [] };
+    }
+
+    // Recursively get all inherited attributes from ancestor chain
+    const parentInherited = state.getInheritedAttributes(parent.id);
+
+    return {
+      system: [...parentInherited.system, ...parent.systemAttributes],
+      custom: [...parentInherited.custom, ...parent.customAttributes],
+    };
   },
 
   // Toggle attribute on/off for a category
@@ -78,6 +146,19 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       });
 
       return { categories };
+    });
+  },
+
+  // Toggle preferred status of an attribute
+  togglePreferred: (attributeId) => {
+    set((state) => {
+      const attributeLibrary = state.attributeLibrary.map((attr) =>
+        attr.id === attributeId
+          ? { ...attr, isRequired: !attr.isRequired }
+          : attr
+      );
+
+      return { attributeLibrary };
     });
   },
 

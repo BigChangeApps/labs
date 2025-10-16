@@ -10,6 +10,7 @@ export interface Attribute {
   appliedToCategories: string[];
   description?: string;
   order?: number;
+  dropdownOptions?: string[];
 }
 
 export interface CategoryAttributeConfig {
@@ -21,8 +22,11 @@ export interface CategoryAttributeConfig {
 export interface Category {
   id: string;
   name: string;
+  parentId?: string;
+  children?: string[];
   systemAttributes: CategoryAttributeConfig[];
   customAttributes: CategoryAttributeConfig[];
+  inheritedAttributes?: CategoryAttributeConfig[];
 }
 
 export interface Model {

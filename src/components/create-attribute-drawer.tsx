@@ -21,6 +21,7 @@ import {
 import { useAttributeStore } from "@/lib/store";
 import type { AttributeType } from "@/types";
 import { toast } from "sonner";
+import { CategoryTreeSelector } from "./category-tree-selector";
 
 interface CreateAttributeDrawerProps {
   open: boolean;
@@ -87,14 +88,6 @@ export function CreateAttributeDrawer({
     setDefaultValue("");
     setSelectedCategories([currentCategoryId]);
     onOpenChange(false);
-  };
-
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
   };
 
   return (
@@ -176,37 +169,12 @@ export function CreateAttributeDrawer({
             />
           </div>
 
-          <div className="space-y-3">
-            <Label>Applies to *</Label>
-            <p className="text-xs text-muted-foreground">
-              Select categories where this attribute will be available
-            </p>
-            <div className="space-y-2 border rounded-lg p-3">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="flex items-center justify-between"
-                >
-                  <Label
-                    htmlFor={`category-${category.id}`}
-                    className="font-normal cursor-pointer"
-                  >
-                    {category.name}
-                    {category.id === currentCategoryId && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        (current)
-                      </span>
-                    )}
-                  </Label>
-                  <Switch
-                    id={`category-${category.id}`}
-                    checked={selectedCategories.includes(category.id)}
-                    onCheckedChange={() => toggleCategory(category.id)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <CategoryTreeSelector
+            categories={categories}
+            selectedCategories={selectedCategories}
+            onSelectionChange={setSelectedCategories}
+            currentCategoryId={currentCategoryId}
+          />
         </div>
 
         <SheetFooter>

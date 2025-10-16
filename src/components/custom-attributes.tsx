@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical, Edit, Plus } from "lucide-react";
+import { GripVertical, Edit } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -23,8 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useAttributeStore } from "@/lib/store";
 import type { Attribute } from "@/types";
-import { AddFromLibraryModal } from "./add-from-library-modal";
-import { CreateAttributeDrawer } from "./create-attribute-drawer";
+import { UnifiedAddAttribute } from "./unified-add-attribute";
 import { EditAttributeDrawer } from "./edit-attribute-drawer";
 
 interface SortableAttributeRowProps {
@@ -118,8 +117,6 @@ export function CustomAttributes() {
     toggleAttribute,
     reorderAttributes,
   } = useAttributeStore();
-  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
-  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [editingAttributeId, setEditingAttributeId] = useState<string | null>(
     null
   );
@@ -201,35 +198,11 @@ export function CustomAttributes() {
             </DndContext>
           )}
 
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsLibraryModalOpen(true)}
-              className="flex-1"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add from Library
-            </Button>
-            <Button
-              onClick={() => setIsCreateDrawerOpen(true)}
-              className="flex-1"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Attribute
-            </Button>
+          <div className="pt-2">
+            <UnifiedAddAttribute categoryId={currentCategoryId} />
           </div>
         </CardContent>
       </Card>
-
-      <AddFromLibraryModal
-        open={isLibraryModalOpen}
-        onOpenChange={setIsLibraryModalOpen}
-      />
-
-      <CreateAttributeDrawer
-        open={isCreateDrawerOpen}
-        onOpenChange={setIsCreateDrawerOpen}
-      />
 
       {editingAttributeId && (
         <EditAttributeDrawer
