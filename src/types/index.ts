@@ -40,3 +40,21 @@ export interface Manufacturer {
   models: Model[];
   usedByCategories: string[];
 }
+
+export type CoreAttributeSection =
+  | "asset-info"
+  | "status"
+  | "contact"
+  | "dates"
+  | "warranty";
+
+export interface CoreAttribute {
+  id: string;
+  label: string;
+  type: AttributeType | "search";
+  section: CoreAttributeSection;
+  isEnabled: boolean;
+  isRequired: boolean;
+  description?: string;
+  dropdownOptions?: string[];
+}

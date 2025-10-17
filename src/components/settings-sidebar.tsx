@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Folder, Library, Factory } from "lucide-react";
+import { Folder, Library, Factory, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAttributeStore } from "@/lib/store";
 
@@ -9,7 +9,7 @@ export function SettingsSidebar() {
   const navItems = [
     {
       path: "/",
-      label: "Categories",
+      label: "Categories & Attributes",
       icon: Folder,
     },
     {
@@ -22,6 +22,11 @@ export function SettingsSidebar() {
       path: "/manufacturers",
       label: "Manufacturers",
       icon: Factory,
+    },
+    {
+      path: "/core-attributes",
+      label: "Core Attributes",
+      icon: Settings,
     },
   ];
 

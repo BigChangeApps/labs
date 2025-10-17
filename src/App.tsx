@@ -12,6 +12,7 @@ import { CategoryManagement } from "@/components/category-management";
 import { CategoryDetail } from "@/components/category-detail";
 import { AttributeLibrary } from "@/components/attribute-library";
 import { ManufacturersView } from "@/components/manufacturers-view";
+import { CoreAttributesView } from "@/components/core-attributes-view";
 import { FeatureSettingsButton } from "@/components/feature-settings-button";
 import { useAttributeStore } from "@/lib/store";
 
@@ -41,6 +42,7 @@ function AppContent() {
             }
           />
           <Route path="/manufacturers" element={<ManufacturersView />} />
+          <Route path="/core-attributes" element={<CoreAttributesView />} />
         </Routes>
       </main>
     </div>

@@ -4,11 +4,13 @@ import type {
   Category,
   Manufacturer,
   CategoryAttributeConfig,
+  CoreAttribute,
 } from "../types";
 import {
   attributeLibrary as initialAttributeLibrary,
   categories as initialCategories,
   manufacturers as initialManufacturers,
+  coreAttributes as initialCoreAttributes,
 } from "./mock-data";
 
 interface AttributeStore {
@@ -19,6 +21,7 @@ interface AttributeStore {
   attributeLibrary: Attribute[];
   categories: Category[];
   manufacturers: Manufacturer[];
+  coreAttributes: CoreAttribute[];
   enableParentInheritance: boolean;
 
   // Navigation actions
@@ -58,6 +61,9 @@ interface AttributeStore {
   addModel: (manufacturerId: string, modelName: string) => void;
   editModel: (manufacturerId: string, modelId: string, name: string) => void;
   deleteModel: (manufacturerId: string, modelId: string) => void;
+
+  // Core attribute actions
+  toggleCoreAttribute: (attributeId: string) => void;
 }
 
 // Load enableParentInheritance from localStorage, default to true
@@ -78,6 +84,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   attributeLibrary: initialAttributeLibrary,
   categories: initialCategories,
   manufacturers: initialManufacturers,
+  coreAttributes: initialCoreAttributes,
   enableParentInheritance: getInitialParentInheritance(),
 
   // Navigation actions
@@ -470,5 +477,18 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
           : m
       ),
     }));
+  },
+
+  // Toggle core attribute on/off
+  toggleCoreAttribute: (attributeId) => {
+    set((state) => {
+      const coreAttributes = state.coreAttributes.map((attr) =>
+        attr.id === attributeId && !attr.isRequired
+          ? { ...attr, isEnabled: !attr.isEnabled }
+          : attr
+      );
+
+      return { coreAttributes };
+    });
   },
 }));

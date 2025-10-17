@@ -1,4 +1,4 @@
-import type { Attribute, Category, Manufacturer } from "../types";
+import type { Attribute, Category, Manufacturer, CoreAttribute } from "../types";
 
 // All attributes in the library
 export const attributeLibrary: Attribute[] = [
@@ -1067,6 +1067,158 @@ export const categories: Category[] = [
     children: [],
     systemAttributes: [],
     customAttributes: [],
+  },
+];
+
+// Core attributes that apply to all assets
+export const coreAttributes: CoreAttribute[] = [
+  // Asset Information
+  {
+    id: "core-customer-reference",
+    label: "Customer reference",
+    type: "text",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Optional customer reference number",
+  },
+  {
+    id: "core-barcode",
+    label: "Barcode",
+    type: "text",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Asset barcode or QR code identifier",
+  },
+  {
+    id: "core-category",
+    label: "Category",
+    type: "dropdown",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: true,
+    description: "Asset category (required)",
+  },
+  {
+    id: "core-manufacturer",
+    label: "Manufacturer",
+    type: "dropdown",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Equipment manufacturer",
+  },
+  {
+    id: "core-model",
+    label: "Model",
+    type: "dropdown",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Equipment model",
+  },
+  {
+    id: "core-manufacturer-serial",
+    label: "Manufacturer serial number",
+    type: "text",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Serial number from manufacturer",
+  },
+  {
+    id: "core-date-manufacture",
+    label: "Date of manufacture",
+    type: "date",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "When the asset was manufactured",
+  },
+  {
+    id: "core-date-installation",
+    label: "Date of installation",
+    type: "date",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "When the asset was installed",
+  },
+  {
+    id: "core-date-last-service",
+    label: "Date of last service",
+    type: "date",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: false,
+    description: "Most recent service date",
+  },
+
+  // End of Life
+  {
+    id: "core-end-of-life",
+    label: "End of life date",
+    type: "date",
+    section: "dates",
+    isEnabled: true,
+    isRequired: false,
+    description: "Expected end of life or replacement date",
+  },
+
+  // Warranty
+  {
+    id: "core-warranty-expiry",
+    label: "Warranty expiry date",
+    type: "date",
+    section: "warranty",
+    isEnabled: true,
+    isRequired: false,
+    description: "When the warranty expires",
+  },
+
+  // Status
+  {
+    id: "core-status",
+    label: "Status",
+    type: "dropdown",
+    section: "status",
+    isEnabled: true,
+    isRequired: false,
+    description: "Current operational status",
+    dropdownOptions: ["Active", "Inactive", "Maintenance", "Decommissioned"],
+  },
+
+  // Contact & Location
+  {
+    id: "core-contact",
+    label: "Contact",
+    type: "search",
+    section: "contact",
+    isEnabled: true,
+    isRequired: false,
+    description: "Associated contact person",
+  },
+  {
+    id: "core-location",
+    label: "Location",
+    type: "text",
+    section: "contact",
+    isEnabled: true,
+    isRequired: false,
+    description: "Physical location of the asset",
+  },
+
+  // Condition
+  {
+    id: "core-condition",
+    label: "Condition",
+    type: "dropdown",
+    section: "status",
+    isEnabled: true,
+    isRequired: false,
+    description: "Physical condition of the asset",
+    dropdownOptions: ["Unknown", "Excellent", "Good", "Fair", "Poor"],
   },
 ];
 
