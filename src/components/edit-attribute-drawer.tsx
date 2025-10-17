@@ -160,6 +160,7 @@ export function EditAttributeDrawer({
         </SheetHeader>
 
         <div className="space-y-6 py-6">
+          <h1>Joe Loves Drawers</h1>
           {isShared && (
             <Alert variant="destructive">
               <AlertDescription className="text-xs">
