@@ -18,7 +18,8 @@ import { toast } from "sonner";
 import type { Attribute, Category } from "@/types";
 
 export function AttributeLibrary() {
-  const { attributeLibrary, categories, deleteAttribute } = useAttributeStore();
+  const { attributeLibrary, categories, deleteAttribute, currentCategoryId } =
+    useAttributeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [editingAttributeId, setEditingAttributeId] = useState<string | null>(
@@ -59,32 +60,22 @@ export function AttributeLibrary() {
   return (
     <div className="container max-w-6xl mx-auto py-8 px-6">
       <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Attribute Library
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              Manage your custom attributes that can be applied to any category
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-64">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search attributes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+        <div className="flex items-center justify-end gap-3">
+          <div className="w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search attributes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
-            <Button onClick={() => setIsCreateDrawerOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Attribute
-            </Button>
           </div>
+          <Button onClick={() => setIsCreateDrawerOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Attribute
+          </Button>
         </div>
 
         {filteredAttributes.length === 0 ? (
@@ -181,6 +172,7 @@ export function AttributeLibrary() {
         <CreateAttributeDrawer
           open={isCreateDrawerOpen}
           onOpenChange={setIsCreateDrawerOpen}
+          categoryId={currentCategoryId}
         />
 
         {editingAttributeId && (

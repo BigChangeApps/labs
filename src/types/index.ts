@@ -5,12 +5,12 @@ export interface Attribute {
   label: string;
   type: AttributeType;
   isSystem: boolean;
-  isRequired: boolean;
-  defaultValue?: string | number | boolean;
+  isPreferred: boolean;
   appliedToCategories: string[];
   description?: string;
   order?: number;
   dropdownOptions?: string[];
+  units?: string;
 }
 
 export interface CategoryAttributeConfig {

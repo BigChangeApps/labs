@@ -111,7 +111,9 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     let currentId: string | undefined = categoryId;
 
     while (currentId) {
-      const category = state.categories.find((c) => c.id === currentId);
+      const category = state.categories.find(
+        (c: Category) => c.id === currentId
+      );
       if (category) {
         path.unshift(category);
         currentId = category.parentId;
@@ -124,16 +126,25 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   },
 
   // Get inherited attributes from parent categories
-  getInheritedAttributes: (categoryId) => {
+  getInheritedAttributes: (
+    categoryId: string
+  ): {
+    system: CategoryAttributeConfig[];
+    custom: CategoryAttributeConfig[];
+  } => {
     const state = useAttributeStore.getState();
-    const category = state.categories.find((c) => c.id === categoryId);
+    const category = state.categories.find(
+      (c: Category) => c.id === categoryId
+    );
 
     if (!category || !category.parentId) {
       return { system: [], custom: [] };
     }
 
     // Get parent category
-    const parent = state.categories.find((c) => c.id === category.parentId);
+    const parent = state.categories.find(
+      (c: Category) => c.id === category.parentId
+    );
     if (!parent) {
       return { system: [], custom: [] };
     }
@@ -175,7 +186,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     set((state) => {
       const attributeLibrary = state.attributeLibrary.map((attr) =>
         attr.id === attributeId
-          ? { ...attr, isRequired: !attr.isRequired }
+          ? { ...attr, isPreferred: !attr.isPreferred }
           : attr
       );
 

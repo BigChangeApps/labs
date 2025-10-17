@@ -24,15 +24,6 @@ export function CategoryManagement() {
   return (
     <div className="container max-w-6xl mx-auto py-8 px-6">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Category Management
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Configure attributes and manufacturers for each asset category
-          </p>
-        </div>
-
         {/* Search bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

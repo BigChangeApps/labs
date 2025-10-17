@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { useAttributeStore } from "@/lib/store";
 import { toast } from "sonner";
+import type { Manufacturer, Model } from "@/types";
 
 export function ManufacturersView() {
   const {
@@ -47,9 +48,9 @@ export function ManufacturersView() {
 
   // Filter manufacturers based on search query only
   const filteredManufacturers = manufacturers.filter(
-    (m) =>
+    (m: Manufacturer) =>
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.models.some((model) =>
+      m.models.some((model: Model) =>
         model.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
   );
@@ -88,7 +89,9 @@ export function ManufacturersView() {
   };
 
   const handleDeleteManufacturer = (manufacturerId: string) => {
-    const manufacturer = manufacturers.find((m) => m.id === manufacturerId);
+    const manufacturer = manufacturers.find(
+      (m: Manufacturer) => m.id === manufacturerId
+    );
     if (!manufacturer) return;
 
     if (confirm(`Delete ${manufacturer.name}? This action cannot be undone.`)) {
@@ -125,8 +128,10 @@ export function ManufacturersView() {
   };
 
   const handleDeleteModel = (manufacturerId: string, modelId: string) => {
-    const manufacturer = manufacturers.find((m) => m.id === manufacturerId);
-    const model = manufacturer?.models.find((m) => m.id === modelId);
+    const manufacturer = manufacturers.find(
+      (m: Manufacturer) => m.id === manufacturerId
+    );
+    const model = manufacturer?.models.find((m: Model) => m.id === modelId);
 
     if (!manufacturer || !model) return;
 
@@ -139,18 +144,6 @@ export function ManufacturersView() {
   return (
     <div className="container max-w-6xl mx-auto py-8 px-6">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Manufacturers & Models
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              Manage manufacturers and their product models
-            </p>
-          </div>
-        </div>
-
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -216,7 +209,7 @@ export function ManufacturersView() {
                 </TableRow>
               )}
 
-              {filteredManufacturers.map((manufacturer) => (
+              {filteredManufacturers.map((manufacturer: Manufacturer) => (
                 <>
                   <TableRow key={manufacturer.id}>
                     <TableCell>
@@ -293,7 +286,7 @@ export function ManufacturersView() {
 
                   {expandedRows.has(manufacturer.id) && (
                     <>
-                      {manufacturer.models.map((model) => (
+                      {manufacturer.models.map((model: Model) => (
                         <TableRow key={model.id} className="bg-muted/30">
                           <TableCell></TableCell>
                           <TableCell className="pl-12">

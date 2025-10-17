@@ -1,5 +1,6 @@
 import { useAttributeStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import type { Category } from "@/types";
 
 export function CategorySidebar() {
   const { categories, currentCategoryId, setCurrentCategory } =
@@ -11,7 +12,7 @@ export function CategorySidebar() {
         Categories
       </h2>
       <div className="space-y-1">
-        {categories.map((category) => (
+        {categories.map((category: Category) => (
           <button
             key={category.id}
             onClick={() => setCurrentCategory(category.id)}

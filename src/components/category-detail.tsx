@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  ChevronRight,
   Trash2,
   Type,
   Hash,
@@ -47,7 +46,6 @@ export function CategoryDetail() {
   const {
     categories,
     attributeLibrary,
-    getCategoryPath,
     getInheritedAttributes,
     toggleAttribute,
     togglePreferred,
@@ -76,7 +74,6 @@ export function CategoryDetail() {
     );
   }
 
-  const path = getCategoryPath(categoryId);
   const inheritedAttrs = enableParentInheritance
     ? getInheritedAttributes(categoryId)
     : { system: [], custom: [] };
@@ -186,7 +183,7 @@ export function CategoryDetail() {
         attribute,
         source: "custom",
         isDeletable: true,
-        isToggleable: true,
+        isToggleable: false,
       });
     }
   });
@@ -220,23 +217,10 @@ export function CategoryDetail() {
             Back to Categories
           </Button>
 
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            {path.map((cat: Category, idx: number) => (
-              <div key={cat.id} className="flex items-center gap-2">
-                {idx > 0 && <ChevronRight className="h-3 w-3" />}
-                <span>{cat.name}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Category Title */}
           <h1 className="text-2xl font-semibold tracking-tight">
             {category.name}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Configure attributes for this category
-          </p>
         </div>
 
         {/* All Attributes */}
@@ -287,7 +271,7 @@ export function CategoryDetail() {
                           >
                             <Star
                               className={`h-3.5 w-3.5 ${
-                                item.attribute.isRequired
+                                item.attribute.isPreferred
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-muted-foreground"
                               }`}

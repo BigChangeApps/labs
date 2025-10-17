@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAttributeStore } from "@/lib/store";
 import { toast } from "sonner";
+import type { Attribute, Category, CategoryAttributeConfig } from "@/types";
 
 interface AddFromLibraryModalProps {
   open: boolean;
@@ -37,17 +38,19 @@ export function AddFromLibraryModal({
   } = useAttributeStore();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const currentCategory = categories.find((c) => c.id === currentCategoryId);
+  const currentCategory = categories.find(
+    (c: Category) => c.id === currentCategoryId
+  );
 
   // Get already applied attribute IDs for this category
   const appliedAttributeIds = useMemo(() => {
     if (!currentCategory) return new Set<string>();
 
     const systemIds = currentCategory.systemAttributes.map(
-      (a) => a.attributeId
+      (a: CategoryAttributeConfig) => a.attributeId
     );
     const customIds = currentCategory.customAttributes.map(
-      (a) => a.attributeId
+      (a: CategoryAttributeConfig) => a.attributeId
     );
 
     return new Set([...systemIds, ...customIds]);
@@ -57,7 +60,7 @@ export function AddFromLibraryModal({
   const filteredAttributes = useMemo(() => {
     const query = searchQuery.toLowerCase();
 
-    return attributeLibrary.filter((attr) => {
+    return attributeLibrary.filter((attr: Attribute) => {
       // Don't show already applied attributes
       if (appliedAttributeIds.has(attr.id)) return false;
 
@@ -74,11 +77,17 @@ export function AddFromLibraryModal({
     });
   }, [attributeLibrary, appliedAttributeIds, searchQuery]);
 
-  const systemAttributes = filteredAttributes.filter((a) => a.isSystem);
-  const customAttributes = filteredAttributes.filter((a) => !a.isSystem);
+  const systemAttributes = filteredAttributes.filter(
+    (a: Attribute) => a.isSystem
+  );
+  const customAttributes = filteredAttributes.filter(
+    (a: Attribute) => !a.isSystem
+  );
 
   const handleApply = (attributeId: string) => {
-    const attribute = attributeLibrary.find((a) => a.id === attributeId);
+    const attribute = attributeLibrary.find(
+      (a: Attribute) => a.id === attributeId
+    );
     if (!attribute) return;
 
     if (attribute.isSystem) {
@@ -119,7 +128,7 @@ export function AddFromLibraryModal({
                 System Attributes
               </h3>
               <div className="space-y-2">
-                {systemAttributes.map((attr) => (
+                {systemAttributes.map((attr: Attribute) => (
                   <div
                     key={attr.id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-card"
@@ -176,7 +185,7 @@ export function AddFromLibraryModal({
                 Custom Attributes
               </h3>
               <div className="space-y-2">
-                {customAttributes.map((attr) => (
+                {customAttributes.map((attr: Attribute) => (
                   <div
                     key={attr.id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"

@@ -22,17 +22,16 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { useAttributeStore } from "@/lib/store";
-import type { Attribute } from "@/types";
+import type { Attribute, Category, CategoryAttributeConfig } from "@/types";
 import { UnifiedAddAttribute } from "./unified-add-attribute";
 import { EditAttributeDrawer } from "./edit-attribute-drawer";
 
+type CustomAttributeItem = CategoryAttributeConfig & {
+  attribute: Attribute;
+};
+
 interface SortableAttributeRowProps {
-  item: {
-    attributeId: string;
-    isEnabled: boolean;
-    order: number;
-    attribute: Attribute;
-  };
+  item: CustomAttributeItem;
   onToggle: () => void;
   onEdit: () => void;
 }
@@ -128,31 +127,41 @@ export function CustomAttributes() {
     })
   );
 
-  const currentCategory = categories.find((c) => c.id === currentCategoryId);
+  const currentCategory = categories.find(
+    (c: Category) => c.id === currentCategoryId
+  );
   if (!currentCategory) return null;
 
   const customAttributes = currentCategory.customAttributes
-    .map((config) => {
+    .map((config: CategoryAttributeConfig): CustomAttributeItem => {
       const attribute = attributeLibrary.find(
-        (a) => a.id === config.attributeId
+        (a: Attribute) => a.id === config.attributeId
       );
       return { ...config, attribute: attribute as Attribute };
     })
-    .sort((a, b) => a.order - b.order);
+    .sort(
+      (a: CustomAttributeItem, b: CustomAttributeItem) => a.order - b.order
+    );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
       const oldIndex = customAttributes.findIndex(
-        (item) => item.attributeId === active.id
+        (item: CustomAttributeItem) => item.attributeId === active.id
       );
       const newIndex = customAttributes.findIndex(
-        (item) => item.attributeId === over.id
+        (item: CustomAttributeItem) => item.attributeId === over.id
       );
 
-      const reordered = arrayMove(customAttributes, oldIndex, newIndex);
-      const attributeIds = reordered.map((item) => item.attributeId);
+      const reordered = arrayMove(
+        customAttributes,
+        oldIndex,
+        newIndex
+      ) as CustomAttributeItem[];
+      const attributeIds = reordered.map(
+        (item: CustomAttributeItem) => item.attributeId
+      );
       reorderAttributes(currentCategoryId, attributeIds);
     }
   };
@@ -175,11 +184,13 @@ export function CustomAttributes() {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={customAttributes.map((item) => item.attributeId)}
+                items={customAttributes.map(
+                  (item: CustomAttributeItem) => item.attributeId
+                )}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2">
-                  {customAttributes.map((item) => (
+                  {customAttributes.map((item: CustomAttributeItem) => (
                     <SortableAttributeRow
                       key={item.attributeId}
                       item={item}

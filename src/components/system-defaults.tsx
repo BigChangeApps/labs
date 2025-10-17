@@ -10,21 +10,33 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAttributeStore } from "@/lib/store";
-import type { Attribute } from "@/types";
+import type { Attribute, Category, CategoryAttributeConfig } from "@/types";
+
+type SystemAttributeItem = CategoryAttributeConfig & {
+  attribute: Attribute;
+};
 
 export function SystemDefaults() {
   const { currentCategoryId, categories, attributeLibrary, toggleAttribute } =
     useAttributeStore();
 
-  const currentCategory = categories.find((c) => c.id === currentCategoryId);
+  const currentCategory = categories.find(
+    (c: Category) => c.id === currentCategoryId
+  );
   if (!currentCategory) return null;
 
-  const systemAttributes = currentCategory.systemAttributes.map((config) => {
-    const attribute = attributeLibrary.find((a) => a.id === config.attributeId);
-    return { ...config, attribute: attribute as Attribute };
-  });
+  const systemAttributes = currentCategory.systemAttributes.map(
+    (config: CategoryAttributeConfig): SystemAttributeItem => {
+      const attribute = attributeLibrary.find(
+        (a: Attribute) => a.id === config.attributeId
+      );
+      return { ...config, attribute: attribute as Attribute };
+    }
+  );
 
-  const hasDisabled = systemAttributes.some((item) => !item.isEnabled);
+  const hasDisabled = systemAttributes.some(
+    (item: SystemAttributeItem) => !item.isEnabled
+  );
 
   return (
     <Card>
@@ -45,7 +57,7 @@ export function SystemDefaults() {
         )}
 
         <div className="space-y-2">
-          {systemAttributes.map((item) => (
+          {systemAttributes.map((item: SystemAttributeItem) => (
             <div
               key={item.attributeId}
               className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"

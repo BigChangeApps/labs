@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAttributeStore } from "@/lib/store";
-import type { AttributeType } from "@/types";
+import type { AttributeType, Attribute, Category } from "@/types";
 import { toast } from "sonner";
 import { CategoryTreeSelector } from "./category-tree-selector";
 
@@ -45,13 +45,16 @@ export function EditAttributeDrawer({
     currentCategoryId,
   } = useAttributeStore();
 
-  const attribute = attributeLibrary.find((a) => a.id === attributeId);
+  const attribute = attributeLibrary.find(
+    (a: Attribute) => a.id === attributeId
+  );
 
   const [label, setLabel] = useState("");
   const [type, setType] = useState<AttributeType>("text");
   const [description, setDescription] = useState("");
-  const [isRequired, setIsRequired] = useState(false);
-  const [defaultValue, setDefaultValue] = useState("");
+  const [isPreferred, setIsPreferred] = useState(false);
+  const [units, setUnits] = useState("");
+  const [dropdownOptions, setDropdownOptions] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
@@ -59,8 +62,11 @@ export function EditAttributeDrawer({
       setLabel(attribute.label);
       setType(attribute.type);
       setDescription(attribute.description || "");
-      setIsRequired(attribute.isRequired);
-      setDefaultValue(attribute.defaultValue?.toString() || "");
+      setIsPreferred(attribute.isPreferred);
+      setUnits(attribute.units || "");
+      setDropdownOptions(
+        attribute.dropdownOptions ? attribute.dropdownOptions.join(", ") : ""
+      );
       setSelectedCategories(attribute.appliedToCategories);
     }
   }, [attribute]);
@@ -81,18 +87,34 @@ export function EditAttributeDrawer({
       return;
     }
 
+    // Validate dropdown options if type is dropdown
+    if (type === "dropdown" && !dropdownOptions.trim()) {
+      toast.error("Please enter at least one dropdown option");
+      return;
+    }
+
+    // Parse dropdown options (split by comma or newline)
+    const parsedDropdownOptions =
+      type === "dropdown"
+        ? dropdownOptions
+            .split(/[,\n]/)
+            .map((opt) => opt.trim())
+            .filter((opt) => opt.length > 0)
+        : undefined;
+
     editAttribute(attributeId, {
       label: label.trim(),
       type,
       description: description.trim(),
-      isRequired,
-      defaultValue: defaultValue || undefined,
+      isPreferred,
       appliedToCategories: selectedCategories,
+      dropdownOptions: parsedDropdownOptions,
+      units: type === "number" && units.trim() ? units.trim() : undefined,
     });
 
     const categoryNames = categories
-      .filter((c) => selectedCategories.includes(c.id))
-      .map((c) => c.name)
+      .filter((c: Category) => selectedCategories.includes(c.id))
+      .map((c: Category) => c.name)
       .join(", ");
 
     if (isShared) {
@@ -187,33 +209,42 @@ export function EditAttributeDrawer({
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Required Field</Label>
+          {type === "dropdown" && (
+            <div className="space-y-2">
+              <Label htmlFor="dropdownOptions">Dropdown Options *</Label>
+              <textarea
+                id="dropdownOptions"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Enter options (comma-separated or one per line)"
+                value={dropdownOptions}
+                onChange={(e) => setDropdownOptions(e.target.value)}
+              />
               <p className="text-xs text-muted-foreground">
-                Must be filled when creating assets
+                Separate options with commas or line breaks
               </p>
             </div>
-            <Switch checked={isRequired} onCheckedChange={setIsRequired} />
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="defaultValue">Default Value</Label>
-            <Input
-              id="defaultValue"
-              type={
-                type === "number" ? "number" : type === "date" ? "date" : "text"
-              }
-              placeholder={
-                type === "boolean"
-                  ? "true or false"
-                  : type === "date"
-                  ? "YYYY-MM-DD"
-                  : "Optional default value"
-              }
-              value={defaultValue}
-              onChange={(e) => setDefaultValue(e.target.value)}
-            />
+          {type === "number" && (
+            <div className="space-y-2">
+              <Label htmlFor="units">Units</Label>
+              <Input
+                id="units"
+                placeholder="e.g., kg, °C, meters, bar"
+                value={units}
+                onChange={(e) => setUnits(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Preferred Field</Label>
+              <p className="text-xs text-muted-foreground">
+                Helps track asset verification status
+              </p>
+            </div>
+            <Switch checked={isPreferred} onCheckedChange={setIsPreferred} />
           </div>
 
           <CategoryTreeSelector
