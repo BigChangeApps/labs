@@ -207,7 +207,9 @@ export function EditManufacturerDrawer({
                 {draftModels.map((draft, index) => (
                   <div key={`draft-${index}`} className="flex gap-2">
                     <Input
-                      ref={(el) => (draftInputRefs.current[index] = el)}
+                      ref={(el) => {
+                        draftInputRefs.current[index] = el;
+                      }}
                       placeholder="New model name"
                       value={draft}
                       onChange={(e) =>

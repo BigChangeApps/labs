@@ -172,6 +172,7 @@ export function AttributeDetailDrawer({
       updates.appliedToCategories = selectedCategories;
     }
 
+    if (!attributeId) return;
     editAttribute(attributeId, updates);
 
     if (enableParentInheritance) {

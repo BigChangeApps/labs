@@ -54,10 +54,7 @@ export function CreateManufacturerDrawer({
     setModels(newModels);
   };
 
-  const handleModelKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  const handleModelKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddModel();
@@ -116,11 +113,13 @@ export function CreateManufacturerDrawer({
                 {models.map((model, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
-                      ref={(el) => (inputRefs.current[index] = el)}
+                      ref={(el) => {
+                        inputRefs.current[index] = el;
+                      }}
                       placeholder={`Model ${index + 1}`}
                       value={model}
                       onChange={(e) => handleModelChange(index, e.target.value)}
-                      onKeyDown={(e) => handleModelKeyDown(index, e)}
+                      onKeyDown={(e) => handleModelKeyDown(e)}
                     />
                     {models.length > 1 && (
                       <Button
