@@ -46,14 +46,22 @@ function TreeNode({
   // - Category has no children (is a leaf node)
   const shouldShowBadge = enableParentInheritance || !hasChildren;
 
+  // Determine if category is clickable:
+  // - Always clickable if inheritance is enabled
+  // - Only clickable if it's a leaf node (no children) when inheritance is disabled
+  const isClickable = enableParentInheritance || !hasChildren;
+
   return (
     <div>
       <div
         className={cn(
-          "flex items-center gap-2 py-1.5 px-2 rounded-md cursor-pointer transition-colors group hover:bg-muted text-foreground"
+          "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors group",
+          isClickable
+            ? "cursor-pointer hover:bg-muted text-foreground"
+            : "text-muted-foreground text-sm"
         )}
         style={{ paddingLeft: `${level * 12 + 8}px` }}
-        onClick={() => onCategorySelect(category.id)}
+        onClick={() => isClickable && onCategorySelect(category.id)}
       >
         {hasChildren ? (
           <button
