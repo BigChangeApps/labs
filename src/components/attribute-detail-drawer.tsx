@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { Trash2, X, Plus } from "lucide-react";
+import {
+  Trash2,
+  X,
+  Plus,
+  Type,
+  Hash,
+  List,
+  Calendar,
+  CheckSquare,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -20,22 +29,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useAttributeStore } from "@/lib/store";
 import type { AttributeType, Attribute, Category } from "@/types";
 import { toast } from "sonner";
 import { CategoryTreeSelector } from "./category-tree-selector";
 
-interface EditAttributeDrawerProps {
-  attributeId: string;
+interface AttributeDetailDrawerProps {
+  attributeId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditAttributeDrawer({
+// Helper function to get icon for attribute type
+const getAttributeIcon = (type: AttributeType) => {
+  switch (type) {
+    case "text":
+      return Type;
+    case "number":
+      return Hash;
+    case "dropdown":
+      return List;
+    case "date":
+      return Calendar;
+    case "boolean":
+      return CheckSquare;
+    default:
+      return Type;
+  }
+};
+
+export function AttributeDetailDrawer({
   attributeId,
   open,
   onOpenChange,
-}: EditAttributeDrawerProps) {
+}: AttributeDetailDrawerProps) {
   const {
     categories,
     attributeLibrary,
@@ -46,9 +74,9 @@ export function EditAttributeDrawer({
     enableParentInheritance,
   } = useAttributeStore();
 
-  const attribute = attributeLibrary.find(
-    (a: Attribute) => a.id === attributeId
-  );
+  const attribute = attributeId
+    ? attributeLibrary.find((a: Attribute) => a.id === attributeId)
+    : null;
 
   const [label, setLabel] = useState("");
   const [type, setType] = useState<AttributeType>("text");
@@ -76,8 +104,10 @@ export function EditAttributeDrawer({
 
   if (!attribute) return null;
 
+  const isSystemAttribute = attribute.isSystem;
   const isShared = attribute.appliedToCategories.length > 1;
   const canDelete = attribute.appliedToCategories.length === 0;
+  const IconComponent = getAttributeIcon(attribute.type);
 
   // Handlers for dropdown options
   const handleAddOption = () => {
@@ -165,9 +195,11 @@ export function EditAttributeDrawer({
   };
 
   const handleRemoveFromCategory = () => {
-    removeAttributeFromCategory(attributeId, currentCategoryId);
-    toast.success(`Removed from current category. Still in library.`);
-    onOpenChange(false);
+    if (attributeId) {
+      removeAttributeFromCategory(attributeId, currentCategoryId);
+      toast.success(`Removed from current category. Still in library.`);
+      onOpenChange(false);
+    }
   };
 
   const handleDelete = () => {
@@ -181,12 +213,106 @@ export function EditAttributeDrawer({
         "Are you sure you want to delete this attribute? This action cannot be undone."
       )
     ) {
-      deleteAttribute(attributeId);
-      toast.success("Attribute deleted from library");
-      onOpenChange(false);
+      if (attributeId) {
+        deleteAttribute(attributeId);
+        toast.success("Attribute deleted from library");
+        onOpenChange(false);
+      }
     }
   };
 
+  // For system attributes, show read-only view
+  if (isSystemAttribute) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Attribute Details</SheetTitle>
+            <SheetDescription>System attribute (read-only)</SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-6 py-6">
+            <Alert>
+              <AlertDescription className="text-xs">
+                This is a system attribute and cannot be modified. If you need
+                changes, please contact your administrator or suggest an update.
+              </AlertDescription>
+            </Alert>
+
+            {/* Attribute Icon and Label */}
+            <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+              <IconComponent className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="font-semibold">{attribute.label}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Label</Label>
+              <Input value={label} disabled />
+            </div>
+
+            {description && (
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Input value={description} disabled />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Input
+                value={type.charAt(0).toUpperCase() + type.slice(1)}
+                disabled
+              />
+            </div>
+
+            {type === "dropdown" && attribute.dropdownOptions && (
+              <div className="space-y-2">
+                <Label>Dropdown Options</Label>
+                <div className="flex flex-wrap gap-1">
+                  {attribute.dropdownOptions.map((option) => (
+                    <Badge key={option} variant="secondary" className="text-xs">
+                      {option}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {type === "number" && units && (
+              <div className="space-y-2">
+                <Label>Units</Label>
+                <Input value={units} disabled />
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Preferred Field</Label>
+                <p className="text-xs text-muted-foreground">
+                  Helps track asset verification status
+                </p>
+              </div>
+              <Switch checked={isPreferred} disabled />
+            </div>
+          </div>
+
+          <SheetFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            <Button disabled>Suggest an Update</Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // For custom attributes, show editable view
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>

@@ -136,28 +136,12 @@ export const attributeLibrary: Attribute[] = [
 // Hierarchical categories with the full tree structure
 export const categories: Category[] = [
   // ==================== MECHANICAL ====================
-  {
-    id: "mechanical",
-    name: "Mechanical",
-    parentId: undefined,
-    children: [
-      "heating",
-      "water-plumbing",
-      "cooling-ventilation",
-      "compressed-air",
-      "power-generation",
-      "fuel-storage",
-      "misc-mechanical",
-    ],
-    systemAttributes: [],
-    customAttributes: [],
-  },
 
   // Heating
   {
     id: "heating",
     name: "Heating",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "boiler",
       "radiator",
@@ -245,7 +229,7 @@ export const categories: Category[] = [
   {
     id: "water-plumbing",
     name: "Water & Plumbing",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "cold-water-tank",
       "hot-water-cylinder",
@@ -327,7 +311,7 @@ export const categories: Category[] = [
   {
     id: "cooling-ventilation",
     name: "Cooling & Ventilation",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "chiller",
       "fan-coil-unit",
@@ -387,7 +371,7 @@ export const categories: Category[] = [
   {
     id: "compressed-air",
     name: "Compressed Air & Pressure Systems",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "compressor",
       "receiver-tank",
@@ -446,7 +430,7 @@ export const categories: Category[] = [
   {
     id: "power-generation",
     name: "Power Generation & Mechanical Drives",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "generator",
       "engine-motor",
@@ -514,7 +498,7 @@ export const categories: Category[] = [
   {
     id: "fuel-storage",
     name: "Fuel & Storage Systems",
-    parentId: "mechanical",
+    parentId: undefined,
     children: ["fuel-tank", "fuel-transfer-pump", "pipework-bund"],
     systemAttributes: [
       { attributeId: "manufacturer", isEnabled: true, order: 0 },
@@ -551,7 +535,7 @@ export const categories: Category[] = [
   {
     id: "misc-mechanical",
     name: "Miscellaneous Mechanical Plant",
-    parentId: "mechanical",
+    parentId: undefined,
     children: [
       "mechanical-frame",
       "damper",
@@ -595,25 +579,12 @@ export const categories: Category[] = [
   },
 
   // ==================== ELECTRICAL ====================
-  {
-    id: "electrical",
-    name: "Electrical",
-    parentId: undefined,
-    children: [
-      "distribution-switchgear",
-      "power-quality",
-      "ev-renewables",
-      "general-electrical",
-    ],
-    systemAttributes: [],
-    customAttributes: [],
-  },
 
   // Distribution & Switchgear
   {
     id: "distribution-switchgear",
     name: "Distribution & Switchgear",
-    parentId: "electrical",
+    parentId: undefined,
     children: [
       "distribution-board",
       "switch-panel",
@@ -664,7 +635,7 @@ export const categories: Category[] = [
   {
     id: "power-quality",
     name: "Power Quality & Backup",
-    parentId: "electrical",
+    parentId: undefined,
     children: ["ups", "generator-electrical", "power-conditioner"],
     systemAttributes: [
       { attributeId: "manufacturer", isEnabled: true, order: 0 },
@@ -701,7 +672,7 @@ export const categories: Category[] = [
   {
     id: "ev-renewables",
     name: "EV & Renewables",
-    parentId: "electrical",
+    parentId: undefined,
     children: [
       "ev-charger",
       "solar-inverter",
@@ -751,7 +722,7 @@ export const categories: Category[] = [
   {
     id: "general-electrical",
     name: "General Electrical",
-    parentId: "electrical",
+    parentId: undefined,
     children: [
       "socket-outlet",
       "lighting-circuit",
@@ -795,25 +766,12 @@ export const categories: Category[] = [
   },
 
   // ==================== LIFE SAFETY ====================
-  {
-    id: "life-safety",
-    name: "Life Safety",
-    parentId: undefined,
-    children: [
-      "fire-alarm-systems",
-      "emergency-lighting",
-      "fire-suppression",
-      "fire-safety-infrastructure",
-    ],
-    systemAttributes: [],
-    customAttributes: [],
-  },
 
   // Fire Alarm Systems
   {
     id: "fire-alarm-systems",
     name: "Fire Alarm Systems",
-    parentId: "life-safety",
+    parentId: undefined,
     children: [
       "fire-alarm-panel",
       "manual-call-point",
@@ -863,7 +821,7 @@ export const categories: Category[] = [
   {
     id: "emergency-lighting",
     name: "Emergency Lighting",
-    parentId: "life-safety",
+    parentId: undefined,
     children: ["emergency-light-fitting"],
     systemAttributes: [
       { attributeId: "manufacturer", isEnabled: true, order: 0 },
@@ -884,7 +842,7 @@ export const categories: Category[] = [
   {
     id: "fire-suppression",
     name: "Fire Suppression",
-    parentId: "life-safety",
+    parentId: undefined,
     children: [
       "sprinkler-pump",
       "sprinkler-head",
@@ -934,7 +892,7 @@ export const categories: Category[] = [
   {
     id: "fire-safety-infrastructure",
     name: "Fire Safety Infrastructure",
-    parentId: "life-safety",
+    parentId: undefined,
     children: ["fire-door", "fire-curtain", "fire-damper"],
     systemAttributes: [],
     customAttributes: [],
@@ -965,20 +923,12 @@ export const categories: Category[] = [
   },
 
   // ==================== SECURITY ====================
-  {
-    id: "security",
-    name: "Security",
-    parentId: undefined,
-    children: ["cctv", "intruder-alarm", "access-control"],
-    systemAttributes: [],
-    customAttributes: [],
-  },
 
   // CCTV
   {
     id: "cctv",
     name: "CCTV",
-    parentId: "security",
+    parentId: undefined,
     children: ["cctv-camera", "nvr", "dvr", "cctv-power-supply"],
     systemAttributes: [
       { attributeId: "manufacturer", isEnabled: true, order: 0 },
@@ -1023,7 +973,7 @@ export const categories: Category[] = [
   {
     id: "intruder-alarm",
     name: "Intruder Alarm",
-    parentId: "security",
+    parentId: undefined,
     children: [
       "intruder-alarm-panel",
       "pir-sensor",
@@ -1073,7 +1023,7 @@ export const categories: Category[] = [
   {
     id: "access-control",
     name: "Access Control",
-    parentId: "security",
+    parentId: undefined,
     children: [
       "access-control-reader",
       "door-controller",

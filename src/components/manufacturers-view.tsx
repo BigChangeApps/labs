@@ -20,31 +20,19 @@ import {
 import { useAttributeStore } from "@/lib/store";
 import { toast } from "sonner";
 import type { Manufacturer, Model } from "@/types";
+import { CreateManufacturerDrawer } from "./create-manufacturer-drawer";
+import { EditManufacturerDrawer } from "./edit-manufacturer-drawer";
 
 export function ManufacturersView() {
-  const {
-    manufacturers,
-    addManufacturer,
-    editManufacturer,
-    deleteManufacturer,
-    addModel,
-    editModel,
-    deleteModel,
-  } = useAttributeStore();
+  const { manufacturers, addManufacturer, deleteManufacturer, addModel } =
+    useAttributeStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [editingManufacturer, setEditingManufacturer] = useState<string | null>(
-    null
-  );
-  const [editingModel, setEditingModel] = useState<{
-    manufacturerId: string;
-    modelId: string;
-  } | null>(null);
-  const [newManufacturerName, setNewManufacturerName] = useState("");
-  const [newModelName, setNewModelName] = useState<string>("");
-  const [addingModelFor, setAddingModelFor] = useState<string | null>(null);
-  const [isAddingManufacturer, setIsAddingManufacturer] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editDrawerManufacturerId, setEditDrawerManufacturerId] = useState<
+    string | null
+  >(null);
 
   // Filter manufacturers based on search query only
   const filteredManufacturers = manufacturers.filter(
@@ -65,27 +53,28 @@ export function ManufacturersView() {
     setExpandedRows(newExpanded);
   };
 
-  const handleAddManufacturer = () => {
-    if (!newManufacturerName.trim()) {
-      toast.error("Please enter a manufacturer name");
-      return;
+  const handleAddManufacturer = (
+    manufacturerName: string,
+    models: string[]
+  ) => {
+    const manufacturerId = addManufacturer(manufacturerName);
+
+    // Add models if any were provided
+    models.forEach((modelName) => {
+      addModel(manufacturerId, modelName);
+    });
+
+    if (models.length > 0) {
+      toast.success(
+        `${manufacturerName} added with ${models.length} model${
+          models.length !== 1 ? "s" : ""
+        }`
+      );
+    } else {
+      toast.success(`${manufacturerName} added`);
     }
 
-    addManufacturer(newManufacturerName.trim());
-    toast.success(`${newManufacturerName} added`);
-    setNewManufacturerName("");
-    setIsAddingManufacturer(false);
-  };
-
-  const handleEditManufacturer = (manufacturerId: string, name: string) => {
-    if (!name.trim()) {
-      toast.error("Manufacturer name cannot be empty");
-      return;
-    }
-
-    editManufacturer(manufacturerId, name.trim());
-    toast.success("Manufacturer updated");
-    setEditingManufacturer(null);
+    setIsDrawerOpen(false);
   };
 
   const handleDeleteManufacturer = (manufacturerId: string) => {
@@ -97,47 +86,6 @@ export function ManufacturersView() {
     if (confirm(`Delete ${manufacturer.name}? This action cannot be undone.`)) {
       deleteManufacturer(manufacturerId);
       toast.success("Manufacturer deleted");
-    }
-  };
-
-  const handleAddModel = (manufacturerId: string) => {
-    if (!newModelName.trim()) {
-      toast.error("Please enter a model name");
-      return;
-    }
-
-    addModel(manufacturerId, newModelName.trim());
-    toast.success("Model added");
-    setNewModelName("");
-    setAddingModelFor(null);
-  };
-
-  const handleEditModel = (
-    manufacturerId: string,
-    modelId: string,
-    name: string
-  ) => {
-    if (!name.trim()) {
-      toast.error("Model name cannot be empty");
-      return;
-    }
-
-    editModel(manufacturerId, modelId, name.trim());
-    toast.success("Model updated");
-    setEditingModel(null);
-  };
-
-  const handleDeleteModel = (manufacturerId: string, modelId: string) => {
-    const manufacturer = manufacturers.find(
-      (m: Manufacturer) => m.id === manufacturerId
-    );
-    const model = manufacturer?.models.find((m: Model) => m.id === modelId);
-
-    if (!manufacturer || !model) return;
-
-    if (confirm(`Delete ${model.name}? This action cannot be undone.`)) {
-      deleteModel(manufacturerId, modelId);
-      toast.success("Model deleted");
     }
   };
 
@@ -154,7 +102,7 @@ export function ManufacturersView() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setIsAddingManufacturer(true)}>
+          <Button onClick={() => setIsDrawerOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Manufacturer
           </Button>
@@ -171,44 +119,6 @@ export function ManufacturersView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isAddingManufacturer && (
-                <TableRow>
-                  <TableCell></TableCell>
-                  <TableCell colSpan={2}>
-                    <Input
-                      placeholder="Manufacturer name"
-                      value={newManufacturerName}
-                      onChange={(e) => setNewManufacturerName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAddManufacturer();
-                        if (e.key === "Escape") {
-                          setIsAddingManufacturer(false);
-                          setNewManufacturerName("");
-                        }
-                      }}
-                      autoFocus
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button size="sm" onClick={handleAddManufacturer}>
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setIsAddingManufacturer(false);
-                          setNewManufacturerName("");
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-
               {filteredManufacturers.map((manufacturer: Manufacturer) => (
                 <>
                   <TableRow key={manufacturer.id}>
@@ -227,30 +137,7 @@ export function ManufacturersView() {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      {editingManufacturer === manufacturer.id ? (
-                        <Input
-                          defaultValue={manufacturer.name}
-                          onBlur={(e) =>
-                            handleEditManufacturer(
-                              manufacturer.id,
-                              e.target.value
-                            )
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleEditManufacturer(
-                                manufacturer.id,
-                                e.currentTarget.value
-                              );
-                            }
-                            if (e.key === "Escape")
-                              setEditingManufacturer(null);
-                          }}
-                          autoFocus
-                        />
-                      ) : (
-                        <span className="font-medium">{manufacturer.name}</span>
-                      )}
+                      <span className="font-medium">{manufacturer.name}</span>
                     </TableCell>
                     <TableCell>
                       <span className="text-muted-foreground">
@@ -265,7 +152,7 @@ export function ManufacturersView() {
                           size="icon"
                           className="h-8 w-8"
                           onClick={() =>
-                            setEditingManufacturer(manufacturer.id)
+                            setEditDrawerManufacturerId(manufacturer.id)
                           }
                         >
                           <Edit className="h-4 w-4" />
@@ -289,120 +176,19 @@ export function ManufacturersView() {
                       {manufacturer.models.map((model: Model) => (
                         <TableRow key={model.id} className="bg-muted/30">
                           <TableCell></TableCell>
-                          <TableCell className="pl-12">
-                            {editingModel?.manufacturerId === manufacturer.id &&
-                            editingModel?.modelId === model.id ? (
-                              <Input
-                                defaultValue={model.name}
-                                onBlur={(e) =>
-                                  handleEditModel(
-                                    manufacturer.id,
-                                    model.id,
-                                    e.target.value
-                                  )
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleEditModel(
-                                      manufacturer.id,
-                                      model.id,
-                                      e.currentTarget.value
-                                    );
-                                  }
-                                  if (e.key === "Escape") setEditingModel(null);
-                                }}
-                                autoFocus
-                              />
-                            ) : (
-                              <span className="text-sm">{model.name}</span>
-                            )}
-                          </TableCell>
-                          <TableCell></TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() =>
-                                  setEditingModel({
-                                    manufacturerId: manufacturer.id,
-                                    modelId: model.id,
-                                  })
-                                }
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() =>
-                                  handleDeleteModel(manufacturer.id, model.id)
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                          <TableCell className="pl-12" colSpan={3}>
+                            <span className="text-sm">{model.name}</span>
                           </TableCell>
                         </TableRow>
                       ))}
-
-                      {addingModelFor === manufacturer.id ? (
+                      {manufacturer.models.length === 0 && (
                         <TableRow className="bg-muted/30">
                           <TableCell></TableCell>
-                          <TableCell className="pl-12" colSpan={2}>
-                            <Input
-                              placeholder="Model name"
-                              value={newModelName}
-                              onChange={(e) => setNewModelName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter")
-                                  handleAddModel(manufacturer.id);
-                                if (e.key === "Escape") {
-                                  setAddingModelFor(null);
-                                  setNewModelName("");
-                                }
-                              }}
-                              autoFocus
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleAddModel(manufacturer.id)}
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setAddingModelFor(null);
-                                  setNewModelName("");
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        <TableRow className="bg-muted/30">
-                          <TableCell></TableCell>
-                          <TableCell className="pl-12" colSpan={3}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setAddingModelFor(manufacturer.id);
-                                setNewModelName("");
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Model
-                            </Button>
+                          <TableCell
+                            className="pl-12 text-muted-foreground text-sm"
+                            colSpan={3}
+                          >
+                            No models yet
                           </TableCell>
                         </TableRow>
                       )}
@@ -411,7 +197,7 @@ export function ManufacturersView() {
                 </>
               ))}
 
-              {filteredManufacturers.length === 0 && !isAddingManufacturer && (
+              {filteredManufacturers.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={4}
@@ -427,6 +213,20 @@ export function ManufacturersView() {
           </Table>
         </div>
       </div>
+
+      <CreateManufacturerDrawer
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        onSave={handleAddManufacturer}
+      />
+
+      <EditManufacturerDrawer
+        manufacturerId={editDrawerManufacturerId}
+        open={editDrawerManufacturerId !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditDrawerManufacturerId(null);
+        }}
+      />
     </div>
   );
 }

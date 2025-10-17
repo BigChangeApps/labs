@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SettingsSidebar } from "@/components/settings-sidebar";
@@ -7,9 +13,11 @@ import { CategoryDetail } from "@/components/category-detail";
 import { AttributeLibrary } from "@/components/attribute-library";
 import { ManufacturersView } from "@/components/manufacturers-view";
 import { FeatureSettingsButton } from "@/components/feature-settings-button";
+import { useAttributeStore } from "@/lib/store";
 
 function AppContent() {
   const location = useLocation();
+  const { enableParentInheritance } = useAttributeStore();
   const isInCategoryDetail = location.pathname.includes("/category/");
 
   return (
@@ -22,7 +30,16 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<CategoryManagement />} />
           <Route path="/category/:categoryId" element={<CategoryDetail />} />
-          <Route path="/library" element={<AttributeLibrary />} />
+          <Route
+            path="/library"
+            element={
+              enableParentInheritance ? (
+                <Navigate to="/" replace />
+              ) : (
+                <AttributeLibrary />
+              )
+            }
+          />
           <Route path="/manufacturers" element={<ManufacturersView />} />
         </Routes>
       </main>

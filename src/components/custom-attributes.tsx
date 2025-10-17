@@ -34,12 +34,14 @@ interface SortableAttributeRowProps {
   item: CustomAttributeItem;
   onToggle: () => void;
   onEdit: () => void;
+  enableParentInheritance: boolean;
 }
 
 function SortableAttributeRow({
   item,
   onToggle,
   onEdit,
+  enableParentInheritance,
 }: SortableAttributeRowProps) {
   const {
     attributes,
@@ -75,11 +77,12 @@ function SortableAttributeRow({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{item.attribute.label}</span>
-            {item.attribute.appliedToCategories.length >= 3 && (
-              <Badge variant="destructive" className="text-xs">
-                Shared ({item.attribute.appliedToCategories.length})
-              </Badge>
-            )}
+            {!enableParentInheritance &&
+              item.attribute.appliedToCategories.length >= 3 && (
+                <Badge variant="destructive" className="text-xs">
+                  Shared ({item.attribute.appliedToCategories.length})
+                </Badge>
+              )}
           </div>
           {item.attribute.description && (
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -115,6 +118,7 @@ export function CustomAttributes() {
     attributeLibrary,
     toggleAttribute,
     reorderAttributes,
+    enableParentInheritance,
   } = useAttributeStore();
   const [editingAttributeId, setEditingAttributeId] = useState<string | null>(
     null
@@ -202,6 +206,7 @@ export function CustomAttributes() {
                         )
                       }
                       onEdit={() => setEditingAttributeId(item.attributeId)}
+                      enableParentInheritance={enableParentInheritance}
                     />
                   ))}
                 </div>
