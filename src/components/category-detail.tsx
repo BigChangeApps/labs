@@ -9,8 +9,6 @@ import {
   Calendar,
   CheckSquare,
   Star,
-  ChevronDown,
-  ChevronRight,
   Link2,
   MoreVertical,
   Eye,
@@ -55,7 +53,6 @@ const getAttributeIcon = (type: AttributeType) => {
 export function CategoryDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
-  const [isInheritedCollapsed, setIsInheritedCollapsed] = useState(true);
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(
     null
   );
@@ -259,35 +256,33 @@ export function CategoryDetail() {
         {inheritedAttributes.length > 0 && (
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base">
-                    {parentCategory
-                      ? `Inherited from ${parentCategory.name}`
-                      : "Inherited Attributes"}
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {inheritedAttributes.length}
-                  </Badge>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsInheritedCollapsed(!isInheritedCollapsed)}
-                  className="h-8"
-                >
-                  {isInheritedCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">
+                  {parentCategory ? (
+                    <>
+                      <span className="font-normal text-muted-foreground">
+                        Inherited from
+                      </span>{" "}
+                      <Button
+                        variant="link"
+                        className="h-auto p-0 text-base font-bold text-primary hover:underline"
+                        onClick={() => navigate(`/category/${parentCategory.id}`)}
+                      >
+                        {parentCategory.name}
+                      </Button>
+                    </>
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    "Inherited Attributes"
                   )}
-                </Button>
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">
+                  {inheritedAttributes.length}
+                </Badge>
               </div>
             </CardHeader>
-            {!isInheritedCollapsed && (
-              <CardContent>
-                <div className="space-y-2">
-                  {inheritedAttributes.map((item) => {
+            <CardContent>
+              <div className="space-y-2">
+                {inheritedAttributes.map((item) => {
                     const IconComponent = getAttributeIcon(item.attribute.type);
                     return (
                       <div
@@ -339,7 +334,6 @@ export function CategoryDetail() {
                   })}
                 </div>
               </CardContent>
-            )}
           </Card>
         )}
 

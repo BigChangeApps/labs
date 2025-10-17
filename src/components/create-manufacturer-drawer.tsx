@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, CornerDownLeft } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Kbd } from "@/components/ui/kbd";
 import { toast } from "sonner";
 
 interface CreateManufacturerDrawerProps {
@@ -27,6 +28,7 @@ export function CreateManufacturerDrawer({
   const [manufacturerName, setManufacturerName] = useState("");
   const [models, setModels] = useState<string[]>([""]);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
+  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -112,15 +114,27 @@ export function CreateManufacturerDrawer({
               <div className="space-y-2">
                 {models.map((model, index) => (
                   <div key={index} className="flex gap-2">
-                    <Input
-                      ref={(el) => {
-                        inputRefs.current[index] = el;
-                      }}
-                      placeholder={`Model ${index + 1}`}
-                      value={model}
-                      onChange={(e) => handleModelChange(index, e.target.value)}
-                      onKeyDown={(e) => handleModelKeyDown(e)}
-                    />
+                    <div className="relative flex-1">
+                      <Input
+                        ref={(el) => {
+                          inputRefs.current[index] = el;
+                        }}
+                        placeholder={`Model ${index + 1}`}
+                        value={model}
+                        onChange={(e) => handleModelChange(index, e.target.value)}
+                        onKeyDown={(e) => handleModelKeyDown(e)}
+                        onFocus={() => setFocusedInputIndex(index)}
+                        onBlur={() => setFocusedInputIndex(null)}
+                        className="pr-12"
+                      />
+                      {focusedInputIndex === index && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <Kbd>
+                            <CornerDownLeft className="h-3 w-3" />
+                          </Kbd>
+                        </div>
+                      )}
+                    </div>
                     {models.length > 1 && (
                       <Button
                         type="button"
