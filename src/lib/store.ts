@@ -23,14 +23,12 @@ interface AttributeStore {
   manufacturers: Manufacturer[];
   coreAttributes: CoreAttribute[];
   enableParentInheritance: boolean;
-  enableCategoriesListView: boolean;
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
   toggleParentInheritance: () => void;
-  toggleCategoriesListView: () => void;
 
   // Helper functions for hierarchical categories
   getCategoryPath: (categoryId: string) => Category[];
@@ -79,16 +77,6 @@ const getInitialParentInheritance = (): boolean => {
   }
 };
 
-// Load enableCategoriesListView from localStorage, default to true
-const getInitialCategoriesListView = (): boolean => {
-  try {
-    const stored = localStorage.getItem("enableCategoriesListView");
-    return stored !== null ? JSON.parse(stored) : true;
-  } catch {
-    return true;
-  }
-};
-
 export const useAttributeStore = create<AttributeStore>((set) => ({
   // Initial state
   currentCategoryId: "boiler",
@@ -99,7 +87,6 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   manufacturers: initialManufacturers,
   coreAttributes: initialCoreAttributes,
   enableParentInheritance: getInitialParentInheritance(),
-  enableCategoriesListView: getInitialCategoriesListView(),
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -122,14 +109,6 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const newValue = !state.enableParentInheritance;
       localStorage.setItem("enableParentInheritance", JSON.stringify(newValue));
       return { enableParentInheritance: newValue };
-    });
-  },
-
-  toggleCategoriesListView: () => {
-    set((state) => {
-      const newValue = !state.enableCategoriesListView;
-      localStorage.setItem("enableCategoriesListView", JSON.stringify(newValue));
-      return { enableCategoriesListView: newValue };
     });
   },
 

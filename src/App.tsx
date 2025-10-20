@@ -4,20 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CategoryManagement } from "@/components/category-management";
 import { CategoryDetail } from "@/components/category-detail";
 import { ManufacturersView } from "@/components/manufacturers-view";
-import { CoreAttributesView } from "@/components/core-attributes-view";
 import { FeatureSettingsButton } from "@/components/feature-settings-button";
 import { AssetSettingsLayout } from "@/components/asset-settings-layout";
-import { useAttributeStore } from "@/lib/store";
-
-function ConditionalCoreAttributesRoute() {
-  const { enableCategoriesListView } = useAttributeStore();
-  
-  if (enableCategoriesListView) {
-    return <Navigate to="/categories" replace />;
-  }
-  
-  return <CoreAttributesView />;
-}
 
 function App() {
   return (
@@ -34,10 +22,6 @@ function App() {
                   element={<CategoryDetail />}
                 />
                 <Route path="/manufacturers" element={<ManufacturersView />} />
-                <Route
-                  path="/core-attributes"
-                  element={<ConditionalCoreAttributesRoute />}
-                />
               </Route>
             </Routes>
           </main>
