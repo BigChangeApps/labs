@@ -248,6 +248,11 @@ export function CategoryManagement() {
                           </div>
                         </div>
 
+                        {/* Attribute Count */}
+                        <div className="text-sm text-muted-foreground">
+                          {enabledCount} attributes
+                        </div>
+
                         {/* Actions */}
                         <button
                           className="p-2 hover:bg-muted rounded-md transition-colors"
