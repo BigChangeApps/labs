@@ -18,21 +18,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useAttributeStore } from "@/lib/store";
-import type { CoreAttributeSection, AttributeType } from "@/types";
+import type { AttributeType } from "@/types";
 import { toast } from "sonner";
 
 interface CreateCoreAttributeDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const sectionLabels: Record<CoreAttributeSection, string> = {
-  "asset-info": "Asset Information",
-  status: "Status & Condition",
-  contact: "Contact & Location",
-  dates: "Dates & Lifecycle",
-  warranty: "Warranty",
-};
 
 const attributeTypes: { value: AttributeType; label: string }[] = [
   { value: "text", label: "Text" },

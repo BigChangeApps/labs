@@ -1,5 +1,4 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { useAttributeStore } from "@/lib/store";
 
 export function AssetSettingsLayout() {
   return (
