@@ -3,11 +3,13 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useAttributeStore } from "@/lib/store";
 
 interface CategoryTreeProps {
   categories: Category[];
   onCategorySelect: (categoryId: string) => void;
+  rootCategoryId?: string;
 }
 
 interface TreeNodeProps {
@@ -23,7 +25,7 @@ function TreeNode({
   onCategorySelect,
   level,
 }: TreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { enableParentInheritance } = useAttributeStore();
   const hasChildren = category.children && category.children.length > 0;
 
@@ -55,12 +57,12 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors group",
+          "flex items-center gap-2 py-3 px-2 rounded-md transition-colors group",
           isClickable
             ? "cursor-pointer hover:bg-muted text-foreground"
             : "text-muted-foreground text-sm"
         )}
-        style={{ paddingLeft: `${level * 12 + 8}px` }}
+        style={{ paddingLeft: `${level * 12 + 4}px` }}
         onClick={() => isClickable && onCategorySelect(category.id)}
       >
         {hasChildren ? (
@@ -80,7 +82,14 @@ function TreeNode({
         ) : (
           <span className="w-5" />
         )}
-        <span className="flex-1 text-sm">{category.name}</span>
+        <span
+          className={cn(
+            "flex-1 text-sm text-primary",
+            level === 0 ? "font-bold" : "font-medium"
+          )}
+        >
+          {category.name}
+        </span>
         {shouldShowBadge && attributeCount > 0 && (
           <Badge variant="secondary" className="text-xs h-5 px-1.5">
             {attributeCount}
@@ -89,15 +98,17 @@ function TreeNode({
       </div>
 
       {hasChildren && isExpanded && (
-        <div>
-          {childCategories.map((childCategory) => (
-            <TreeNode
-              key={childCategory.id}
-              category={childCategory}
-              categories={categories}
-              onCategorySelect={onCategorySelect}
-              level={level + 1}
-            />
+        <div className="space-y-0">
+          {childCategories.map((childCategory, index) => (
+            <div key={childCategory.id}>
+              <TreeNode
+                category={childCategory}
+                categories={categories}
+                onCategorySelect={onCategorySelect}
+                level={level + 1}
+              />
+              {index < childCategories.length - 1 && <Separator />}
+            </div>
           ))}
         </div>
       )}
@@ -108,12 +119,16 @@ function TreeNode({
 export function CategoryTree({
   categories,
   onCategorySelect,
+  rootCategoryId,
 }: CategoryTreeProps) {
-  // Get root categories (those without a parent)
-  const rootCategories = categories.filter((c) => !c.parentId);
+  // If rootCategoryId is provided, only show that specific root category
+  // Otherwise, show all root categories
+  const rootCategories = rootCategoryId
+    ? categories.filter((c) => c.id === rootCategoryId)
+    : categories.filter((c) => !c.parentId);
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-0">
       {rootCategories.map((category) => (
         <TreeNode
           key={category.id}

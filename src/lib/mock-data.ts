@@ -1,4 +1,9 @@
-import type { Attribute, Category, Manufacturer, CoreAttribute } from "../types";
+import type {
+  Attribute,
+  Category,
+  Manufacturer,
+  CoreAttribute,
+} from "../types";
 
 // All attributes in the library
 export const attributeLibrary: Attribute[] = [
@@ -1088,7 +1093,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "text",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Asset barcode or QR code identifier",
   },
   {
@@ -1106,7 +1111,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "dropdown",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Equipment manufacturer",
   },
   {
@@ -1115,7 +1120,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "dropdown",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Equipment model",
   },
   {
@@ -1184,7 +1189,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "dropdown",
     section: "status",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Current operational status",
     dropdownOptions: ["Active", "Inactive", "Maintenance", "Decommissioned"],
   },
@@ -1196,7 +1201,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "search",
     section: "contact",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Associated contact person",
   },
   {
@@ -1205,7 +1210,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "text",
     section: "contact",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Physical location of the asset",
   },
 
@@ -1216,7 +1221,7 @@ export const coreAttributes: CoreAttribute[] = [
     type: "dropdown",
     section: "status",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
     description: "Physical condition of the asset",
     dropdownOptions: ["Unknown", "Excellent", "Good", "Fair", "Poor"],
   },

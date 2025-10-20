@@ -9,7 +9,7 @@ export function SettingsSidebar() {
   const navItems = [
     {
       path: "/",
-      label: "Categories & Attributes",
+      label: "Attributes",
       icon: Folder,
     },
     {

@@ -46,7 +46,8 @@ export type CoreAttributeSection =
   | "status"
   | "contact"
   | "dates"
-  | "warranty";
+  | "warranty"
+  | "custom";
 
 export interface CoreAttribute {
   id: string;

@@ -23,12 +23,14 @@ interface AttributeStore {
   manufacturers: Manufacturer[];
   coreAttributes: CoreAttribute[];
   enableParentInheritance: boolean;
+  enableCategoriesListView: boolean;
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
   toggleParentInheritance: () => void;
+  toggleCategoriesListView: () => void;
 
   // Helper functions for hierarchical categories
   getCategoryPath: (categoryId: string) => Category[];
@@ -64,12 +66,23 @@ interface AttributeStore {
 
   // Core attribute actions
   toggleCoreAttribute: (attributeId: string) => void;
+  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">) => string;
 }
 
 // Load enableParentInheritance from localStorage, default to true
 const getInitialParentInheritance = (): boolean => {
   try {
     const stored = localStorage.getItem("enableParentInheritance");
+    return stored !== null ? JSON.parse(stored) : true;
+  } catch {
+    return true;
+  }
+};
+
+// Load enableCategoriesListView from localStorage, default to true
+const getInitialCategoriesListView = (): boolean => {
+  try {
+    const stored = localStorage.getItem("enableCategoriesListView");
     return stored !== null ? JSON.parse(stored) : true;
   } catch {
     return true;
@@ -86,6 +99,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   manufacturers: initialManufacturers,
   coreAttributes: initialCoreAttributes,
   enableParentInheritance: getInitialParentInheritance(),
+  enableCategoriesListView: getInitialCategoriesListView(),
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -108,6 +122,14 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const newValue = !state.enableParentInheritance;
       localStorage.setItem("enableParentInheritance", JSON.stringify(newValue));
       return { enableParentInheritance: newValue };
+    });
+  },
+
+  toggleCategoriesListView: () => {
+    set((state) => {
+      const newValue = !state.enableCategoriesListView;
+      localStorage.setItem("enableCategoriesListView", JSON.stringify(newValue));
+      return { enableCategoriesListView: newValue };
     });
   },
 
@@ -490,5 +512,21 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
 
       return { coreAttributes };
     });
+  },
+
+  addCoreAttribute: (attribute) => {
+    const newId = `core-custom-${Date.now()}`;
+    const newCoreAttribute: CoreAttribute = {
+      ...attribute,
+      id: newId,
+      section: "custom", // Always place custom attributes in the custom section
+    };
+
+    set((state) => {
+      const coreAttributes = [...state.coreAttributes, newCoreAttribute];
+      return { coreAttributes };
+    });
+
+    return newId;
   },
 }));

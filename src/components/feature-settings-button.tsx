@@ -14,7 +14,7 @@ import { useAttributeStore } from "@/lib/store";
 
 export function FeatureSettingsButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const { enableParentInheritance, toggleParentInheritance } =
+  const { enableParentInheritance, toggleParentInheritance, enableCategoriesListView, toggleCategoriesListView } =
     useAttributeStore();
 
   return (
@@ -56,6 +56,25 @@ export function FeatureSettingsButton() {
                 id="parent-inheritance"
                 checked={enableParentInheritance}
                 onCheckedChange={toggleParentInheritance}
+              />
+            </div>
+
+            {/* Categories List View Toggle */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="categories-list-view" className="text-base">
+                  Enable Categories List View
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, the Categories page shows a list with "All Categories" 
+                  option that displays core attributes. This replaces the separate 
+                  Core Attributes page.
+                </p>
+              </div>
+              <Switch
+                id="categories-list-view"
+                checked={enableCategoriesListView}
+                onCheckedChange={toggleCategoriesListView}
               />
             </div>
           </div>
