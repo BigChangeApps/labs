@@ -248,18 +248,23 @@ export function CategoryManagement() {
                           </div>
                         </div>
 
-                        {/* Attribute Count */}
-                        <div className="text-sm text-muted-foreground">
-                          {enabledCount} attributes
-                        </div>
+                        {/* Right side actions */}
+                        <div className="flex items-center gap-1">
+                          {/* Attribute Count */}
+                          {enabledCount > 0 && (
+                            <div className="px-2 py-1 bg-muted text-xs text-muted-foreground rounded-full">
+                              {enabledCount}
+                            </div>
+                          )}
 
-                        {/* Actions */}
-                        <button
-                          className="p-2 hover:bg-muted rounded-md transition-colors"
-                          onClick={() => handleCategorySelect(category.id)}
-                        >
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </button>
+                          {/* Actions */}
+                          <button
+                            className="p-2 hover:bg-muted rounded-md transition-colors"
+                            onClick={() => handleCategorySelect(category.id)}
+                          >
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </div>
                       </div>
                       {index < displayCategories.length - 1 && <Separator />}
                     </div>
