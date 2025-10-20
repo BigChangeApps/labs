@@ -23,12 +23,14 @@ interface AttributeStore {
   manufacturers: Manufacturer[];
   coreAttributes: CoreAttribute[];
   enableParentInheritance: boolean;
+  showAlphabeticalCategories: boolean;
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
   toggleParentInheritance: () => void;
+  toggleAlphabeticalCategories: () => void;
 
   // Helper functions for hierarchical categories
   getCategoryPath: (categoryId: string) => Category[];
@@ -77,6 +79,16 @@ const getInitialParentInheritance = (): boolean => {
   }
 };
 
+// Load showAlphabeticalCategories from localStorage, default to false
+const getInitialAlphabeticalCategories = (): boolean => {
+  try {
+    const stored = localStorage.getItem("showAlphabeticalCategories");
+    return stored !== null ? JSON.parse(stored) : false;
+  } catch {
+    return false;
+  }
+};
+
 export const useAttributeStore = create<AttributeStore>((set) => ({
   // Initial state
   currentCategoryId: "boiler",
@@ -87,6 +99,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   manufacturers: initialManufacturers,
   coreAttributes: initialCoreAttributes,
   enableParentInheritance: getInitialParentInheritance(),
+  showAlphabeticalCategories: getInitialAlphabeticalCategories(),
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -109,6 +122,17 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const newValue = !state.enableParentInheritance;
       localStorage.setItem("enableParentInheritance", JSON.stringify(newValue));
       return { enableParentInheritance: newValue };
+    });
+  },
+
+  toggleAlphabeticalCategories: () => {
+    set((state) => {
+      const newValue = !state.showAlphabeticalCategories;
+      localStorage.setItem(
+        "showAlphabeticalCategories",
+        JSON.stringify(newValue)
+      );
+      return { showAlphabeticalCategories: newValue };
     });
   },
 

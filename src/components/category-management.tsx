@@ -34,8 +34,12 @@ import { CategoryTree } from "./category-tree";
 import { CoreAttributesView } from "./core-attributes-view";
 
 export function CategoryManagement() {
-  const { categories, coreAttributes, enableParentInheritance } =
-    useAttributeStore();
+  const {
+    categories,
+    coreAttributes,
+    enableParentInheritance,
+    showAlphabeticalCategories,
+  } = useAttributeStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedView, setSelectedView] = useState<"list" | "all-categories">(
@@ -52,10 +56,12 @@ export function CategoryManagement() {
       )
     : categories;
 
-  // Get root categories (those without a parent)
-  const rootCategories = filteredCategories.filter(
-    (c: { parentId?: string }) => !c.parentId
-  );
+  // Get categories for display based on view mode
+  const displayCategories = showAlphabeticalCategories
+    ? filteredCategories.sort((a: { name: string }, b: { name: string }) =>
+        a.name.localeCompare(b.name)
+      )
+    : filteredCategories.filter((c: { parentId?: string }) => !c.parentId);
 
   // Helper function to calculate enabled attribute count for a category
   const getEnabledAttributeCount = (category: any) => {
@@ -164,8 +170,8 @@ export function CategoryManagement() {
 
   // Categories list view
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-6">
-      <div className="space-y-3">
+    <div className="container max-w-4xl mx-auto py-8 px-6">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center gap-4">
           <div className="flex-1">
@@ -221,113 +227,148 @@ export function CategoryManagement() {
         {/* Categories List */}
         <Card>
           <CardContent className="p-0">
-            {/* Parent Categories */}
-            {rootCategories.map((category, index) => {
-              const childCount = getChildCategoryCount(category);
-              const isClickable = isCategoryClickable(category);
-              const hasChildren =
-                category.children && category.children.length > 0;
-              const isExpanded = expandedCategories.has(category.id);
-              const childCategories = getChildCategories(category.id);
-              const CategoryIcon = getCategoryIcon(category.name);
+            {showAlphabeticalCategories
+              ? /* Alphabetical View */
+                displayCategories.map((category, index) => {
+                  const enabledCount = getEnabledAttributeCount(category);
+                  const CategoryIcon = getCategoryIcon(category.name);
 
-              return (
-                <div key={category.id}>
-                  <div
-                    className={`flex items-start gap-4 py-4 px-4 transition-colors ${
-                      hasChildren ? "cursor-pointer hover:bg-muted/50" : ""
-                    }`}
-                    onClick={
-                      hasChildren
-                        ? () => toggleCategoryExpansion(category.id)
-                        : undefined
-                    }
-                  >
-                    {/* Icon */}
-                    <div className="mt-1">
-                      <CategoryIcon className="h-5 w-5 text-primary" />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="font-bold text-sm text-primary">
-                        {category.name}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {childCount} categories
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      {hasChildren && (
-                        <div className="h-8 w-8 flex items-center justify-center">
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
+                  return (
+                    <div key={category.id}>
+                      <div className="flex items-center gap-4 py-4 px-4 transition-colors hover:bg-muted/50">
+                        {/* Icon */}
+                        <div>
+                          <CategoryIcon className="h-5 w-5 text-primary" />
                         </div>
-                      )}
-                      {isClickable && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCategorySelect(category.id);
-                          }}
-                        >
-                          Configure
-                        </Button>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Child Categories */}
-                  {hasChildren && isExpanded && childCategories.length > 0 && (
-                    <div className="px-4 pb-4">
-                      <div className="ml-6 space-y-2">
-                        {childCategories.map((childCategory) => {
-                          const enabledCount =
-                            getEnabledAttributeCount(childCategory);
-                          const childIsClickable =
-                            isCategoryClickable(childCategory);
-                          return (
-                            <div
-                              key={childCategory.id}
-                              className="flex items-start gap-3 py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
-                            >
-                              <div className="flex-1">
-                                <div className="font-medium text-sm text-foreground">
-                                  {childCategory.name}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {enabledCount} attributes
-                                </div>
-                              </div>
-                              {childIsClickable && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleCategorySelect(childCategory.id)
-                                  }
-                                >
-                                  Configure
-                                </Button>
+                        {/* Content */}
+                        <div className="flex-1">
+                          <div className="font-bold text-sm text-primary">
+                            {category.name}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <button
+                          className="p-2 hover:bg-muted rounded-md transition-colors"
+                          onClick={() => handleCategorySelect(category.id)}
+                        >
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </div>
+                      {index < displayCategories.length - 1 && <Separator />}
+                    </div>
+                  );
+                })
+              : /* Hierarchical View */
+                displayCategories.map((category, index) => {
+                  const childCount = getChildCategoryCount(category);
+                  const isClickable = isCategoryClickable(category);
+                  const hasChildren =
+                    category.children && category.children.length > 0;
+                  const isExpanded = expandedCategories.has(category.id);
+                  const childCategories = getChildCategories(category.id);
+                  const CategoryIcon = getCategoryIcon(category.name);
+
+                  return (
+                    <div key={category.id}>
+                      <div
+                        className={`flex items-start gap-4 py-4 px-4 transition-colors ${
+                          hasChildren ? "cursor-pointer hover:bg-muted/50" : ""
+                        }`}
+                        onClick={
+                          hasChildren
+                            ? () => toggleCategoryExpansion(category.id)
+                            : undefined
+                        }
+                      >
+                        {/* Icon */}
+                        <div className="mt-1">
+                          <CategoryIcon className="h-5 w-5 text-primary" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1">
+                          <div className="font-bold text-sm text-primary">
+                            {category.name}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {childCount} categories
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          {hasChildren && (
+                            <div className="h-8 w-8 flex items-center justify-center">
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
                               )}
                             </div>
-                          );
-                        })}
+                          )}
+                          {isClickable && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategorySelect(category.id);
+                              }}
+                            >
+                              Configure
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
 
-                  {index < rootCategories.length - 1 && <Separator />}
-                </div>
-              );
-            })}
+                      {/* Child Categories */}
+                      {hasChildren &&
+                        isExpanded &&
+                        childCategories.length > 0 && (
+                          <div className="px-4 pb-4">
+                            <div className="ml-6 space-y-2">
+                              {childCategories.map((childCategory) => {
+                                const enabledCount =
+                                  getEnabledAttributeCount(childCategory);
+                                const childIsClickable =
+                                  isCategoryClickable(childCategory);
+                                return (
+                                  <div
+                                    key={childCategory.id}
+                                    className="flex items-start gap-3 py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                                  >
+                                    <div className="flex-1">
+                                      <div className="font-medium text-sm text-foreground">
+                                        {childCategory.name}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {enabledCount} attributes
+                                      </div>
+                                    </div>
+                                    {childIsClickable && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                          handleCategorySelect(childCategory.id)
+                                        }
+                                      >
+                                        Configure
+                                      </Button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                      {index < displayCategories.length - 1 && <Separator />}
+                    </div>
+                  );
+                })}
           </CardContent>
         </Card>
       </div>

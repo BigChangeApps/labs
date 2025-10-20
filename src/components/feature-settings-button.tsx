@@ -14,8 +14,12 @@ import { useAttributeStore } from "@/lib/store";
 
 export function FeatureSettingsButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const { enableParentInheritance, toggleParentInheritance } =
-    useAttributeStore();
+  const {
+    enableParentInheritance,
+    toggleParentInheritance,
+    showAlphabeticalCategories,
+    toggleAlphabeticalCategories,
+  } = useAttributeStore();
 
   return (
     <>
@@ -56,6 +60,24 @@ export function FeatureSettingsButton() {
                 id="parent-inheritance"
                 checked={enableParentInheritance}
                 onCheckedChange={toggleParentInheritance}
+              />
+            </div>
+
+            {/* Alphabetical Categories Toggle */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="alphabetical-categories" className="text-base">
+                  Show Alphabetical Category List
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, categories are displayed in a flat alphabetical
+                  list. When disabled, categories are grouped by parent.
+                </p>
+              </div>
+              <Switch
+                id="alphabetical-categories"
+                checked={showAlphabeticalCategories}
+                onCheckedChange={toggleAlphabeticalCategories}
               />
             </div>
           </div>
