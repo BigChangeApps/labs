@@ -44,19 +44,19 @@ export function CategoryManagement() {
   // Categories list view
   return (
     <div className="w-full">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Attributes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Attributes</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Attributes are used to store extra information about your assets.
           </p>
         </div>
 
         {/* Core Attributes Card */}
         <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Icon */}
               <div className="bg-muted rounded-lg p-2">
                 <Settings className="h-5 w-5 text-primary" />
@@ -84,8 +84,8 @@ export function CategoryManagement() {
 
         {/* Category Attributes Section */}
         <Card>
-          <CardContent className="p-5">
-            <div className="space-y-4">
+          <CardContent className="p-3 sm:p-5">
+            <div className="space-y-3 sm:space-y-4">
               {/* Section Header */}
               <div className="space-y-1">
                 <h2 className="font-bold text-base">Category attributes</h2>
@@ -114,18 +114,18 @@ export function CategoryManagement() {
                   return (
                     <div key={category.id}>
                       <div
-                        className="flex items-center gap-4 py-3 px-4 transition-colors hover:bg-muted/50 cursor-pointer"
+                        className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer"
                         onClick={() => handleCategorySelect(category.id)}
                       >
                         {/* Content */}
-                        <div className="flex-1">
-                          <div className="font-medium text-sm text-primary">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-primary truncate">
                             {category.name}
                           </div>
                         </div>
 
                         {/* Right side actions */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                           {/* Attribute Count */}
                           {enabledCount > 0 && (
                             <div className="px-2 py-1 bg-muted text-xs font-medium text-primary rounded-full">

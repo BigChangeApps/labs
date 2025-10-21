@@ -91,16 +91,16 @@ export function ManufacturersView() {
 
   return (
     <div className="w-full">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Manufacturers</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Manufacturers</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage manufacturers and their models for your assets.
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -110,20 +110,20 @@ export function ManufacturersView() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setIsDrawerOpen(true)}>
+          <Button onClick={() => setIsDrawerOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Manufacturer
           </Button>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="border rounded-lg overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[40px] sm:w-[50px]"></TableHead>
                 <TableHead>Manufacturer</TableHead>
-                <TableHead>Models</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="hidden sm:table-cell">Models</TableHead>
+                <TableHead className="text-right w-[80px] sm:w-auto">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,7 +134,7 @@ export function ManufacturersView() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => toggleRow(manufacturer.id)}
                   >
-                    <TableCell>
+                    <TableCell className="p-2 sm:p-4">
                       <div className="h-6 w-6 flex items-center justify-center">
                         {expandedRows.has(manufacturer.id) ? (
                           <ChevronDown className="h-4 w-4" />
@@ -143,17 +143,25 @@ export function ManufacturersView() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium">{manufacturer.name}</span>
+                    <TableCell className="p-2 sm:p-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{manufacturer.name}</span>
+                        {/* Show model count on mobile (inline) */}
+                        <span className="text-xs text-muted-foreground sm:hidden">
+                          {manufacturer.models.length} model
+                          {manufacturer.models.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
+                    {/* Hide models column on mobile */}
+                    <TableCell className="hidden sm:table-cell">
                       <span className="text-muted-foreground">
                         {manufacturer.models.length} model
                         {manufacturer.models.length !== 1 ? "s" : ""}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                    <TableCell className="text-right p-2 sm:p-4">
+                      <div className="flex justify-end gap-0.5 sm:gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -184,17 +192,17 @@ export function ManufacturersView() {
                     <>
                       {manufacturer.models.map((model: Model) => (
                         <TableRow key={model.id} className="bg-muted/30">
-                          <TableCell></TableCell>
-                          <TableCell className="pl-12" colSpan={3}>
+                          <TableCell className="p-2 sm:p-4"></TableCell>
+                          <TableCell className="pl-6 sm:pl-12 p-2 sm:p-4" colSpan={3}>
                             <span className="text-sm">{model.name}</span>
                           </TableCell>
                         </TableRow>
                       ))}
                       {manufacturer.models.length === 0 && (
                         <TableRow className="bg-muted/30">
-                          <TableCell></TableCell>
+                          <TableCell className="p-2 sm:p-4"></TableCell>
                           <TableCell
-                            className="pl-12 text-muted-foreground text-sm"
+                            className="pl-6 sm:pl-12 text-muted-foreground text-sm p-2 sm:p-4"
                             colSpan={3}
                           >
                             No models yet
