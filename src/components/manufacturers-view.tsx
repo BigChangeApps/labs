@@ -121,20 +121,19 @@ export function ManufacturersView() {
             <TableBody>
               {filteredManufacturers.map((manufacturer: Manufacturer) => (
                 <>
-                  <TableRow key={manufacturer.id}>
+                  <TableRow
+                    key={manufacturer.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => toggleRow(manufacturer.id)}
+                  >
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => toggleRow(manufacturer.id)}
-                      >
+                      <div className="h-6 w-6 flex items-center justify-center">
                         {expandedRows.has(manufacturer.id) ? (
                           <ChevronDown className="h-4 w-4" />
                         ) : (
                           <ChevronRight className="h-4 w-4" />
                         )}
-                      </Button>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">{manufacturer.name}</span>
@@ -151,9 +150,10 @@ export function ManufacturersView() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() =>
-                            setEditDrawerManufacturerId(manufacturer.id)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditDrawerManufacturerId(manufacturer.id);
+                          }}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -161,9 +161,10 @@ export function ManufacturersView() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() =>
-                            handleDeleteManufacturer(manufacturer.id)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteManufacturer(manufacturer.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

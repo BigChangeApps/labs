@@ -225,7 +225,10 @@ export function CategoryManagement() {
 
                   return (
                     <div key={category.id}>
-                      <div className="flex items-center gap-4 py-4 px-4 transition-colors hover:bg-muted/50">
+                      <div
+                        className="flex items-center gap-4 py-4 px-4 transition-colors hover:bg-muted/50 cursor-pointer"
+                        onClick={() => handleCategorySelect(category.id)}
+                      >
                         {/* Icon */}
                         <div>
                           <CategoryIcon className="h-5 w-5 text-primary" />
@@ -248,12 +251,9 @@ export function CategoryManagement() {
                           )}
 
                           {/* Actions */}
-                          <button
-                            className="p-2 hover:bg-muted rounded-md transition-colors"
-                            onClick={() => handleCategorySelect(category.id)}
-                          >
+                          <div className="p-2">
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          </button>
+                          </div>
                         </div>
                       </div>
                       {index < displayCategories.length - 1 && <Separator />}
