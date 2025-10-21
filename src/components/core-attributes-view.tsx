@@ -96,11 +96,11 @@ export function CoreAttributesView() {
 
   return (
     <div className="w-full">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Core Attributes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Core Attributes</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage universal fields that appear on every asset
           </p>
         </div>
@@ -117,7 +117,7 @@ export function CoreAttributesView() {
         </div>
 
         {/* Attributes by Section */}
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-4 sm:space-y-6">
           {sections.map((section) => {
             const attributes = groupedAttributes[section] || [];
             if (attributes.length === 0 && section !== "custom") return null;
@@ -128,10 +128,10 @@ export function CoreAttributesView() {
 
             return (
               <Card key={section}>
-                <CardContent className="p-5">
-                  <div className="space-y-4">
+                <CardContent className="p-3 sm:p-5">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Section Header */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="space-y-1">
                         <h2 className="font-bold text-base">
                           {sectionLabels[section]}
@@ -140,7 +140,7 @@ export function CoreAttributesView() {
                           {sectionDescriptions[section]}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-shrink-0">
                         <Badge variant="secondary">
                           {enabledCount}/{attributes.length}
                         </Badge>
@@ -171,15 +171,15 @@ export function CoreAttributesView() {
                           );
                           return (
                             <div key={attribute.id}>
-                              <div className="flex items-start justify-between gap-4 py-3 px-4 transition-colors hover:bg-muted/50">
-                                <div className="flex items-start gap-3 flex-1 min-w-0">
-                                  {/* Type Icon */}
-                                  <div className="mt-0.5">
+                              <div className="flex items-start justify-between gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50">
+                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                  {/* Type Icon - hidden on mobile */}
+                                  <div className="mt-0.5 hidden sm:block">
                                     <IconComponent className="h-4 w-4 text-muted-foreground" />
                                   </div>
 
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                       <span className="font-medium text-sm">
                                         {attribute.label}
                                       </span>
@@ -215,7 +215,7 @@ export function CoreAttributesView() {
                                       )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                   <Switch
                                     checked={attribute.isEnabled}
                                     onCheckedChange={() =>
