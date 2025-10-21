@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useAttributeStore } from "@/lib/store";
 
 interface CategoryTreeProps {
   categories: Category[];
@@ -26,7 +25,6 @@ function TreeNode({
   level,
 }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { enableParentInheritance } = useAttributeStore();
   const hasChildren = category.children && category.children.length > 0;
 
   const childCategories = hasChildren
@@ -43,15 +41,9 @@ function TreeNode({
 
   const attributeCount = getAttributeCount(category);
 
-  // Only show badge if:
-  // - Parent inheritance is enabled, OR
-  // - Category has no children (is a leaf node)
-  const shouldShowBadge = enableParentInheritance || !hasChildren;
-
-  // Determine if category is clickable:
-  // - Always clickable if inheritance is enabled
-  // - Only clickable if it's a leaf node (no children) when inheritance is disabled
-  const isClickable = enableParentInheritance || !hasChildren;
+  // Always show badge and make all categories clickable
+  const shouldShowBadge = true;
+  const isClickable = true;
 
   return (
     <div>

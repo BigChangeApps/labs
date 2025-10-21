@@ -34,14 +34,12 @@ interface SortableAttributeRowProps {
   item: CustomAttributeItem;
   onToggle: () => void;
   onEdit: () => void;
-  enableParentInheritance: boolean;
 }
 
 function SortableAttributeRow({
   item,
   onToggle,
   onEdit,
-  enableParentInheritance,
 }: SortableAttributeRowProps) {
   const {
     attributes,
@@ -77,12 +75,11 @@ function SortableAttributeRow({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{item.attribute.label}</span>
-            {!enableParentInheritance &&
-              item.attribute.appliedToCategories.length >= 3 && (
-                <Badge variant="destructive" className="text-xs">
-                  Shared ({item.attribute.appliedToCategories.length})
-                </Badge>
-              )}
+            {item.attribute.appliedToCategories.length >= 3 && (
+              <Badge variant="destructive" className="text-xs">
+                Shared ({item.attribute.appliedToCategories.length})
+              </Badge>
+            )}
           </div>
           {item.attribute.description && (
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -118,7 +115,6 @@ export function CustomAttributes() {
     attributeLibrary,
     toggleAttribute,
     reorderAttributes,
-    enableParentInheritance,
   } = useAttributeStore();
   const [editingAttributeId, setEditingAttributeId] = useState<string | null>(
     null
@@ -179,7 +175,7 @@ export function CustomAttributes() {
         <CardContent className="space-y-4">
           {customAttributes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              No custom attributes yet. Add from library or create a new one.
+              No custom attributes yet. Create a new one.
             </div>
           ) : (
             <DndContext
@@ -206,7 +202,6 @@ export function CustomAttributes() {
                         )
                       }
                       onEdit={() => setEditingAttributeId(item.attributeId)}
-                      enableParentInheritance={enableParentInheritance}
                     />
                   ))}
                 </div>

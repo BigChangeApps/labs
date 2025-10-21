@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Trash2, X, Plus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Trash2, X, Plus, CornerDownLeft } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Kbd } from "@/components/ui/kbd";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
@@ -43,7 +44,6 @@ export function EditAttributeDrawer({
     deleteAttribute,
     removeAttributeFromCategory,
     currentCategoryId,
-    enableParentInheritance,
   } = useAttributeStore();
 
   const attribute = attributeLibrary.find(
@@ -57,6 +57,11 @@ export function EditAttributeDrawer({
   const [units, setUnits] = useState("");
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([""]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
+  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
+    null
+  );
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (attribute) {
@@ -74,6 +79,13 @@ export function EditAttributeDrawer({
     }
   }, [attribute]);
 
+  useEffect(() => {
+    if (focusIndex !== null && inputRefs.current[focusIndex]) {
+      inputRefs.current[focusIndex]?.focus();
+      setFocusIndex(null);
+    }
+  }, [focusIndex, dropdownOptions]);
+
   if (!attribute) return null;
 
   const isShared = attribute.appliedToCategories.length > 1;
@@ -81,7 +93,9 @@ export function EditAttributeDrawer({
 
   // Handlers for dropdown options
   const handleAddOption = () => {
+    const newIndex = dropdownOptions.length;
     setDropdownOptions([...dropdownOptions, ""]);
+    setFocusIndex(newIndex);
   };
 
   const handleRemoveOption = (index: number) => {
@@ -96,14 +110,21 @@ export function EditAttributeDrawer({
     setDropdownOptions(newOptions);
   };
 
+  const handleOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddOption();
+    }
+  };
+
   const handleSave = () => {
     if (!label.trim()) {
       toast.error("Please enter an attribute label");
       return;
     }
 
-    // Only validate category selection when parent inheritance is OFF
-    if (!enableParentInheritance && selectedCategories.length === 0) {
+    // Always validate category selection
+    if (selectedCategories.length === 0) {
       toast.error("Please select at least one category");
       return;
     }
@@ -137,28 +158,22 @@ export function EditAttributeDrawer({
       units: type === "number" && units.trim() ? units.trim() : undefined,
     };
 
-    // Only update appliedToCategories when parent inheritance is OFF
-    if (!enableParentInheritance) {
-      updates.appliedToCategories = selectedCategories;
-    }
+    // Always update appliedToCategories
+    updates.appliedToCategories = selectedCategories;
 
     editAttribute(attributeId, updates);
 
-    if (enableParentInheritance) {
-      toast.success("Attribute updated");
-    } else {
-      const categoryNames = categories
-        .filter((c: Category) => selectedCategories.includes(c.id))
-        .map((c: Category) => c.name)
-        .join(", ");
+    const categoryNames = categories
+      .filter((c: Category) => selectedCategories.includes(c.id))
+      .map((c: Category) => c.name)
+      .join(", ");
 
-      if (isShared) {
-        toast.success(
-          `Changes applied to all ${attribute.appliedToCategories.length} categories`
-        );
-      } else {
-        toast.success(`Attribute updated and applied to ${categoryNames}`);
-      }
+    if (isShared) {
+      toast.success(
+        `Changes applied to all ${attribute.appliedToCategories.length} categories`
+      );
+    } else {
+      toast.success(`Attribute updated and applied to ${categoryNames}`);
     }
 
     onOpenChange(false);
@@ -196,23 +211,14 @@ export function EditAttributeDrawer({
         </SheetHeader>
 
         <div className="space-y-6 py-6">
-          {enableParentInheritance ? (
-            <Alert>
+          {isShared && (
+            <Alert variant="destructive">
               <AlertDescription className="text-xs">
-                Attributes are category-specific in this mode. Changes only
-                affect this category.
+                This attribute is shared across{" "}
+                {attribute.appliedToCategories.length} categories. Changes will
+                apply to all of them.
               </AlertDescription>
             </Alert>
-          ) : (
-            isShared && (
-              <Alert variant="destructive">
-                <AlertDescription className="text-xs">
-                  This attribute is shared across{" "}
-                  {attribute.appliedToCategories.length} categories. Changes
-                  will apply to all of them.
-                </AlertDescription>
-              </Alert>
-            )
           )}
 
           <div className="space-y-2">
@@ -260,13 +266,29 @@ export function EditAttributeDrawer({
               <div className="space-y-2">
                 {dropdownOptions.map((option, index) => (
                   <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder={`Option ${index + 1}`}
-                      value={option}
-                      onChange={(e) =>
-                        handleOptionChange(index, e.target.value)
-                      }
-                    />
+                    <div className="relative flex-1">
+                      <Input
+                        ref={(el) => {
+                          inputRefs.current[index] = el;
+                        }}
+                        placeholder={`Option ${index + 1}`}
+                        value={option}
+                        onChange={(e) =>
+                          handleOptionChange(index, e.target.value)
+                        }
+                        onKeyDown={(e) => handleOptionKeyDown(e)}
+                        onFocus={() => setFocusedInputIndex(index)}
+                        onBlur={() => setFocusedInputIndex(null)}
+                        className="pr-12"
+                      />
+                      {focusedInputIndex === index && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <Kbd>
+                            <CornerDownLeft className="h-3 w-3" />
+                          </Kbd>
+                        </div>
+                      )}
+                    </div>
                     {dropdownOptions.length > 1 && (
                       <Button
                         type="button"
@@ -314,25 +336,21 @@ export function EditAttributeDrawer({
             <Switch checked={isPreferred} onCheckedChange={setIsPreferred} />
           </div>
 
-          {!enableParentInheritance && (
-            <CategoryTreeSelector
-              categories={categories}
-              selectedCategories={selectedCategories}
-              onSelectionChange={setSelectedCategories}
-              currentCategoryId={currentCategoryId}
-            />
-          )}
+          <CategoryTreeSelector
+            categories={categories}
+            selectedCategories={selectedCategories}
+            onSelectionChange={setSelectedCategories}
+            currentCategoryId={currentCategoryId}
+          />
 
           <div className="pt-4 border-t space-y-2">
-            {!enableParentInheritance && (
-              <Button
-                variant="outline"
-                onClick={handleRemoveFromCategory}
-                className="w-full"
-              >
-                Remove from Current Category
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleRemoveFromCategory}
+              className="w-full"
+            >
+              Remove from Current Category
+            </Button>
 
             <Button
               variant="destructive"

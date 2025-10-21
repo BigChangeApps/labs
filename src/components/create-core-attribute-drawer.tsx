@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Plus, X, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Select,
   SelectContent,
@@ -44,10 +45,24 @@ export function CreateCoreAttributeDrawer({
   const [type, setType] = useState<AttributeType>("text");
   const [description, setDescription] = useState("");
   const [dropdownOptions, setDropdownOptions] = useState<string[]>([""]);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
+  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
+    null
+  );
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (focusIndex !== null && inputRefs.current[focusIndex]) {
+      inputRefs.current[focusIndex]?.focus();
+      setFocusIndex(null);
+    }
+  }, [focusIndex, dropdownOptions]);
 
   // Handlers for dropdown options
   const handleAddOption = () => {
+    const newIndex = dropdownOptions.length;
     setDropdownOptions([...dropdownOptions, ""]);
+    setFocusIndex(newIndex);
   };
 
   const handleRemoveOption = (index: number) => {
@@ -60,6 +75,13 @@ export function CreateCoreAttributeDrawer({
     const newOptions = [...dropdownOptions];
     newOptions[index] = value;
     setDropdownOptions(newOptions);
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddOption();
+    }
   };
 
   const handleSave = () => {
@@ -176,13 +198,29 @@ export function CreateCoreAttributeDrawer({
               <div className="space-y-2">
                 {dropdownOptions.map((option, index) => (
                   <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder={`Option ${index + 1}`}
-                      value={option}
-                      onChange={(e) =>
-                        handleOptionChange(index, e.target.value)
-                      }
-                    />
+                    <div className="relative flex-1">
+                      <Input
+                        ref={(el) => {
+                          inputRefs.current[index] = el;
+                        }}
+                        placeholder={`Option ${index + 1}`}
+                        value={option}
+                        onChange={(e) =>
+                          handleOptionChange(index, e.target.value)
+                        }
+                        onKeyDown={(e) => handleOptionKeyDown(e)}
+                        onFocus={() => setFocusedInputIndex(index)}
+                        onBlur={() => setFocusedInputIndex(null)}
+                        className="pr-12"
+                      />
+                      {focusedInputIndex === index && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <Kbd>
+                            <CornerDownLeft className="h-3 w-3" />
+                          </Kbd>
+                        </div>
+                      )}
+                    </div>
                     {dropdownOptions.length > 1 && (
                       <Button
                         type="button"

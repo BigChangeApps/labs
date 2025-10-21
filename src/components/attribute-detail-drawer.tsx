@@ -71,7 +71,6 @@ export function AttributeDetailDrawer({
     deleteAttribute,
     removeAttributeFromCategory,
     currentCategoryId,
-    enableParentInheritance,
   } = useAttributeStore();
 
   const attribute = attributeId
@@ -132,8 +131,8 @@ export function AttributeDetailDrawer({
       return;
     }
 
-    // Only validate category selection when parent inheritance is OFF
-    if (!enableParentInheritance && selectedCategories.length === 0) {
+    // Always validate category selection
+    if (selectedCategories.length === 0) {
       toast.error("Please select at least one category");
       return;
     }
@@ -167,29 +166,23 @@ export function AttributeDetailDrawer({
       units: type === "number" && units.trim() ? units.trim() : undefined,
     };
 
-    // Only update appliedToCategories when parent inheritance is OFF
-    if (!enableParentInheritance) {
-      updates.appliedToCategories = selectedCategories;
-    }
+    // Always update appliedToCategories
+    updates.appliedToCategories = selectedCategories;
 
     if (!attributeId) return;
     editAttribute(attributeId, updates);
 
-    if (enableParentInheritance) {
-      toast.success("Attribute updated");
-    } else {
-      const categoryNames = categories
-        .filter((c: Category) => selectedCategories.includes(c.id))
-        .map((c: Category) => c.name)
-        .join(", ");
+    const categoryNames = categories
+      .filter((c: Category) => selectedCategories.includes(c.id))
+      .map((c: Category) => c.name)
+      .join(", ");
 
-      if (isShared) {
-        toast.success(
-          `Changes applied to all ${attribute.appliedToCategories.length} categories`
-        );
-      } else {
-        toast.success(`Attribute updated and applied to ${categoryNames}`);
-      }
+    if (isShared) {
+      toast.success(
+        `Changes applied to all ${attribute.appliedToCategories.length} categories`
+      );
+    } else {
+      toast.success(`Attribute updated and applied to ${categoryNames}`);
     }
 
     onOpenChange(false);
@@ -323,23 +316,14 @@ export function AttributeDetailDrawer({
         </SheetHeader>
 
         <div className="space-y-6 py-6">
-          {enableParentInheritance ? (
-            <Alert>
+          {isShared && (
+            <Alert variant="destructive">
               <AlertDescription className="text-xs">
-                Attributes are category-specific in this mode. Changes only
-                affect this category.
+                This attribute is shared across{" "}
+                {attribute.appliedToCategories.length} categories. Changes will
+                apply to all of them.
               </AlertDescription>
             </Alert>
-          ) : (
-            isShared && (
-              <Alert variant="destructive">
-                <AlertDescription className="text-xs">
-                  This attribute is shared across{" "}
-                  {attribute.appliedToCategories.length} categories. Changes
-                  will apply to all of them.
-                </AlertDescription>
-              </Alert>
-            )
           )}
 
           <div className="space-y-2">
@@ -441,25 +425,21 @@ export function AttributeDetailDrawer({
             <Switch checked={isPreferred} onCheckedChange={setIsPreferred} />
           </div>
 
-          {!enableParentInheritance && (
-            <CategoryTreeSelector
-              categories={categories}
-              selectedCategories={selectedCategories}
-              onSelectionChange={setSelectedCategories}
-              currentCategoryId={currentCategoryId}
-            />
-          )}
+          <CategoryTreeSelector
+            categories={categories}
+            selectedCategories={selectedCategories}
+            onSelectionChange={setSelectedCategories}
+            currentCategoryId={currentCategoryId}
+          />
 
           <div className="pt-4 border-t space-y-2">
-            {!enableParentInheritance && (
-              <Button
-                variant="outline"
-                onClick={handleRemoveFromCategory}
-                className="w-full"
-              >
-                Remove from Current Category
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleRemoveFromCategory}
+              className="w-full"
+            >
+              Remove from Current Category
+            </Button>
 
             <Button
               variant="destructive"

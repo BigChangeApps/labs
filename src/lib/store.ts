@@ -22,22 +22,11 @@ interface AttributeStore {
   categories: Category[];
   manufacturers: Manufacturer[];
   coreAttributes: CoreAttribute[];
-  enableParentInheritance: boolean;
-  showAlphabeticalCategories: boolean;
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
-  toggleParentInheritance: () => void;
-  toggleAlphabeticalCategories: () => void;
-
-  // Helper functions for hierarchical categories
-  getCategoryPath: (categoryId: string) => Category[];
-  getInheritedAttributes: (categoryId: string) => {
-    system: CategoryAttributeConfig[];
-    custom: CategoryAttributeConfig[];
-  };
 
   // Attribute actions
   toggleAttribute: (
@@ -69,26 +58,6 @@ interface AttributeStore {
   addCoreAttribute: (attribute: Omit<CoreAttribute, "id">) => string;
 }
 
-// Load enableParentInheritance from localStorage, default to true
-const getInitialParentInheritance = (): boolean => {
-  try {
-    const stored = localStorage.getItem("enableParentInheritance");
-    return stored !== null ? JSON.parse(stored) : true;
-  } catch {
-    return true;
-  }
-};
-
-// Load showAlphabeticalCategories from localStorage, default to false
-const getInitialAlphabeticalCategories = (): boolean => {
-  try {
-    const stored = localStorage.getItem("showAlphabeticalCategories");
-    return stored !== null ? JSON.parse(stored) : false;
-  } catch {
-    return false;
-  }
-};
-
 export const useAttributeStore = create<AttributeStore>((set) => ({
   // Initial state
   currentCategoryId: "boiler",
@@ -98,8 +67,6 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   categories: initialCategories,
   manufacturers: initialManufacturers,
   coreAttributes: initialCoreAttributes,
-  enableParentInheritance: getInitialParentInheritance(),
-  showAlphabeticalCategories: getInitialAlphabeticalCategories(),
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -117,27 +84,8 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     set({ currentSettingsTab: tab });
   },
 
-  toggleParentInheritance: () => {
-    set((state) => {
-      const newValue = !state.enableParentInheritance;
-      localStorage.setItem("enableParentInheritance", JSON.stringify(newValue));
-      return { enableParentInheritance: newValue };
-    });
-  },
-
-  toggleAlphabeticalCategories: () => {
-    set((state) => {
-      const newValue = !state.showAlphabeticalCategories;
-      localStorage.setItem(
-        "showAlphabeticalCategories",
-        JSON.stringify(newValue)
-      );
-      return { showAlphabeticalCategories: newValue };
-    });
-  },
-
   // Get the full path of categories from root to the given category
-  getCategoryPath: (categoryId) => {
+  getCategoryPath: (categoryId: string) => {
     const state = useAttributeStore.getState();
     const path: Category[] = [];
     let currentId: string | undefined = categoryId;
@@ -155,39 +103,6 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     }
 
     return path;
-  },
-
-  // Get inherited attributes from parent categories
-  getInheritedAttributes: (
-    categoryId: string
-  ): {
-    system: CategoryAttributeConfig[];
-    custom: CategoryAttributeConfig[];
-  } => {
-    const state = useAttributeStore.getState();
-    const category = state.categories.find(
-      (c: Category) => c.id === categoryId
-    );
-
-    if (!category || !category.parentId) {
-      return { system: [], custom: [] };
-    }
-
-    // Get parent category
-    const parent = state.categories.find(
-      (c: Category) => c.id === category.parentId
-    );
-    if (!parent) {
-      return { system: [], custom: [] };
-    }
-
-    // Recursively get all inherited attributes from ancestor chain
-    const parentInherited = state.getInheritedAttributes(parent.id);
-
-    return {
-      system: [...parentInherited.system, ...parent.systemAttributes],
-      custom: [...parentInherited.custom, ...parent.customAttributes],
-    };
   },
 
   // Toggle attribute on/off for a category

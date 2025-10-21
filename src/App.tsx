@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CategoryManagement } from "@/components/category-management";
 import { CategoryDetail } from "@/components/category-detail";
 import { ManufacturersView } from "@/components/manufacturers-view";
-import { FeatureSettingsButton } from "@/components/feature-settings-button";
+import { CoreAttributesView } from "@/components/core-attributes-view";
 import { AssetSettingsLayout } from "@/components/asset-settings-layout";
 
 function App() {
@@ -21,12 +21,15 @@ function App() {
                   path="/category/:categoryId"
                   element={<CategoryDetail />}
                 />
+                <Route
+                  path="/core-attributes"
+                  element={<CoreAttributesView />}
+                />
                 <Route path="/manufacturers" element={<ManufacturersView />} />
               </Route>
             </Routes>
           </main>
         </div>
-        <FeatureSettingsButton />
         <Toaster position="bottom-right" />
       </TooltipProvider>
     </BrowserRouter>

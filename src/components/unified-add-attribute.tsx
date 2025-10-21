@@ -12,9 +12,13 @@ export function UnifiedAddAttribute({ categoryId }: UnifiedAddAttributeProps) {
 
   return (
     <>
-      <Button className="w-full" onClick={() => setIsCreateDrawerOpen(true)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsCreateDrawerOpen(true)}
+      >
         <Plus className="h-4 w-4 mr-2" />
-        Add Attribute
+        Add attribute
       </Button>
 
       <CreateAttributeDrawer

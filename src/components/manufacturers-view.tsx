@@ -90,8 +90,16 @@ export function ManufacturersView() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-6">
+    <div className="w-full">
       <div className="space-y-6">
+        {/* Header */}
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Manufacturers</h1>
+          <p className="text-muted-foreground">
+            Manage manufacturers and their models for your assets.
+          </p>
+        </div>
+
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
