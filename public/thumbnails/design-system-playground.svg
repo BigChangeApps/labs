@@ -1,0 +1,121 @@
+<svg width="800" height="450" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FAFAFA"/>
+
+  <!-- Main gradient background -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#086DFF;stop-opacity:0.1" />
+      <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#grad1)"/>
+
+  <!-- Color Palette Display -->
+  <g transform="translate(50, 50)">
+    <!-- Title -->
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="32" font-weight="700" fill="#171717">
+      Design System
+    </text>
+    <text x="0" y="35" font-family="Inter, sans-serif" font-size="16" fill="#737373">
+      Token Playground
+    </text>
+
+    <!-- Color Scale 1 - Blue -->
+    <g transform="translate(0, 80)">
+      <rect x="0" y="0" width="60" height="60" rx="8" fill="#E0EFFF"/>
+      <rect x="70" y="0" width="60" height="60" rx="8" fill="#B3DEFF"/>
+      <rect x="140" y="0" width="60" height="60" rx="8" fill="#66B8FF"/>
+      <rect x="210" y="0" width="60" height="60" rx="8" fill="#3399FF"/>
+      <rect x="280" y="0" width="60" height="60" rx="8" fill="#086DFF"/>
+      <rect x="350" y="0" width="60" height="60" rx="8" fill="#0654CC"/>
+    </g>
+
+    <!-- Color Scale 2 - Purple -->
+    <g transform="translate(0, 160)">
+      <rect x="0" y="0" width="60" height="60" rx="8" fill="#F5EDFF"/>
+      <rect x="70" y="0" width="60" height="60" rx="8" fill="#E4D1FF"/>
+      <rect x="140" y="0" width="60" height="60" rx="8" fill="#C9A1FF"/>
+      <rect x="210" y="0" width="60" height="60" rx="8" fill="#A66EFF"/>
+      <rect x="280" y="0" width="60" height="60" rx="8" fill="#7C3AED"/>
+      <rect x="350" y="0" width="60" height="60" rx="8" fill="#6224CC"/>
+    </g>
+
+    <!-- Color Scale 3 - Pink -->
+    <g transform="translate(0, 240)">
+      <rect x="0" y="0" width="60" height="60" rx="8" fill="#FFE8F0"/>
+      <rect x="70" y="0" width="60" height="60" rx="8" fill="#FFCCE0"/>
+      <rect x="140" y="0" width="60" height="60" rx="8" fill="#FF99C2"/>
+      <rect x="210" y="0" width="60" height="60" rx="8" fill="#FF66A3"/>
+      <rect x="280" y="0" width="60" height="60" rx="8" fill="#EC4899"/>
+      <rect x="350" y="0" width="60" height="60" rx="8" fill="#BE3A7A"/>
+    </g>
+  </g>
+
+  <!-- UI Controls Preview -->
+  <g transform="translate(480, 50)">
+    <!-- Control Panel -->
+    <rect x="0" y="0" width="270" height="350" rx="12" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+
+    <!-- Header -->
+    <text x="20" y="35" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#171717">
+      Token Editor
+    </text>
+
+    <!-- Color Input -->
+    <g transform="translate(20, 60)">
+      <text y="0" font-family="Inter, sans-serif" font-size="12" fill="#737373">Hex Color</text>
+      <rect x="0" y="8" width="230" height="36" rx="6" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+      <text x="12" y="32" font-family="monospace" font-size="14" fill="#171717">#086DFF</text>
+    </g>
+
+    <!-- OKLCH Values -->
+    <g transform="translate(20, 125)">
+      <text y="0" font-family="Inter, sans-serif" font-size="12" fill="#737373">OKLCH</text>
+
+      <!-- L -->
+      <rect x="0" y="8" width="70" height="36" rx="6" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+      <text x="8" y="32" font-family="monospace" font-size="12" fill="#171717">L: 0.58</text>
+
+      <!-- C -->
+      <rect x="80" y="8" width="70" height="36" rx="6" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+      <text x="88" y="32" font-family="monospace" font-size="12" fill="#171717">C: 0.23</text>
+
+      <!-- H -->
+      <rect x="160" y="8" width="70" height="36" rx="6" fill="white" stroke="#E5E5E5" stroke-width="1"/>
+      <text x="168" y="32" font-family="monospace" font-size="12" fill="#171717">H: 260</text>
+    </g>
+
+    <!-- Semantic Tokens -->
+    <g transform="translate(20, 200)">
+      <text y="0" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#171717">Semantic Layer</text>
+
+      <g transform="translate(0, 20)">
+        <circle cx="10" cy="10" r="8" fill="#086DFF"/>
+        <text x="25" y="15" font-family="Inter, sans-serif" font-size="12" fill="#525252">Primary</text>
+      </g>
+
+      <g transform="translate(0, 45)">
+        <circle cx="10" cy="10" r="8" fill="#E5E5E5"/>
+        <text x="25" y="15" font-family="Inter, sans-serif" font-size="12" fill="#525252">Secondary</text>
+      </g>
+
+      <g transform="translate(0, 70)">
+        <circle cx="10" cy="10" r="8" fill="#EF4444"/>
+        <text x="25" y="15" font-family="Inter, sans-serif" font-size="12" fill="#525252">Destructive</text>
+      </g>
+    </g>
+
+    <!-- Button Preview -->
+    <g transform="translate(20, 305)">
+      <rect x="0" y="0" width="100" height="32" rx="6" fill="#086DFF"/>
+      <text x="50" y="21" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="white" text-anchor="middle">Preview</text>
+    </g>
+  </g>
+
+  <!-- Decorative elements -->
+  <circle cx="430" cy="80" r="3" fill="#086DFF" opacity="0.5"/>
+  <circle cx="450" cy="120" r="2" fill="#7C3AED" opacity="0.5"/>
+  <circle cx="440" cy="160" r="2.5" fill="#EC4899" opacity="0.5"/>
+</svg>

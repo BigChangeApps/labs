@@ -16,6 +16,20 @@ export interface PrototypeMetadata {
 
 export const prototypes: PrototypeMetadata[] = [
   {
+    id: "design-system-playground",
+    title: "Design System Playground",
+    description:
+      "Interactive playground for experimenting with design tokens, color systems, and shadcn component theming. Features hex/OKLCH converter and semantic token editor.",
+    author: "Design Team",
+    authorInitials: "DT",
+    tags: ["design-system", "tokens", "theming", "shadcn", "colors"],
+    thumbnail: "/thumbnails/design-system-playground.svg",
+    path: "/design-system-playground",
+    createdAt: "2025-01-23",
+    status: "active",
+    deviceType: "desktop",
+  },
+  {
     id: "asset-attributes",
     title: "Asset Attributes Management",
     description:
