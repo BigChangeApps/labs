@@ -26,7 +26,7 @@ export function ColorConverter() {
     try {
       const hex = oklchToHex(newOklch);
       setHexValue(hex);
-    } catch (e) {
+    } catch {
       // Invalid color
     }
   };
