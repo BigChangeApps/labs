@@ -6,7 +6,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
+import { Button } from "@/registry/ui/button";
 import { useAttributeStore } from "../lib/store";
 import {
   Sheet,
@@ -14,7 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@shared/components/ui/sheet";
+} from "@/registry/ui/sheet";
 import { useState } from "react";
 
 export function Layout() {

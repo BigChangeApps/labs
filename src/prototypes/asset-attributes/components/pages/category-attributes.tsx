@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Settings, ChevronRight } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
-import { Input } from "@shared/components/ui/input";
-import { Button } from "@shared/components/ui/button";
-import { Card, CardContent } from "@shared/components/ui/card";
-import { Separator } from "@shared/components/ui/separator";
+import { Input } from "@/registry/ui/input";
+import { Button } from "@/registry/ui/button";
+import { Card, CardContent } from "@/registry/ui/card";
+import { Separator } from "@/registry/ui/separator";
 import type { Category, CategoryAttributeConfig } from "../../types";
 
 export function CategoryAttributes() {

@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Info } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "@/registry/ui/button";
 import type { DeviceType } from "@/labs/data/prototypes";
 
 interface PrototypeBannerProps {

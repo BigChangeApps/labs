@@ -7,8 +7,8 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
 import {
   Table,
   TableBody,
@@ -16,7 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@shared/components/ui/table";
+} from "@/registry/ui/table";
 import { useAttributeStore } from "../../lib/store";
 import { toast } from "sonner";
 import type { Manufacturer, Model } from "../../types";

@@ -6,7 +6,7 @@ import {
   searchPrototypes,
   getAllTags,
 } from "@/labs/data/prototypes";
-import { Separator } from "@/shared/components/ui/separator";
+import { Separator } from "@/registry/ui/separator";
 
 export default function Labs() {
   const [searchQuery, setSearchQuery] = useState("");

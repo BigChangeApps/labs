@@ -7,11 +7,11 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@shared/components/ui/sheet";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Label } from "@shared/components/ui/label";
-import { Kbd } from "@shared/components/ui/kbd";
+} from "@/registry/ui/sheet";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
+import { Kbd } from "@/registry/ui/kbd";
 import { toast } from "sonner";
 
 interface CreateManufacturerDrawerProps {

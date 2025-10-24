@@ -8,12 +8,12 @@ import {
   Calendar,
   CheckSquare,
 } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Switch } from "@shared/components/ui/switch";
-import { Badge } from "@shared/components/ui/badge";
-import { Card, CardContent } from "@shared/components/ui/card";
-import { Separator } from "@shared/components/ui/separator";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Switch } from "@/registry/ui/switch";
+import { Badge } from "@/registry/ui/badge";
+import { Card, CardContent } from "@/registry/ui/card";
+import { Separator } from "@/registry/ui/separator";
 import { useAttributeStore } from "../../lib/store";
 import type { CoreAttribute, CoreAttributeSection } from "../../types";
 import { CreateCoreAttributeDrawer } from "../features/attributes/create-core-attribute-drawer";

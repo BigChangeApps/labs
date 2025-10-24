@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/shared/components/ui/card";
+} from "@/registry/ui/card";
 import type { PrototypeMetadata } from "../data/prototypes";
 
 interface PrototypeCardProps {

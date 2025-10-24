@@ -6,19 +6,19 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@shared/components/ui/sheet";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Label } from "@shared/components/ui/label";
-import { Switch } from "@shared/components/ui/switch";
-import { Kbd } from "@shared/components/ui/kbd";
+} from "@/registry/ui/sheet";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
+import { Switch } from "@/registry/ui/switch";
+import { Kbd } from "@/registry/ui/kbd";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@shared/components/ui/select";
+} from "@/registry/ui/select";
 import { useAttributeStore } from "../../../lib/store";
 import type { AttributeType, Category } from "../../../types";
 import { toast } from "sonner";

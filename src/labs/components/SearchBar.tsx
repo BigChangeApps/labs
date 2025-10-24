@@ -1,7 +1,7 @@
-import { Input } from "@/shared/components/ui/input";
-import { Badge } from "@/shared/components/ui/badge";
+import { Input } from "@/registry/ui/input";
+import { Badge } from "@/registry/ui/badge";
 import { Search, X } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
+import { Button } from "@/registry/ui/button";
 
 interface SearchBarProps {
   value: string;
@@ -27,7 +27,7 @@ export function SearchBar({
         <Input
           placeholder="Search prototypes..."
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           className="pl-10 h-12 text-base bg-background/50 backdrop-blur-sm border-border/50"
         />
       </div>
@@ -51,7 +51,7 @@ export function SearchBar({
                     variant="ghost"
                     size="sm"
                     className="h-auto p-0 ml-1.5 hover:bg-transparent"
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       onTagRemove(tag);
                     }}

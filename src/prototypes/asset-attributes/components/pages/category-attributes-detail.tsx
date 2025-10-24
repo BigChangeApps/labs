@@ -13,16 +13,16 @@ import {
   Eye,
   Plus,
 } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
-import { Badge } from "@shared/components/ui/badge";
-import { Switch } from "@shared/components/ui/switch";
-import { Card, CardContent } from "@shared/components/ui/card";
-import { Separator } from "@shared/components/ui/separator";
+import { Button } from "@/registry/ui/button";
+import { Badge } from "@/registry/ui/badge";
+import { Switch } from "@/registry/ui/switch";
+import { Card, CardContent } from "@/registry/ui/card";
+import { Separator } from "@/registry/ui/separator";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@shared/components/ui/popover";
+} from "@/registry/ui/popover";
 import { useAttributeStore } from "../../lib/store";
 import { AttributeDetailDrawer } from "../features/attributes/attribute-detail-drawer";
 import { CreateAttributeDrawer } from "../features/attributes/create-attribute-drawer";
