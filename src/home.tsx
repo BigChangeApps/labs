@@ -1,44 +1,18 @@
 import { useState, useMemo } from "react";
-import { SearchBar } from "@/labs/components/SearchBar";
-import { PrototypeGrid } from "@/labs/components/PrototypeGrid";
-import {
-  prototypes,
-  searchPrototypes,
-  getAllTags,
-} from "@/labs/data/prototypes";
+import { SearchBar } from "@/components/SearchBar";
+import { PrototypeGrid } from "@/components/PrototypeGrid";
+import { prototypes, searchPrototypes } from "@/data/prototypes";
 import { Separator } from "@/registry/ui/separator";
 
-export default function Labs() {
+export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  const availableTags = useMemo(() => getAllTags(prototypes), []);
 
   const filteredPrototypes = useMemo(() => {
-    let results = prototypes;
-
-    // Apply search filter
-    if (searchQuery) {
-      results = searchPrototypes(searchQuery, results);
+    if (!searchQuery) {
+      return prototypes;
     }
-
-    // Apply tag filters
-    if (selectedTags.length > 0) {
-      results = results.filter((prototype) =>
-        selectedTags.every((tag) => prototype.tags.includes(tag))
-      );
-    }
-
-    return results;
-  }, [searchQuery, selectedTags]);
-
-  const handleTagSelect = (tag: string) => {
-    setSelectedTags((prev) => [...prev, tag]);
-  };
-
-  const handleTagRemove = (tag: string) => {
-    setSelectedTags((prev) => prev.filter((t) => t !== tag));
-  };
+    return searchPrototypes(searchQuery, prototypes);
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,15 +38,11 @@ export default function Labs() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="space-y-8">
-          {/* Search and Filter */}
+        <div className="space-y-6">
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
-            selectedTags={selectedTags}
-            availableTags={availableTags}
-            onTagSelect={handleTagSelect}
-            onTagRemove={handleTagRemove}
+            placeholder="Search prototypes..."
           />
 
           <Separator className="bg-border/40" />

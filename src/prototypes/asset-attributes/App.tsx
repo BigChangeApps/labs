@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/registry/ui/tooltip";
-import { PrototypeBanner } from "@/labs/components/PrototypeBanner";
+import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { CategoryAttributes } from "./components/pages/category-attributes";
 import { CategoryAttributesDetail } from "./components/pages/category-attributes-detail";
 import { Manufacturers } from "./components/pages/manufacturers";
