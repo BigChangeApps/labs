@@ -201,7 +201,7 @@ export function CategoryAttributesDetail() {
                     Attributes specific to this category
                   </p>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <Badge variant="secondary">
                     {directAttributes.filter((attr) => attr.isEnabled).length}/
                     {directAttributes.length}
@@ -293,7 +293,7 @@ export function CategoryAttributesDetail() {
 
                           {/* Actions */}
                           <div
-                            className="flex items-center gap-1 sm:gap-2 flex-shrink-0"
+                            className="flex items-center gap-1 sm:gap-2 shrink-0"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {/* Toggle switch for all attributes */}

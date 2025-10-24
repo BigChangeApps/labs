@@ -16,7 +16,7 @@ export function PrototypeCard({ prototype }: PrototypeCardProps) {
 
   return (
     <Card
-      className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border/50 bg-card/50 backdrop-blur"
+      className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border/50 bg-card/50 backdrop-blur-sm"
       onClick={() => navigate(prototype.path)}
     >
       <CardHeader className="space-y-4">

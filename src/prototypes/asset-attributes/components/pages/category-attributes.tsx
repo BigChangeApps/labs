@@ -132,7 +132,7 @@ export function CategoryAttributes() {
                         </div>
 
                         {/* Right side actions */}
-                        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                           {/* Attribute Count */}
                           {enabledCount > 0 && (
                             <div className="px-2 py-1 bg-muted text-xs font-medium text-primary rounded-full">

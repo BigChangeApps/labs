@@ -142,7 +142,7 @@ export function CoreAttributes() {
                           {sectionDescriptions[section]}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="flex items-center gap-3 shrink-0">
                         <Badge variant="secondary">
                           {enabledCount}/{attributes.length}
                         </Badge>
@@ -217,7 +217,7 @@ export function CoreAttributes() {
                                       )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="flex items-center gap-2 shrink-0">
                                   <Switch
                                     checked={attribute.isEnabled}
                                     onCheckedChange={() =>

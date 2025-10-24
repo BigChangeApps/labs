@@ -28,7 +28,7 @@ export function SearchBar({
           placeholder="Search prototypes..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="pl-10 h-12 text-base bg-background/50 backdrop-blur border-border/50"
+          className="pl-10 h-12 text-base bg-background/50 backdrop-blur-sm border-border/50"
         />
       </div>
 
@@ -39,7 +39,7 @@ export function SearchBar({
             return (
               <Badge
                 key={tag}
-                variant={isSelected ? "default" : "outline"}
+                variant={isSelected ? "default" : "outline-solid"}
                 className="cursor-pointer transition-all hover:scale-105"
                 onClick={() =>
                   isSelected ? onTagRemove(tag) : onTagSelect(tag)
