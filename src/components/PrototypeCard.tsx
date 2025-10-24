@@ -33,11 +33,11 @@ export function PrototypeCard({ prototype }: PrototypeCardProps) {
             </div>
           )}
         </div>
-        <div className="space-y-2">
-          <CardTitle className="group-hover:text-primary transition-colors">
+        <div className="space-y-1">
+          <CardTitle className="text-base group-hover:text-primary transition-colors">
             {prototype.title}
           </CardTitle>
-          <CardDescription className="line-clamp-2">
+          <CardDescription className="text-base line-clamp-2">
             {prototype.description}
           </CardDescription>
         </div>
