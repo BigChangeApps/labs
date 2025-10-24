@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Labs from "@/labs/Labs";
+import Labs from "@/labs";
 import AssetAttributesApp from "@/prototypes/asset-attributes/App";
 
 function App() {

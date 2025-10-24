@@ -1,7 +1,11 @@
 import { useState, useMemo } from "react";
-import { SearchBar } from "./components/SearchBar";
-import { PrototypeGrid } from "./components/PrototypeGrid";
-import { prototypes, searchPrototypes, getAllTags } from "./data/prototypes";
+import { SearchBar } from "@/labs/components/SearchBar";
+import { PrototypeGrid } from "@/labs/components/PrototypeGrid";
+import {
+  prototypes,
+  searchPrototypes,
+  getAllTags,
+} from "@/labs/data/prototypes";
 import { Separator } from "@/shared/components/ui/separator";
 
 export default function Labs() {
