@@ -39,7 +39,7 @@ export function SearchBar({
             return (
               <Badge
                 key={tag}
-                variant={isSelected ? "default" : "outline-solid"}
+                variant={isSelected ? "default" : "outline"}
                 className="cursor-pointer transition-all hover:scale-105"
                 onClick={() =>
                   isSelected ? onTagRemove(tag) : onTagSelect(tag)
