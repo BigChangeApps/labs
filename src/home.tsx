@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { PrototypeGrid } from "@/components/PrototypeGrid";
+import { BrandSwitcher } from "@/components/BrandSwitcher";
 import { prototypes, searchPrototypes } from "@/data/prototypes";
 import { Separator } from "@/registry/ui/separator";
 
@@ -26,11 +27,14 @@ export default function Home() {
                 Design prototype playground
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-medium">{filteredPrototypes.length}</span>
-              <span>
-                {filteredPrototypes.length === 1 ? "prototype" : "prototypes"}
-              </span>
+            <div className="flex items-center gap-6">
+              <BrandSwitcher />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium">{filteredPrototypes.length}</span>
+                <span>
+                  {filteredPrototypes.length === 1 ? "prototype" : "prototypes"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
