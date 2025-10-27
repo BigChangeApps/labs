@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { PrototypeGrid } from "@/components/PrototypeGrid";
-import { BrandSwitcher } from "@/components/BrandSwitcher";
 import { prototypes, searchPrototypes } from "@/data/prototypes";
 import { Separator } from "@/registry/ui/separator";
 
@@ -25,12 +24,6 @@ export default function Home() {
               <h1 className="text-3xl font-bold tracking-tight">
                 BigChange Labs
               </h1>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="hidden">
-                {/* Temporarily hiding until brand switching returns */}
-                <BrandSwitcher />
-              </div>
             </div>
           </div>
         </div>

@@ -123,8 +123,8 @@
     --hw-disabled-foreground: var(--gray-500);
 
     /* Utility */
-    --hw-border: var(--gray-300);
-    --hw-focus: var(--brand-500);
+    --hw-border: var(--gray-200);
+    --hw-focus: var(--brand-600);
     --hw-overlay: oklch(0.05 0 0 / 0.5); /* Semi-transparent black */
   }
 
@@ -144,7 +144,7 @@
     /* Interactive - Primary */
     --hw-interactive: var(--brand-500);
     --hw-interactive-hover: var(--brand-400);
-    --hw-interactive-foreground: var(--gray-950);
+    --hw-interactive-foreground: oklch(1 0 0);
 
     /* Interactive - Secondary */
     --hw-interactive-secondary: var(--gray-800);
@@ -168,7 +168,7 @@
 
     /* Status - Informative */
     --hw-informative: var(--blue-500);
-    --hw-informative-foreground: var(--gray-950);
+    --hw-informative-foreground: var(--gray-9);
     --hw-informative-muted: oklch(from var(--blue-950) l c h / 0.3);
 
     /* Status - Inactive */

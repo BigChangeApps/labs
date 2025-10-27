@@ -2,10 +2,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "@/home";
 import TokensPage from "@/tokens";
 import AssetAttributesApp from "@/prototypes/asset-attributes/App";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { BrandSwitcher } from "@/components/BrandSwitcher";
 
 function App() {
   return (
     <BrowserRouter>
+      <DarkModeToggle />
+      <BrandSwitcher />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/tokens" element={<TokensPage />} />
