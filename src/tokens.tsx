@@ -17,15 +17,15 @@ const tokenCategories = {
     description: "Text color tokens for content hierarchy",
     tokens: [
       {
-        name: "Foreground",
-        cssVar: "--hw-foreground",
-        tailwindClass: "text-hw-foreground",
+        name: "Text",
+        cssVar: "--hw-text",
+        tailwindClass: "text-hw-text",
         description: "Primary text color",
       },
       {
-        name: "Foreground Subtle",
-        cssVar: "--hw-foreground-subtle",
-        tailwindClass: "text-hw-foreground-subtle",
+        name: "Text Secondary",
+        cssVar: "--hw-text-secondary",
+        tailwindClass: "text-hw-text-secondary",
         description: "Secondary/de-emphasized text",
       },
     ],
@@ -89,22 +89,22 @@ const tokenCategories = {
         description: "Text on interactive backgrounds",
       },
       {
-        name: "Interactive Subtle",
-        cssVar: "--hw-interactive-subtle",
-        tailwindClass: "bg-hw-interactive-subtle",
+        name: "Interactive Secondary",
+        cssVar: "--hw-interactive-secondary",
+        tailwindClass: "bg-hw-interactive-secondary",
         description: "Secondary interactive",
       },
       {
-        name: "Interactive Subtle Hover",
-        cssVar: "--hw-interactive-subtle-hover",
-        tailwindClass: "bg-hw-interactive-subtle-hover",
+        name: "Interactive Secondary Hover",
+        cssVar: "--hw-interactive-secondary-hover",
+        tailwindClass: "bg-hw-interactive-secondary-hover",
         description: "Secondary interactive hover",
       },
       {
-        name: "Interactive Subtle Foreground",
-        cssVar: "--hw-interactive-subtle-foreground",
-        tailwindClass: "text-hw-interactive-subtle-foreground",
-        description: "Text on subtle interactive",
+        name: "Interactive Secondary Foreground",
+        cssVar: "--hw-interactive-secondary-foreground",
+        tailwindClass: "text-hw-interactive-secondary-foreground",
+        description: "Text on secondary interactive",
       },
     ],
   },
@@ -125,10 +125,10 @@ const tokenCategories = {
         description: "Text on critical backgrounds",
       },
       {
-        name: "Critical Subtle",
-        cssVar: "--hw-critical-subtle",
-        tailwindClass: "bg-hw-critical-subtle",
-        description: "Subtle critical background",
+        name: "Critical Muted",
+        cssVar: "--hw-critical-muted",
+        tailwindClass: "bg-hw-critical-muted",
+        description: "Muted critical background",
       },
       {
         name: "Warning",
@@ -143,10 +143,10 @@ const tokenCategories = {
         description: "Text on warning backgrounds",
       },
       {
-        name: "Warning Subtle",
-        cssVar: "--hw-warning-subtle",
-        tailwindClass: "bg-hw-warning-subtle",
-        description: "Subtle warning background",
+        name: "Warning Muted",
+        cssVar: "--hw-warning-muted",
+        tailwindClass: "bg-hw-warning-muted",
+        description: "Muted warning background",
       },
       {
         name: "Success",
@@ -161,10 +161,10 @@ const tokenCategories = {
         description: "Text on success backgrounds",
       },
       {
-        name: "Success Subtle",
-        cssVar: "--hw-success-subtle",
-        tailwindClass: "bg-hw-success-subtle",
-        description: "Subtle success background",
+        name: "Success Muted",
+        cssVar: "--hw-success-muted",
+        tailwindClass: "bg-hw-success-muted",
+        description: "Muted success background",
       },
       {
         name: "Informative",
@@ -179,10 +179,10 @@ const tokenCategories = {
         description: "Text on informative backgrounds",
       },
       {
-        name: "Informative Subtle",
-        cssVar: "--hw-informative-subtle",
-        tailwindClass: "bg-hw-informative-subtle",
-        description: "Subtle informative background",
+        name: "Informative Muted",
+        cssVar: "--hw-informative-muted",
+        tailwindClass: "bg-hw-informative-muted",
+        description: "Muted informative background",
       },
       {
         name: "Inactive",
@@ -197,10 +197,10 @@ const tokenCategories = {
         description: "Text on inactive backgrounds",
       },
       {
-        name: "Inactive Subtle",
-        cssVar: "--hw-inactive-subtle",
-        tailwindClass: "bg-hw-inactive-subtle",
-        description: "Subtle inactive background",
+        name: "Inactive Muted",
+        cssVar: "--hw-inactive-muted",
+        tailwindClass: "bg-hw-inactive-muted",
+        description: "Muted inactive background",
       },
     ],
   },
@@ -337,8 +337,8 @@ export default function TokensPage() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-hw-foreground">Design Tokens</h1>
-              <p className="text-hw-foreground-subtle mt-1">
+              <h1 className="text-3xl font-bold tracking-tight text-hw-text">Design Tokens</h1>
+              <p className="text-hw-text-secondary mt-1">
                 Highway (hw) semantic token system
               </p>
             </div>
@@ -363,7 +363,7 @@ export default function TokensPage() {
                 <Button className="bg-hw-interactive hover:bg-hw-interactive-hover text-hw-interactive-foreground">
                   Primary Button
                 </Button>
-                <Button className="bg-hw-interactive-subtle hover:bg-hw-interactive-subtle-hover text-hw-interactive-subtle-foreground border border-hw-interactive">
+                <Button className="bg-hw-interactive-secondary hover:bg-hw-interactive-secondary-hover text-hw-interactive-secondary-foreground border border-hw-interactive">
                   Secondary Button
                 </Button>
                 <Button className="bg-hw-destructive hover:bg-hw-destructive-hover text-hw-destructive-foreground">
@@ -372,17 +372,17 @@ export default function TokensPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="bg-hw-critical-subtle text-hw-critical border border-hw-critical rounded p-3">
-                  Critical alert with subtle background
+                <div className="bg-hw-critical-muted text-hw-critical border border-hw-critical rounded p-3">
+                  Critical alert with muted background
                 </div>
-                <div className="bg-hw-warning-subtle text-hw-warning border border-hw-warning rounded p-3">
-                  Warning alert with subtle background
+                <div className="bg-hw-warning-muted text-hw-warning border border-hw-warning rounded p-3">
+                  Warning alert with muted background
                 </div>
-                <div className="bg-hw-success-subtle text-hw-success border border-hw-success rounded p-3">
-                  Success alert with subtle background
+                <div className="bg-hw-success-muted text-hw-success border border-hw-success rounded p-3">
+                  Success alert with muted background
                 </div>
-                <div className="bg-hw-informative-subtle text-hw-informative border border-hw-informative rounded p-3">
-                  Informative alert with subtle background
+                <div className="bg-hw-informative-muted text-hw-informative border border-hw-informative rounded p-3">
+                  Informative alert with muted background
                 </div>
               </div>
             </CardContent>

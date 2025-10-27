@@ -5,17 +5,17 @@
   :root,
   [data-brand="bigchange"] {
     /* Brand Color Scale - BigChange Blue */
-    --brand-50: oklch(0.97 0.01 250);
-    --brand-100: oklch(0.93 0.03 250);
-    --brand-200: oklch(0.86 0.06 250);
-    --brand-300: oklch(0.76 0.10 250);
-    --brand-400: oklch(0.65 0.14 250);
-    --brand-500: oklch(0.55 0.17 250);  /* Main brand blue #0066cc */
-    --brand-600: oklch(0.48 0.16 250);
-    --brand-700: oklch(0.40 0.14 250);
-    --brand-800: oklch(0.32 0.11 250);
-    --brand-900: oklch(0.24 0.08 250);
-    --brand-950: oklch(0.16 0.05 250);
+    --brand-50: oklch(0.975 0.015 265);
+    --brand-100: oklch(0.945 0.032 265);
+    --brand-200: oklch(0.885 0.065 265);
+    --brand-300: oklch(0.795 0.105 265);
+    --brand-400: oklch(0.690 0.145 265);
+    --brand-500: oklch(0.575 0.185 265);  /* Main brand blue #086DFF */
+    --brand-600: oklch(0.495 0.175 265);
+    --brand-700: oklch(0.415 0.150 265);
+    --brand-800: oklch(0.335 0.120 265);
+    --brand-900: oklch(0.260 0.090 265);
+    --brand-950: oklch(0.185 0.060 265);
 
     /* Gray Scale */
     --gray-50: oklch(0.99 0 0);
