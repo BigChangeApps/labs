@@ -22,7 +22,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                BigChange Labs
+                BigChange 2025
               </h1>
             </div>
           </div>
