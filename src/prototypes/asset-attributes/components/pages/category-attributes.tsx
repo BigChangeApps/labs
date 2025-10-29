@@ -66,7 +66,7 @@ export function CategoryAttributes() {
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Icon */}
               <div className="bg-muted rounded-lg p-2">
-                <Settings className="h-5 w-5 text-primary" />
+                <Settings className="h-5 w-5 text-hw-text" />
               </div>
 
               {/* Content */}
@@ -79,7 +79,7 @@ export function CategoryAttributes() {
 
               {/* Actions */}
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleAllCategoriesSelect}
               >
@@ -126,7 +126,7 @@ export function CategoryAttributes() {
                       >
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-primary truncate">
+                          <div className="font-medium text-sm text-hw-text truncate">
                             {category.name}
                           </div>
                         </div>
@@ -135,7 +135,7 @@ export function CategoryAttributes() {
                         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                           {/* Attribute Count */}
                           {enabledCount > 0 && (
-                            <div className="px-2 py-1 bg-muted text-xs font-medium text-primary rounded-full">
+                            <div className="px-2 py-1 bg-muted text-xs font-medium text-hw-text rounded-full">
                               {enabledCount}
                             </div>
                           )}

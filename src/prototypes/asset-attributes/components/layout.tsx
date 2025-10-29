@@ -72,8 +72,8 @@ export function Layout() {
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? "bg-primary/10 text-primary font-bold"
-              : "text-foreground hover:bg-accent font-normal"
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
           }`
         }
       >
@@ -85,8 +85,8 @@ export function Layout() {
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? "bg-primary/10 text-primary font-bold"
-              : "text-foreground hover:bg-accent font-normal"
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
           }`
         }
       >

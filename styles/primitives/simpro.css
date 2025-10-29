@@ -3,18 +3,18 @@
 
 @layer base {
   [data-brand="simpro"] {
-    /* Brand Color Scale - SimPro Dark Yellow/Amber */
-    --brand-50: oklch(0.98 0.02 85);
-    --brand-100: oklch(0.95 0.05 85);
-    --brand-200: oklch(0.90 0.09 80);
-    --brand-300: oklch(0.84 0.13 75);
-    --brand-400: oklch(0.78 0.15 70);
-    --brand-500: oklch(0.72 0.16 65);  /* Main brand dark yellow */
-    --brand-600: oklch(0.65 0.16 60);
-    --brand-700: oklch(0.56 0.14 55);
-    --brand-800: oklch(0.47 0.11 50);
-    --brand-900: oklch(0.40 0.09 50);
-    --brand-950: oklch(0.28 0.06 50);
+    /* Brand Color Scale - SimPro Yellow (#FFD755) */
+    --brand-50: oklch(0.99 0.08 95);
+    --brand-100: oklch(0.97 0.12 95);
+    --brand-200: oklch(0.94 0.16 95);
+    --brand-300: oklch(0.91 0.18 95);
+    --brand-400: oklch(0.88 0.19 95);
+    --brand-500: oklch(0.87 0.19 95);  /* Main brand yellow #FFD755 */
+    --brand-600: oklch(0.78 0.17 90);
+    --brand-700: oklch(0.68 0.14 85);
+    --brand-800: oklch(0.56 0.11 80);
+    --brand-900: oklch(0.46 0.09 75);
+    --brand-950: oklch(0.35 0.06 70);
 
     /* Gray Scale - same as BigChange */
     --gray-50: oklch(0.99 0 0);

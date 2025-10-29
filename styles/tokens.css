@@ -73,7 +73,7 @@
 
     /* Surfaces */
     --hw-background: oklch(1 0 0); /* Pure white */
-    --hw-surface: oklch(0.99 0 0); /* Slightly off-white for elevation */
+    --hw-surface: oklch(1 0 0); /* Lightest white for elevation */
     --hw-surface-hover: var(--gray-100);
     --hw-surface-subtle: var(--gray-100);
     --hw-surface-subtle-hover: var(--gray-200);
@@ -86,7 +86,7 @@
     /* Interactive - Secondary */
     --hw-interactive-secondary: var(--gray-100);
     --hw-interactive-secondary-hover: var(--gray-200);
-    --hw-interactive-secondary-foreground: var(--brand-700);
+    --hw-interactive-secondary-foreground: var(--gray-900);
 
     /* Status - Critical */
     --hw-critical: var(--red-600);
@@ -194,7 +194,7 @@
   /* SimPro Brand - Light Mode */
   [data-brand="simpro"]:not(.dark) {
     /* Typography */
-    --hw-text: var(--gray-900);
+    --hw-text: var(--gray-950);
     --hw-text-secondary: var(--gray-600);
 
     /* Surfaces */
@@ -212,7 +212,7 @@
     /* Interactive - Secondary */
     --hw-interactive-secondary: var(--gray-100);
     --hw-interactive-secondary-hover: var(--gray-200);
-    --hw-interactive-secondary-foreground: var(--brand-700);
+    --hw-interactive-secondary-foreground: var(--gray-950);
 
     /* Status - Critical */
     --hw-critical: var(--red-600);
