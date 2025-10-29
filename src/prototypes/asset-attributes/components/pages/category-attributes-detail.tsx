@@ -288,6 +288,11 @@ export function CategoryAttributesDetail() {
                                     )}
                                   </div>
                                 )}
+                              {item.attribute.description && (
+                                <p className="text-xs text-muted-foreground mt-1 break-words">
+                                  {item.attribute.description}
+                                </p>
+                              )}
                             </div>
                           </div>
 
