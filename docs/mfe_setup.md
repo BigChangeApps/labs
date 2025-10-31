@@ -969,7 +969,7 @@ style-loader → css-loader → postcss-loader
 1. **Tailwind Classes**: Primary approach
 
 ```typescript
-<div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+<div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
 ```
 
 2. **MUI Components**: For complex components

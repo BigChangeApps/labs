@@ -16,20 +16,20 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@shared/components/ui/sheet";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Label } from "@shared/components/ui/label";
-import { Switch } from "@shared/components/ui/switch";
-import { Alert, AlertDescription } from "@shared/components/ui/alert";
+} from "@/registry/ui/sheet";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
+import { Switch } from "@/registry/ui/switch";
+import { Alert, AlertDescription } from "@/registry/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@shared/components/ui/select";
-import { Badge } from "@shared/components/ui/badge";
+} from "@/registry/ui/select";
+import { Badge } from "@/registry/ui/badge";
 import { useAttributeStore } from "../../../lib/store";
 import type { AttributeType, Attribute } from "../../../types";
 import { toast } from "sonner";

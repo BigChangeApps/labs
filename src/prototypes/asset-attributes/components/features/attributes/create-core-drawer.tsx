@@ -1,23 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, X, CornerDownLeft } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Label } from "@shared/components/ui/label";
-import { Kbd } from "@shared/components/ui/kbd";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
+import { Kbd } from "@/registry/ui/kbd";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@shared/components/ui/select";
+} from "@/registry/ui/select";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@shared/components/ui/sheet";
+} from "@/registry/ui/sheet";
 import { useAttributeStore } from "../../../lib/store";
 import type { AttributeType } from "../../../types";
 import { toast } from "sonner";

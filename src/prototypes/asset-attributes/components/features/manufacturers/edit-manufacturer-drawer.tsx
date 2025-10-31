@@ -7,10 +7,10 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@shared/components/ui/sheet";
-import { Button } from "@shared/components/ui/button";
-import { Input } from "@shared/components/ui/input";
-import { Label } from "@shared/components/ui/label";
+} from "@/registry/ui/sheet";
+import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
 import { useAttributeStore } from "../../../lib/store";
 import type { Manufacturer } from "../../../types";
 import { toast } from "sonner";

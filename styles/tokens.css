@@ -1,0 +1,319 @@
+/* Highway (hw) Semantic Design Tokens */
+/* Brand-agnostic semantic layer that maps to brand primitives */
+
+@layer base {
+  /* Default to BigChange if no brand is set */
+  :root {
+    /* Typography */
+    --hw-text: var(--gray-900);
+    --hw-text-secondary: var(--gray-600);
+
+    /* Surfaces */
+    --hw-background: oklch(1 0 0); /* Pure white */
+    --hw-surface: oklch(0.99 0 0); /* Slightly off-white for elevation */
+    --hw-surface-hover: var(--gray-100);
+    --hw-surface-subtle: var(--gray-100);
+    --hw-surface-subtle-hover: var(--gray-200);
+
+    /* Interactive - Primary (uses brand color) */
+    --hw-interactive: var(--brand-600);
+    --hw-interactive-hover: var(--brand-700);
+    --hw-interactive-foreground: oklch(0.99 0 0); /* White */
+
+    /* Interactive - Secondary */
+    --hw-interactive-secondary: var(--gray-100);
+    --hw-interactive-secondary-hover: var(--gray-200);
+    --hw-interactive-secondary-foreground: var(--brand-700);
+
+    /* Status - Critical */
+    --hw-critical: var(--red-600);
+    --hw-critical-foreground: oklch(0.99 0 0);
+    --hw-critical-muted: var(--red-50);
+
+    /* Status - Warning */
+    --hw-warning: var(--orange-600);
+    --hw-warning-foreground: oklch(0.99 0 0);
+    --hw-warning-muted: var(--orange-50);
+
+    /* Status - Success */
+    --hw-success: var(--green-600);
+    --hw-success-foreground: oklch(0.99 0 0);
+    --hw-success-muted: var(--green-50);
+
+    /* Status - Informative */
+    --hw-informative: var(--blue-600);
+    --hw-informative-foreground: oklch(0.99 0 0);
+    --hw-informative-muted: var(--blue-50);
+
+    /* Status - Inactive */
+    --hw-inactive: var(--slate-500);
+    --hw-inactive-foreground: oklch(0.99 0 0);
+    --hw-inactive-muted: var(--slate-50);
+
+    /* Destructive */
+    --hw-destructive: var(--red-600);
+    --hw-destructive-hover: var(--red-700);
+    --hw-destructive-foreground: oklch(0.99 0 0);
+
+    /* Disabled */
+    --hw-disabled: var(--gray-300);
+    --hw-disabled-foreground: var(--gray-500);
+
+    /* Utility */
+    --hw-border: var(--gray-300);
+    --hw-focus: var(--brand-500);
+    --hw-overlay: oklch(0.05 0 0 / 0.5); /* Semi-transparent black */
+  }
+
+  /* BigChange Brand - Light Mode */
+  [data-brand="bigchange"]:not(.dark) {
+    /* Typography */
+    --hw-text: var(--gray-900);
+    --hw-text-secondary: var(--gray-600);
+
+    /* Surfaces */
+    --hw-background: oklch(1 0 0); /* Pure white */
+    --hw-surface: oklch(1 0 0); /* Lightest white for elevation */
+    --hw-surface-hover: var(--gray-100);
+    --hw-surface-subtle: var(--gray-100);
+    --hw-surface-subtle-hover: var(--gray-200);
+
+    /* Interactive - Primary (uses brand color) */
+    --hw-interactive: var(--brand-600);
+    --hw-interactive-hover: var(--brand-700);
+    --hw-interactive-foreground: oklch(0.99 0 0); /* White */
+
+    /* Interactive - Secondary */
+    --hw-interactive-secondary: var(--gray-100);
+    --hw-interactive-secondary-hover: var(--gray-200);
+    --hw-interactive-secondary-foreground: var(--gray-900);
+
+    /* Status - Critical */
+    --hw-critical: var(--red-600);
+    --hw-critical-foreground: oklch(0.99 0 0);
+    --hw-critical-muted: var(--red-50);
+
+    /* Status - Warning */
+    --hw-warning: var(--orange-600);
+    --hw-warning-foreground: oklch(0.99 0 0);
+    --hw-warning-muted: var(--orange-50);
+
+    /* Status - Success */
+    --hw-success: var(--green-600);
+    --hw-success-foreground: oklch(0.99 0 0);
+    --hw-success-muted: var(--green-50);
+
+    /* Status - Informative */
+    --hw-informative: var(--blue-600);
+    --hw-informative-foreground: oklch(0.99 0 0);
+    --hw-informative-muted: var(--blue-50);
+
+    /* Status - Inactive */
+    --hw-inactive: var(--slate-500);
+    --hw-inactive-foreground: oklch(0.99 0 0);
+    --hw-inactive-muted: var(--slate-50);
+
+    /* Destructive */
+    --hw-destructive: var(--red-600);
+    --hw-destructive-hover: var(--red-700);
+    --hw-destructive-foreground: oklch(0.99 0 0);
+
+    /* Disabled */
+    --hw-disabled: var(--gray-300);
+    --hw-disabled-foreground: var(--gray-500);
+
+    /* Utility */
+    --hw-border: var(--gray-200);
+    --hw-focus: var(--brand-600);
+    --hw-overlay: oklch(0.05 0 0 / 0.5); /* Semi-transparent black */
+  }
+
+  /* BigChange Brand - Dark Mode */
+  [data-brand="bigchange"].dark {
+    /* Typography */
+    --hw-text: var(--gray-50);
+    --hw-text-secondary: var(--gray-400);
+
+    /* Surfaces */
+    --hw-background: var(--gray-950);
+    --hw-surface: var(--gray-900);
+    --hw-surface-hover: var(--gray-800);
+    --hw-surface-subtle: var(--gray-800);
+    --hw-surface-subtle-hover: var(--gray-700);
+
+    /* Interactive - Primary */
+    --hw-interactive: var(--brand-500);
+    --hw-interactive-hover: var(--brand-400);
+    --hw-interactive-foreground: oklch(1 0 0);
+
+    /* Interactive - Secondary */
+    --hw-interactive-secondary: var(--gray-800);
+    --hw-interactive-secondary-hover: var(--gray-700);
+    --hw-interactive-secondary-foreground: var(--brand-400);
+
+    /* Status - Critical */
+    --hw-critical: var(--red-500);
+    --hw-critical-foreground: var(--gray-950);
+    --hw-critical-muted: oklch(from var(--red-950) l c h / 0.3);
+
+    /* Status - Warning */
+    --hw-warning: var(--orange-500);
+    --hw-warning-foreground: var(--gray-950);
+    --hw-warning-muted: oklch(from var(--orange-950) l c h / 0.3);
+
+    /* Status - Success */
+    --hw-success: var(--green-500);
+    --hw-success-foreground: var(--gray-950);
+    --hw-success-muted: oklch(from var(--green-950) l c h / 0.3);
+
+    /* Status - Informative */
+    --hw-informative: var(--blue-500);
+    --hw-informative-foreground: var(--gray-9);
+    --hw-informative-muted: oklch(from var(--blue-950) l c h / 0.3);
+
+    /* Status - Inactive */
+    --hw-inactive: var(--slate-400);
+    --hw-inactive-foreground: var(--gray-950);
+    --hw-inactive-muted: oklch(from var(--slate-950) l c h / 0.3);
+
+    /* Destructive */
+    --hw-destructive: var(--red-500);
+    --hw-destructive-hover: var(--red-400);
+    --hw-destructive-foreground: var(--gray-950);
+
+    /* Disabled */
+    --hw-disabled: var(--gray-700);
+    --hw-disabled-foreground: var(--gray-500);
+
+    /* Utility */
+    --hw-border: var(--gray-700);
+    --hw-focus: var(--brand-400);
+    --hw-overlay: oklch(0.05 0 0 / 0.7);
+  }
+
+  /* SimPro Brand - Light Mode */
+  [data-brand="simpro"]:not(.dark) {
+    /* Typography */
+    --hw-text: var(--gray-950);
+    --hw-text-secondary: var(--gray-600);
+
+    /* Surfaces */
+    --hw-background: oklch(1 0 0);
+    --hw-surface: oklch(0.99 0 0);
+    --hw-surface-hover: var(--gray-100);
+    --hw-surface-subtle: var(--gray-100);
+    --hw-surface-subtle-hover: var(--gray-200);
+
+    /* Interactive - Primary (uses brand yellow) */
+    --hw-interactive: var(--brand-600);
+    --hw-interactive-hover: var(--brand-700);
+    --hw-interactive-foreground: var(--gray-950); /* Dark text on yellow */
+
+    /* Interactive - Secondary */
+    --hw-interactive-secondary: var(--gray-100);
+    --hw-interactive-secondary-hover: var(--gray-200);
+    --hw-interactive-secondary-foreground: var(--gray-950);
+
+    /* Status - Critical */
+    --hw-critical: var(--red-600);
+    --hw-critical-foreground: oklch(0.99 0 0);
+    --hw-critical-muted: var(--red-50);
+
+    /* Status - Warning */
+    --hw-warning: var(--orange-600);
+    --hw-warning-foreground: oklch(0.99 0 0);
+    --hw-warning-muted: var(--orange-50);
+
+    /* Status - Success */
+    --hw-success: var(--green-600);
+    --hw-success-foreground: oklch(0.99 0 0);
+    --hw-success-muted: var(--green-50);
+
+    /* Status - Informative */
+    --hw-informative: var(--blue-600);
+    --hw-informative-foreground: oklch(0.99 0 0);
+    --hw-informative-muted: var(--blue-50);
+
+    /* Status - Inactive */
+    --hw-inactive: var(--slate-500);
+    --hw-inactive-foreground: oklch(0.99 0 0);
+    --hw-inactive-muted: var(--slate-50);
+
+    /* Destructive */
+    --hw-destructive: var(--red-600);
+    --hw-destructive-hover: var(--red-700);
+    --hw-destructive-foreground: oklch(0.99 0 0);
+
+    /* Disabled */
+    --hw-disabled: var(--gray-300);
+    --hw-disabled-foreground: var(--gray-500);
+
+    /* Utility */
+    --hw-border: var(--gray-300);
+    --hw-focus: var(--brand-500);
+    --hw-overlay: oklch(0.05 0 0 / 0.5);
+  }
+
+  /* SimPro Brand - Dark Mode */
+  [data-brand="simpro"].dark {
+    /* Typography */
+    --hw-text: var(--gray-50);
+    --hw-text-secondary: var(--gray-400);
+
+    /* Surfaces */
+    --hw-background: var(--gray-950);
+    --hw-surface: var(--gray-900);
+    --hw-surface-hover: var(--gray-800);
+    --hw-surface-subtle: var(--gray-800);
+    --hw-surface-subtle-hover: var(--gray-700);
+
+    /* Interactive - Primary */
+    --hw-interactive: var(--brand-500);
+    --hw-interactive-hover: var(--brand-400);
+    --hw-interactive-foreground: var(--gray-950);
+
+    /* Interactive - Secondary */
+    --hw-interactive-secondary: var(--gray-800);
+    --hw-interactive-secondary-hover: var(--gray-700);
+    --hw-interactive-secondary-foreground: var(--brand-400);
+
+    /* Status - Critical */
+    --hw-critical: var(--red-500);
+    --hw-critical-foreground: var(--gray-950);
+    --hw-critical-muted: oklch(from var(--red-950) l c h / 0.3);
+
+    /* Status - Warning */
+    --hw-warning: var(--orange-500);
+    --hw-warning-foreground: var(--gray-950);
+    --hw-warning-muted: oklch(from var(--orange-950) l c h / 0.3);
+
+    /* Status - Success */
+    --hw-success: var(--green-500);
+    --hw-success-foreground: var(--gray-950);
+    --hw-success-muted: oklch(from var(--green-950) l c h / 0.3);
+
+    /* Status - Informative */
+    --hw-informative: var(--blue-500);
+    --hw-informative-foreground: var(--gray-950);
+    --hw-informative-muted: oklch(from var(--blue-950) l c h / 0.3);
+
+    /* Status - Inactive */
+    --hw-inactive: var(--slate-400);
+    --hw-inactive-foreground: var(--gray-950);
+    --hw-inactive-muted: oklch(from var(--slate-950) l c h / 0.3);
+
+    /* Destructive */
+    --hw-destructive: var(--red-500);
+    --hw-destructive-hover: var(--red-400);
+    --hw-destructive-foreground: var(--gray-950);
+
+    /* Disabled */
+    --hw-disabled: var(--gray-700);
+    --hw-disabled-foreground: var(--gray-500);
+
+    /* Utility */
+    --hw-border: var(--gray-700);
+    --hw-focus: var(--brand-400);
+    --hw-overlay: oklch(0.05 0 0 / 0.7);
+  }
+}

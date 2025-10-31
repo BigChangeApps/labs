@@ -6,7 +6,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
-import { Button } from "@shared/components/ui/button";
+import { Button } from "@/registry/ui/button";
 import { useAttributeStore } from "../lib/store";
 import {
   Sheet,
@@ -14,7 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@shared/components/ui/sheet";
+} from "@/registry/ui/sheet";
 import { useState } from "react";
 
 export function Layout() {
@@ -72,8 +72,8 @@ export function Layout() {
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? "bg-primary/10 text-primary font-bold"
-              : "text-foreground hover:bg-accent font-normal"
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
           }`
         }
       >
@@ -85,8 +85,8 @@ export function Layout() {
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
-              ? "bg-primary/10 text-primary font-bold"
-              : "text-foreground hover:bg-accent font-normal"
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
           }`
         }
       >

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Settings, ChevronRight } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
-import { Input } from "@shared/components/ui/input";
-import { Button } from "@shared/components/ui/button";
-import { Card, CardContent } from "@shared/components/ui/card";
-import { Separator } from "@shared/components/ui/separator";
+import { Input } from "@/registry/ui/input";
+import { Button } from "@/registry/ui/button";
+import { Card, CardContent } from "@/registry/ui/card";
+import { Separator } from "@/registry/ui/separator";
 import type { Category, CategoryAttributeConfig } from "../../types";
 
 export function CategoryAttributes() {
@@ -66,7 +66,7 @@ export function CategoryAttributes() {
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Icon */}
               <div className="bg-muted rounded-lg p-2">
-                <Settings className="h-5 w-5 text-primary" />
+                <Settings className="h-5 w-5 text-hw-text" />
               </div>
 
               {/* Content */}
@@ -79,7 +79,7 @@ export function CategoryAttributes() {
 
               {/* Actions */}
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleAllCategoriesSelect}
               >
@@ -126,16 +126,16 @@ export function CategoryAttributes() {
                       >
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-primary truncate">
+                          <div className="font-medium text-sm text-hw-text truncate">
                             {category.name}
                           </div>
                         </div>
 
                         {/* Right side actions */}
-                        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                           {/* Attribute Count */}
                           {enabledCount > 0 && (
-                            <div className="px-2 py-1 bg-muted text-xs font-medium text-primary rounded-full">
+                            <div className="px-2 py-1 bg-muted text-xs font-medium text-hw-text rounded-full">
                               {enabledCount}
                             </div>
                           )}
