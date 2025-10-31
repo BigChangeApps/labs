@@ -34,7 +34,7 @@ Create a new prototype with the following structure:
    - deviceType: {device-type}
 
 6. **Update** `src/app.tsx` - Add:
-   - Import: `import { {PascalCaseName}App } from "@/prototypes/{prototype-name}/App";`
+   - Import: `import {PascalCaseName}App from "@/prototypes/{prototype-name}/App";`
    - Route: `<Route path="/{prototype-name}/*" element={<{PascalCaseName}App />} />`
 
 After creating the files, inform the user that:
