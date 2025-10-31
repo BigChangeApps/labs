@@ -1,18 +1,19 @@
 import { useState, useMemo } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { PrototypeGrid } from "@/components/PrototypeGrid";
-import { prototypes, searchPrototypes } from "@/data/prototypes";
+import { getVisiblePrototypes, searchPrototypes } from "@/data/prototypes";
 import { Separator } from "@/registry/ui/separator";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const visiblePrototypes = useMemo(() => getVisiblePrototypes(), []);
 
   const filteredPrototypes = useMemo(() => {
     if (!searchQuery) {
-      return prototypes;
+      return visiblePrototypes;
     }
-    return searchPrototypes(searchQuery, prototypes);
-  }, [searchQuery]);
+    return searchPrototypes(searchQuery, visiblePrototypes);
+  }, [searchQuery, visiblePrototypes]);
 
   return (
     <div className="min-h-screen bg-background">

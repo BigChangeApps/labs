@@ -10,7 +10,9 @@ Create a new prototype with the following structure:
 
 **Step 3:** After receiving the description, ask: "What device type is this prototype for?" (Options: desktop, mobile, tablet. Default: desktop)
 
-**Step 4:** After receiving the device type, create the following files:
+**Step 4:** After receiving the device type, ask: "What's the visibility for this prototype?" (Options: public, internal. Default: internal. Explain: "public" = visible to customers, "internal" = only visible when VITE_SHOW_INTERNAL is true)
+
+**Step 5:** After receiving the visibility, create the following files:
 
 1. `src/prototypes/{prototype-name}/App.tsx` - Main app component with:
    - TooltipProvider wrapper
@@ -32,10 +34,21 @@ Create a new prototype with the following structure:
    - path: "/{kebab-case-version-of-name}"
    - createdAt: {today's date in YYYY-MM-DD format}
    - deviceType: {device-type}
+   - visibility: {visibility}
 
 6. **Update** `src/app.tsx` - Add:
-   - Import: `import {PascalCaseName}App from "@/prototypes/{prototype-name}/App";`
-   - Route: `<Route path="/{prototype-name}/*" element={<{PascalCaseName}App />} />`
+   - Import: `import { {PascalCaseName}App } from "@/prototypes/{prototype-name}/App";`
+   - Route wrapped in ProtectedRoute:
+   ```tsx
+   <Route
+     path="/{prototype-name}/*"
+     element={
+       <ProtectedRoute prototypeId="{kebab-case-version-of-name}">
+         <{PascalCaseName}App />
+       </ProtectedRoute>
+     }
+   />
+   ```
 
 After creating the files, inform the user that:
 - The prototype scaffold has been created
