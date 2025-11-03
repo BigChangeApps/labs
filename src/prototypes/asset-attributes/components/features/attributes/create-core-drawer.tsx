@@ -154,7 +154,7 @@ export function CreateCoreAttributeDrawer({
             <Label htmlFor="label">Attribute Label *</Label>
             <Input
               id="label"
-              placeholder="e.g., Serial Number"
+              placeholder="e.g., Purchase price"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />

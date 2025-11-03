@@ -1067,6 +1067,15 @@ export const categories: Category[] = [
 export const coreAttributes: CoreAttribute[] = [
   // Asset Information
   {
+    id: "core-asset-id",
+    label: "Asset ID",
+    type: "text",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: true,
+    description: "Internal asset ID number",
+  },
+  {
     id: "core-customer-reference",
     label: "Customer reference",
     type: "text",
@@ -1144,8 +1153,8 @@ export const coreAttributes: CoreAttribute[] = [
     type: "date",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
-    description: "Most recent service date",
+    isRequired: true,
+    description: "Most recent service date (system-managed)",
   },
 
   // End of Life
