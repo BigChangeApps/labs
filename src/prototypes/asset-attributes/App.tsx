@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/registry/ui/tooltip";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
@@ -9,6 +9,7 @@ import { CoreAttributes } from "./components/pages/core-attributes";
 import { Layout } from "./components/layout";
 
 function AssetAttributesApp() {
+  const location = useLocation();
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background flex flex-col">
@@ -16,7 +17,7 @@ function AssetAttributesApp() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="categories" replace />} />
+              <Route index element={<Navigate to="categories" replace state={location.state} />} />
               <Route path="categories" element={<CategoryAttributes />} />
               <Route
                 path="category/:categoryId"

@@ -17,7 +17,7 @@ export function PrototypeCard({ prototype }: PrototypeCardProps) {
   return (
     <Card
       className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border/50 bg-card/50 backdrop-blur-sm"
-      onClick={() => navigate(prototype.path)}
+      onClick={() => navigate(prototype.path, { state: { fromHome: true } })}
     >
       <CardHeader className="space-y-4">
         <div className="aspect-video w-full rounded-md bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden">
