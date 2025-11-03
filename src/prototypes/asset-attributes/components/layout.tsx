@@ -58,16 +58,14 @@ export function Layout() {
     }
   };
 
-  // Handle close button - return to labs
-  const handleCloseClick = () => {
-    navigate("/");
-  };
+  // Close button behavior removed to mimic in-app settings
 
   // Navigation component (reused for both sidebar and mobile menu)
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       <NavLink
         to="/asset-attributes/categories"
+        state={location.state}
         onClick={onClick}
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
@@ -81,6 +79,7 @@ export function Layout() {
       </NavLink>
       <NavLink
         to="/asset-attributes/manufacturers"
+        state={location.state}
         onClick={onClick}
         className={({ isActive }) =>
           `px-3 py-2.5 rounded-lg text-sm transition-colors ${
@@ -139,9 +138,7 @@ export function Layout() {
               {getPageTitle()}
             </h1>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleCloseClick}>
-            Close
-          </Button>
+          {/* Close button removed to mimic in-app settings behavior */}
         </div>
       </header>
 
