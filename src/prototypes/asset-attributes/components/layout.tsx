@@ -58,10 +58,7 @@ export function Layout() {
     }
   };
 
-  // Handle close button - return to labs
-  const handleCloseClick = () => {
-    navigate("/");
-  };
+  // Close button behavior removed to mimic in-app settings
 
   // Navigation component (reused for both sidebar and mobile menu)
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
