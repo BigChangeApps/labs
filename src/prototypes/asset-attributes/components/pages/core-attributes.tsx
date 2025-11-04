@@ -174,7 +174,7 @@ export function CoreAttributes() {
                     onClick={() => handleAddAttribute(section)}
                     className="shrink-0"
                   >
-                    Add
+                    Add attribute
                   </Button>
                 </div>
 

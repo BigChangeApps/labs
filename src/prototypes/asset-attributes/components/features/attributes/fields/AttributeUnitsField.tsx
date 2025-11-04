@@ -14,7 +14,9 @@ export function AttributeUnitsField({
 }: AttributeUnitsFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="units">Units</Label>
+      <Label htmlFor="units">
+        Units <span className="text-muted-foreground font-normal">(optional)</span>
+      </Label>
       <Input
         id="units"
         placeholder="e.g., kg, °C, meters, bar"

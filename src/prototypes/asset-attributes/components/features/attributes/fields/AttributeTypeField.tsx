@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/registry/ui/select";
 import type { AttributeType } from "../../../../types";
-import { attributeTypes } from "../../../../lib/utils";
+import { attributeTypes, getAttributeIcon } from "../../../../lib/utils";
 
 interface AttributeTypeFieldProps {
   value: AttributeType;
@@ -29,19 +29,32 @@ export function AttributeTypeField({
     }
   };
 
+  const IconComponent = getAttributeIcon(value);
+
   return (
     <div className="space-y-2">
-      <Label htmlFor="type">Attribute Type *</Label>
+      <Label htmlFor="type">Attribute Type</Label>
       <Select value={value} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger id="type">
-          <SelectValue placeholder="Select type" />
+          <SelectValue placeholder="Select type">
+            <div className="flex items-center gap-2">
+              <IconComponent className="h-4 w-4 text-muted-foreground" />
+              <span>{attributeTypes.find(t => t.value === value)?.label}</span>
+            </div>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {attributeTypes.map((typeOption) => (
-            <SelectItem key={typeOption.value} value={typeOption.value}>
-              {typeOption.label}
-            </SelectItem>
-          ))}
+          {attributeTypes.map((typeOption) => {
+            const Icon = getAttributeIcon(typeOption.value);
+            return (
+              <SelectItem key={typeOption.value} value={typeOption.value}>
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <span>{typeOption.label}</span>
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     </div>

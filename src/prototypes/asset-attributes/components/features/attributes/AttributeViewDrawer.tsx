@@ -90,19 +90,18 @@ export function AttributeViewDrawer({
     }
   };
 
-  if (!attribute) return null;
+  // Convert attribute to form data and sync with local state
+  const baseFormData =
+    attribute && context ? attributeToFormData(attribute, context) : undefined;
+
+  // Early return - don't render modal if no data available
+  if (!attribute || !baseFormData) return null;
 
   const title = attribute.label;
   const description =
     context === "core" && (attribute as CoreAttribute).detailedDescription
       ? (attribute as CoreAttribute).detailedDescription
       : attribute.description || "This is a system attribute.";
-
-  // Convert attribute to form data and sync with local state
-  const baseFormData =
-    attribute && context ? attributeToFormData(attribute, context) : undefined;
-
-  if (!baseFormData) return null;
 
   // Update form data with current toggle states
   const formData: typeof baseFormData = {

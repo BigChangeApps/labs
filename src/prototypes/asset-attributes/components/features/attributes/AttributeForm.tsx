@@ -7,7 +7,6 @@ import {
   AttributeDropdownOptionsField,
   AttributeUnitsField,
   AttributePreferredField,
-  AttributeSectionField,
 } from "./fields";
 
 export type AttributeFormMode = "add" | "edit";
@@ -36,7 +35,7 @@ interface AttributeFormProps {
 export const AttributeForm = React.forwardRef<
   { submit: () => void },
   AttributeFormProps
->(({ mode, context, initialData, onSubmit }, ref) => {
+>(({ context, initialData, onSubmit }, ref) => {
 
   const [label, setLabel] = useState(initialData?.label || "");
   const [type, setType] = useState<AttributeType>(
@@ -145,15 +144,15 @@ export const AttributeForm = React.forwardRef<
         onChange={setLabel}
       />
 
+      <AttributeDescriptionField
+        value={description}
+        onChange={setDescription}
+      />
+
       <AttributeTypeField
         value={type}
         onChange={setType}
         onTypeChange={handleTypeChange}
-      />
-
-      <AttributeDescriptionField
-        value={description}
-        onChange={setDescription}
       />
 
       {type === "dropdown" && (
@@ -174,13 +173,6 @@ export const AttributeForm = React.forwardRef<
         <AttributePreferredField
           value={isPreferred}
           onChange={setIsPreferred}
-        />
-      )}
-
-      {context === "core" && mode === "add" && (
-        <AttributeSectionField
-          value={section}
-          onChange={setSection}
         />
       )}
     </div>

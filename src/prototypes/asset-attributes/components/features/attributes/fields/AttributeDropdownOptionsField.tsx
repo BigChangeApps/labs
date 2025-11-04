@@ -56,7 +56,7 @@ export function AttributeDropdownOptionsField({
 
   return (
     <div className="space-y-2">
-      <Label>Dropdown Options *</Label>
+      <Label>Dropdown Options</Label>
       <div className="space-y-2">
         {options.map((option, index) => (
           <div key={index} className="flex gap-2">

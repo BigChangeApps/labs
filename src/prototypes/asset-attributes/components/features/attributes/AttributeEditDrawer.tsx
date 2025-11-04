@@ -145,12 +145,8 @@ export function AttributeEditDrawer({
     onOpenChange(false);
   };
 
-  if (!attribute) return null;
-
-  // Don't allow editing system/required attributes
-  if (isSystemAttribute) {
-    return null; // Should use AttributeViewDrawer instead
-  }
+  // Early return - don't render modal if no data available or if it's a system attribute
+  if (!attribute || isSystemAttribute) return null;
 
   const title =
     context === "category" ? attribute.label : attribute.label;
