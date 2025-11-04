@@ -28,13 +28,9 @@ export function CategoryAttributes() {
   // Helper function to calculate enabled attribute count for a category
   const getEnabledAttributeCount = (category: Category) => {
     const systemCount =
-      category.systemAttributes?.filter(
-        (a: CategoryAttributeConfig) => a.isEnabled
-      ).length || 0;
+      category.systemAttributes?.filter((a: CategoryAttributeConfig) => a.isEnabled).length || 0;
     const customCount =
-      category.customAttributes?.filter(
-        (a: CategoryAttributeConfig) => a.isEnabled
-      ).length || 0;
+      category.customAttributes?.filter((a: CategoryAttributeConfig) => a.isEnabled).length || 0;
     return systemCount + customCount;
   };
 
