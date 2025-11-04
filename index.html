@@ -5,6 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BigChange Labs</title>
+    <script>
+      // Set data-brand attribute immediately before CSS loads to ensure correct tokens
+      // This prevents FOUC (Flash of Unstyled Content) with wrong colors
+      (function() {
+        const stored = localStorage.getItem("brand");
+        const brand = stored === "simpro" ? "simpro" : "bigchange";
+        document.documentElement.setAttribute("data-brand", brand);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
