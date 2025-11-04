@@ -17,8 +17,8 @@ function AssetAttributesApp() {
         <main className="flex-1 overflow-auto">
           <Routes>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="categories" replace state={location.state} />} />
-              <Route path="categories" element={<CategoryAttributes />} />
+              <Route index element={<Navigate to="attributes" replace state={location.state} />} />
+              <Route path="attributes" element={<CategoryAttributes />} />
               <Route
                 path="category/:categoryId"
                 element={<CategoryAttributesDetail />}
