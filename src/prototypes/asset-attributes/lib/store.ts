@@ -7,7 +7,7 @@ import type {
   CoreAttribute,
 } from "../types";
 import {
-  attributeLibrary as initialAttributeLibrary,
+  predefinedCategoryAttributes as initialPredefinedCategoryAttributes,
   categories as initialCategories,
   manufacturers as initialManufacturers,
   coreAttributes as initialCoreAttributes,
@@ -18,7 +18,8 @@ interface AttributeStore {
   currentCategoryId: string;
   selectedCategoryView: string | null; // null = category list view, categoryId = category detail view
   currentSettingsTab: "categories" | "library";
-  attributeLibrary: Attribute[];
+  predefinedCategoryAttributes: Record<string, Attribute[]>;
+  customCategoryAttributes: Record<string, Attribute[]>; // User-created category-specific attributes
   categories: Category[];
   manufacturers: Manufacturer[];
   coreAttributes: CoreAttribute[];
@@ -34,13 +35,13 @@ interface AttributeStore {
     attributeId: string,
     isSystem: boolean
   ) => void;
-  togglePreferred: (attributeId: string) => void;
+  togglePreferred: (attributeId: string, categoryId: string) => void;
   reorderAttributes: (categoryId: string, attributeIds: string[]) => void;
   addAttribute: (
     attribute: Omit<Attribute, "id" | "isSystem">,
     categoryId: string
   ) => string;
-  editAttribute: (attributeId: string, updates: Partial<Attribute>) => void;
+  editAttribute: (attributeId: string, categoryId: string, updates: Partial<Attribute>) => void;
   deleteAttribute: (attributeId: string, categoryId: string) => void;
   removeAttributeFromCategory: (
     attributeId: string,
@@ -58,6 +59,8 @@ interface AttributeStore {
   // Core attribute actions
   toggleCoreAttribute: (attributeId: string) => void;
   addCoreAttribute: (attribute: Omit<CoreAttribute, "id">) => string;
+  editCoreAttribute: (attributeId: string, updates: Partial<CoreAttribute>) => void;
+  deleteCoreAttribute: (attributeId: string) => void;
 }
 
 export const useAttributeStore = create<AttributeStore>((set) => ({
@@ -65,7 +68,8 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   currentCategoryId: "boiler",
   selectedCategoryView: null, // Start at category list view
   currentSettingsTab: "categories",
-  attributeLibrary: initialAttributeLibrary,
+  predefinedCategoryAttributes: initialPredefinedCategoryAttributes,
+  customCategoryAttributes: {}, // Start empty - users create these
   categories: initialCategories,
   manufacturers: initialManufacturers,
   coreAttributes: initialCoreAttributes,
@@ -131,15 +135,37 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   },
 
   // Toggle preferred status of an attribute
-  togglePreferred: (attributeId) => {
+  togglePreferred: (attributeId, categoryId) => {
     set((state) => {
-      const attributeLibrary = state.attributeLibrary.map((attr) =>
-        attr.id === attributeId
-          ? { ...attr, isPreferred: !attr.isPreferred }
-          : attr
-      );
+      // Check predefined attributes first
+      const predefinedAttrs = state.predefinedCategoryAttributes[categoryId] || [];
+      const predefinedIndex = predefinedAttrs.findIndex((attr) => attr.id === attributeId);
+      
+      if (predefinedIndex !== -1) {
+        const updatedPredefined = { ...state.predefinedCategoryAttributes };
+        updatedPredefined[categoryId] = predefinedAttrs.map((attr) =>
+          attr.id === attributeId
+            ? { ...attr, isPreferred: !attr.isPreferred }
+            : attr
+        );
+        return { predefinedCategoryAttributes: updatedPredefined };
+      }
 
-      return { attributeLibrary };
+      // Check custom attributes
+      const customAttrs = state.customCategoryAttributes[categoryId] || [];
+      const customIndex = customAttrs.findIndex((attr) => attr.id === attributeId);
+      
+      if (customIndex !== -1) {
+        const updatedCustom = { ...state.customCategoryAttributes };
+        updatedCustom[categoryId] = customAttrs.map((attr) =>
+          attr.id === attributeId
+            ? { ...attr, isPreferred: !attr.isPreferred }
+            : attr
+        );
+        return { customCategoryAttributes: updatedCustom };
+      }
+
+      return {};
     });
   },
 
@@ -168,7 +194,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  // Add new attribute to library and category
+  // Add new attribute to category
   addAttribute: (attribute, categoryId) => {
     const newId = `custom-${Date.now()}`;
     const newAttribute: Attribute = {
@@ -178,10 +204,17 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     };
 
     set((state) => {
-      // Add to library
-      const attributeLibrary = [...state.attributeLibrary, newAttribute];
+      // Add to custom category attributes
+      const customCategoryAttributes = { ...state.customCategoryAttributes };
+      if (!customCategoryAttributes[categoryId]) {
+        customCategoryAttributes[categoryId] = [];
+      }
+      customCategoryAttributes[categoryId] = [
+        ...customCategoryAttributes[categoryId],
+        newAttribute,
+      ];
 
-      // Add to the specified category
+      // Add to the specified category's customAttributes array
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
@@ -198,30 +231,43 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
         };
       });
 
-      return { attributeLibrary, categories };
+      return { customCategoryAttributes, categories };
     });
 
     return newId;
   },
 
   // Edit existing attribute
-  editAttribute: (attributeId, updates) => {
+  editAttribute: (attributeId, categoryId, updates) => {
     set((state) => {
-      const attributeLibrary = state.attributeLibrary.map((attr) =>
-        attr.id === attributeId ? { ...attr, ...updates } : attr
-      );
+      // Check custom attributes
+      const customAttrs = state.customCategoryAttributes[categoryId] || [];
+      const customIndex = customAttrs.findIndex((attr) => attr.id === attributeId);
+      
+      if (customIndex !== -1) {
+        const updatedCustom = { ...state.customCategoryAttributes };
+        updatedCustom[categoryId] = customAttrs.map((attr) =>
+          attr.id === attributeId ? { ...attr, ...updates } : attr
+        );
+        return { customCategoryAttributes: updatedCustom };
+      }
 
-      return { attributeLibrary };
+      return {};
     });
   },
 
-  // Delete attribute from library and category
+  // Delete attribute from category
   deleteAttribute: (attributeId, categoryId) => {
     set((state) => {
-      const attributeLibrary = state.attributeLibrary.filter(
-        (attr) => attr.id !== attributeId
-      );
+      // Remove from custom category attributes
+      const customCategoryAttributes = { ...state.customCategoryAttributes };
+      if (customCategoryAttributes[categoryId]) {
+        customCategoryAttributes[categoryId] = customCategoryAttributes[categoryId].filter(
+          (attr) => attr.id !== attributeId
+        );
+      }
 
+      // Remove from category's customAttributes array
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
@@ -233,19 +279,22 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
         };
       });
 
-      return { attributeLibrary, categories };
+      return { customCategoryAttributes, categories };
     });
   },
 
-  // Remove attribute from a category and delete from library
+  // Remove attribute from a category
   removeAttributeFromCategory: (attributeId, categoryId) => {
     set((state) => {
-      // Remove from library
-      const attributeLibrary = state.attributeLibrary.filter(
-        (attr) => attr.id !== attributeId
-      );
+      // Remove from custom category attributes
+      const customCategoryAttributes = { ...state.customCategoryAttributes };
+      if (customCategoryAttributes[categoryId]) {
+        customCategoryAttributes[categoryId] = customCategoryAttributes[categoryId].filter(
+          (attr) => attr.id !== attributeId
+        );
+      }
 
-      // Remove from category
+      // Remove from category's customAttributes array
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
@@ -257,7 +306,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
         };
       });
 
-      return { attributeLibrary, categories };
+      return { customCategoryAttributes, categories };
     });
   },
 
@@ -361,5 +410,25 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
 
     return newId;
+  },
+
+  editCoreAttribute: (attributeId, updates) => {
+    set((state) => {
+      const coreAttributes = state.coreAttributes.map((attr) =>
+        attr.id === attributeId ? { ...attr, ...updates } : attr
+      );
+
+      return { coreAttributes };
+    });
+  },
+
+  deleteCoreAttribute: (attributeId) => {
+    set((state) => {
+      const coreAttributes = state.coreAttributes.filter(
+        (attr) => attr.id !== attributeId
+      );
+
+      return { coreAttributes };
+    });
   },
 }));
