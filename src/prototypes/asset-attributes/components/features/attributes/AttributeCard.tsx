@@ -1,14 +1,7 @@
 import { type MouseEvent } from "react";
-import { MoreVertical, Trash2, MessageSquare } from "lucide-react";
-import { Button } from "@/registry/ui/button";
 import { Badge } from "@/registry/ui/badge";
 import { Switch } from "@/registry/ui/switch";
 import { Separator } from "@/registry/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/registry/ui/popover";
 import type { Attribute, CoreAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
 
@@ -22,8 +15,6 @@ export interface AttributeCardProps {
   isEnabled: boolean;
   onToggle?: () => void;
   onClick?: () => void;
-  onDelete?: () => void;
-  onFeedback?: () => void;
   isDeleting?: boolean;
   showSeparator?: boolean;
 }
@@ -34,21 +25,16 @@ export function AttributeCard({
   isEnabled,
   onToggle,
   onClick,
-  onDelete,
-  onFeedback,
   isDeleting = false,
   showSeparator = true,
 }: AttributeCardProps) {
   const IconComponent = getAttributeIcon(attribute.type);
 
-  // Determine if card is clickable (predefined and custom can be clicked)
-  const isClickable = (variant === "predefined" || variant === "custom") && !!onClick;
-  
-  // Determine if toggle should be shown
+  // All variants can be clicked to open side panel
+  const isClickable = !!onClick;
+
+  // Determine if toggle should be shown (system attributes don't have toggles)
   const showToggle = variant !== "system" && !!onToggle;
-  
-  // Determine if toggle should be interactive (predefined/custom can toggle)
-  const toggleDisabled = variant === "system";
 
   // Handle card click
   const handleCardClick = (e: MouseEvent) => {
@@ -58,9 +44,7 @@ export function AttributeCard({
     if (
       target.closest("button") ||
       target.closest('[role="switch"]') ||
-      target.closest('[data-badge]') ||
-      target.closest('[role="dialog"]') ||
-      target.closest('[data-radix-popper-content-wrapper]')
+      target.closest('[data-badge]')
     ) {
       return;
     }
@@ -74,6 +58,8 @@ export function AttributeCard({
           isDeleting ? "opacity-0 scale-[0.98]" : ""
         } ${
           isClickable ? "hover:bg-muted/50 cursor-pointer" : ""
+        } ${
+          variant === "custom" ? "bg-muted/30" : ""
         }`}
         onClick={handleCardClick}
       >
@@ -116,74 +102,25 @@ export function AttributeCard({
           className="flex items-center gap-1 sm:gap-2 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Toggle switch or System badge */}
-          {variant === "system" ? (
+          {/* Custom badge for user-created attributes */}
+          {variant === "custom" && (
             <Badge
               variant="secondary"
               className="text-xs"
               data-badge
             >
-              System
+              Custom
             </Badge>
-          ) : (
-            showToggle && (
-              <Switch
-                checked={isEnabled}
-                onCheckedChange={onToggle}
-                disabled={toggleDisabled}
-                onClick={(e) => e.stopPropagation()}
-              />
-            )
           )}
 
-          {/* 3-dot menu */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="w-48 p-1"
+          {/* Toggle switch (system attributes have no toggle or badge) */}
+          {showToggle && (
+            <Switch
+              checked={isEnabled}
+              onCheckedChange={onToggle}
               onClick={(e) => e.stopPropagation()}
-            >
-              {variant === "custom" ? (
-                onDelete && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )
-              ) : (
-                onFeedback && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onFeedback();
-                    }}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Give feedback
-                  </Button>
-                )
-              )}
-            </PopoverContent>
-          </Popover>
+            />
+          )}
         </div>
       </div>
       {showSeparator && <Separator />}

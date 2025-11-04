@@ -15,6 +15,7 @@ import {
   type AttributeFormContext,
 } from "./AttributeForm";
 import { useAttributeStore } from "../../../lib/store";
+import type { CoreAttributeSection } from "../../../types";
 import { toast } from "sonner";
 
 interface AttributeAddDrawerProps {
@@ -22,6 +23,7 @@ interface AttributeAddDrawerProps {
   onOpenChange: (open: boolean) => void;
   context: AttributeFormContext;
   categoryId?: string; // Required when context is "category"
+  section?: CoreAttributeSection | null; // Optional section for core attributes
 }
 
 export function AttributeAddDrawer({
@@ -29,6 +31,7 @@ export function AttributeAddDrawer({
   onOpenChange,
   context,
   categoryId,
+  section,
 }: AttributeAddDrawerProps) {
   const { addAttribute, addCoreAttribute, categories } = useAttributeStore();
   const formRef = useRef<{ submit: () => void }>(null);
@@ -53,9 +56,9 @@ export function AttributeAddDrawer({
       const coreAttributeData = formDataToAttribute(formData) as Parameters<
         typeof addCoreAttribute
       >[0];
-      addCoreAttribute(coreAttributeData);
+      addCoreAttribute(coreAttributeData, section || undefined);
 
-      toast.success(`Added "${formData.label.trim()}" to Custom Attributes`);
+      toast.success(`Added "${formData.label.trim()}"`);
     }
 
     onOpenChange(false);

@@ -58,7 +58,7 @@ interface AttributeStore {
 
   // Core attribute actions
   toggleCoreAttribute: (attributeId: string) => void;
-  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">) => string;
+  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">, section?: CoreAttributeSection) => string;
   editCoreAttribute: (attributeId: string, updates: Partial<CoreAttribute>) => void;
   deleteCoreAttribute: (attributeId: string) => void;
 }
@@ -396,12 +396,12 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  addCoreAttribute: (attribute) => {
+  addCoreAttribute: (attribute, section) => {
     const newId = `core-custom-${Date.now()}`;
     const newCoreAttribute: CoreAttribute = {
       ...attribute,
       id: newId,
-      section: "custom", // Always place custom attributes in the custom section
+      section: section || attribute.section || "custom", // Use provided section or attribute's section, fallback to custom
     };
 
     set((state) => {
