@@ -1,12 +1,12 @@
 import { useRef } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import { Button } from "@/registry/ui/button";
 import {
   AttributeForm,
@@ -84,12 +84,12 @@ export function AttributeAddDrawer({
       : "Add a new custom attribute to the Custom Attributes section.";
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+      <ResponsiveModalContent className="flex flex-col">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
+          <ResponsiveModalDescription>{description}</ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
         <AttributeForm
           ref={formRef}
@@ -99,17 +99,17 @@ export function AttributeAddDrawer({
         />
 
         <div className="space-y-4">
-          <SheetFooter>
+          <ResponsiveModalFooter>
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button onClick={handleSave}>
               {context === "category" ? "Save Attribute" : "Add Attribute"}
             </Button>
-          </SheetFooter>
+          </ResponsiveModalFooter>
         </div>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 

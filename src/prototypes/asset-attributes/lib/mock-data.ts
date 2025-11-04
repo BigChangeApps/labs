@@ -1341,7 +1341,7 @@ export const coreAttributes: CoreAttribute[] = [
     isEnabled: true,
     isRequired: true,
     description: "Track equipment manufacturers",
-    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
+    detailedDescription: "This attribute displays manufacturers from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
     id: "core-model",
@@ -1351,7 +1351,7 @@ export const coreAttributes: CoreAttribute[] = [
     isEnabled: true,
     isRequired: true,
     description: "Track equipment models",
-    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
+    detailedDescription: "This attribute displays models from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
     id: "core-manufacturer-serial",

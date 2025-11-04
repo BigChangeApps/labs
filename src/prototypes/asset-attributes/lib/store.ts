@@ -5,6 +5,7 @@ import type {
   Manufacturer,
   CategoryAttributeConfig,
   CoreAttribute,
+  CoreAttributeSection,
 } from "../types";
 import {
   predefinedCategoryAttributes as initialPredefinedCategoryAttributes,

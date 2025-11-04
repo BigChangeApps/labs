@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { MessageSquare } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import { Button } from "@/registry/ui/button";
 import { Alert, AlertDescription } from "@/registry/ui/alert";
 import {
@@ -43,7 +43,6 @@ export function AttributeViewDrawer({
   } = useAttributeStore();
 
   const [isPreferred, setIsPreferred] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(true);
 
   // Load attribute based on context
   const attribute =
@@ -54,7 +53,7 @@ export function AttributeViewDrawer({
             const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
             const predefinedAttr = predefinedAttrs.find((a: Attribute) => a.id === attributeId);
             if (predefinedAttr) return predefinedAttr;
-            
+
             // Check custom attributes
             const customAttrs = customCategoryAttributes[categoryId] || [];
             return customAttrs.find((a: Attribute) => a.id === attributeId);
@@ -76,8 +75,6 @@ export function AttributeViewDrawer({
     if (attribute) {
       if (context === "category") {
         setIsPreferred((attribute as Attribute).isPreferred);
-      } else {
-        setIsEnabled((attribute as CoreAttribute).isEnabled);
       }
     }
   }, [attribute, context]);
@@ -90,13 +87,6 @@ export function AttributeViewDrawer({
     if (context === "category" && attributeId && categoryId) {
       togglePreferred(attributeId, categoryId);
       setIsPreferred(value);
-    }
-  };
-
-  const handleStatusToggle = (value: boolean) => {
-    if (context === "core" && attributeId) {
-      toggleCoreAttribute(attributeId);
-      setIsEnabled(value);
     }
   };
 
@@ -118,60 +108,74 @@ export function AttributeViewDrawer({
   const formData: typeof baseFormData = {
     ...baseFormData,
     isPreferred: context === "category" ? isPreferred : baseFormData.isPreferred,
-    isEnabled: context === "core" ? isEnabled : baseFormData.isEnabled,
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription className="text-sm text-muted-foreground">
+    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+      <ResponsiveModalContent className="flex flex-col">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
+          <ResponsiveModalDescription className="text-sm text-muted-foreground">
             {description}
-          </SheetDescription>
-        </SheetHeader>
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
         <AttributeViewContent
           formData={formData}
           context={context}
           onPreferredChange={handlePreferredToggle}
-          onStatusChange={handleStatusToggle}
           isSystemAttribute={isSystemAttribute}
         />
 
         <div className="space-y-4">
-          {isSystemAttribute && (
+          {context === "core" && (
             <Alert className="bg-muted/50 border-muted">
-              <AlertDescription className="text-sm text-muted-foreground">
-                {context === "category"
-                  ? "This is a BigChange attribute. Help us improve it by submitting feedback."
-                  : "This is a system attribute and cannot be modified."}
-              </AlertDescription>
+              <div className="space-y-3">
+                <AlertDescription className="text-sm text-muted-foreground">
+                  {isSystemAttribute
+                    ? "This is a system attribute and cannot be modified."
+                    : "This is a predefined attribute."}
+                </AlertDescription>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFeedbackClick}
+                  className="w-full"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Make a suggestion
+                </Button>
+              </div>
             </Alert>
           )}
 
-          <SheetFooter>
-            {isSystemAttribute ? (
-              <>
-                {context === "category" && (
-                  <Button variant="outline" onClick={handleFeedbackClick}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Give feedback
-                  </Button>
-                )}
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  Close
+          {context === "category" && isSystemAttribute && (
+            <Alert className="bg-muted/50 border-muted">
+              <div className="space-y-3">
+                <AlertDescription className="text-sm text-muted-foreground">
+                  This is a BigChange attribute. Help us improve it by submitting feedback.
+                </AlertDescription>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFeedbackClick}
+                  className="w-full"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Make a suggestion
                 </Button>
-              </>
-            ) : (
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Close
-              </Button>
-            )}
-          </SheetFooter>
+              </div>
+            </Alert>
+          )}
+
+          <ResponsiveModalFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </ResponsiveModalFooter>
         </div>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 

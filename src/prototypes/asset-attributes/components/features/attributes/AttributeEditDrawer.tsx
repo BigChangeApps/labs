@@ -1,12 +1,12 @@
 import { useState, useRef } from "react";
 import { Trash2, MoreVertical } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import {
   Dialog,
   DialogContent,
@@ -157,11 +157,11 @@ export function AttributeEditDrawer({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex flex-col w-[400px] sm:w-[540px]">
-          <SheetHeader>
+      <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+        <ResponsiveModalContent className="flex flex-col w-full max-w-2xl">
+          <ResponsiveModalHeader>
             <div className="flex items-center justify-between">
-              <SheetTitle>{title}</SheetTitle>
+              <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -182,7 +182,7 @@ export function AttributeEditDrawer({
                 </PopoverContent>
               </Popover>
             </div>
-          </SheetHeader>
+          </ResponsiveModalHeader>
 
           <AttributeForm
             ref={formRef}
@@ -193,17 +193,17 @@ export function AttributeEditDrawer({
           />
 
           <div className="space-y-4">
-            <SheetFooter className="flex gap-2">
+            <ResponsiveModalFooter className="flex gap-2">
               <Button variant="outline" onClick={handleCancel} className="flex-1">
                 Cancel
               </Button>
               <Button onClick={handleSave} className="flex-1">
                 Save Changes
               </Button>
-            </SheetFooter>
+            </ResponsiveModalFooter>
           </div>
-        </SheetContent>
-      </Sheet>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

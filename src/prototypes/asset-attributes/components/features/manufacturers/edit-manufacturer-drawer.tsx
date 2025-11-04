@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Trash2, Plus } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
 import { Label } from "@/registry/ui/label";
@@ -160,14 +160,14 @@ export function EditManufacturerDrawer({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>Edit Manufacturer</SheetTitle>
-          <SheetDescription>
+    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+      <ResponsiveModalContent className="flex flex-col">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Edit Manufacturer</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
             Modify manufacturer details and manage models
-          </SheetDescription>
-        </SheetHeader>
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
         <div className="flex flex-col space-y-6 mt-4 flex-1">
           <div className="overflow-y-auto flex flex-col gap-4 px-1">
@@ -253,14 +253,14 @@ export function EditManufacturerDrawer({
             </div>
           </div>
 
-          <SheetFooter>
+          <ResponsiveModalFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button onClick={handleSave}>Save Changes</Button>
-          </SheetFooter>
+          </ResponsiveModalFooter>
         </div>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }

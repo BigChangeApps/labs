@@ -51,15 +51,6 @@ export function AttributeViewContent({
           disabled={false}
         />
       )}
-
-      {/* Status - Core attributes only, interactive if not system/required */}
-      {context === "core" && !isSystemAttribute && (
-        <AttributeStatusField
-          value={formData.isEnabled}
-          onChange={onStatusChange || (() => {})}
-          disabled={false}
-        />
-      )}
     </div>
   );
 }
