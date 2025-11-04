@@ -49,9 +49,9 @@ export function Layout() {
   // Handle back button navigation
   const handleBackClick = () => {
     if (location.pathname.includes("/core-attributes")) {
-      navigate("/asset-attributes/categories");
+      navigate("/asset-attributes/attributes");
     } else if (location.pathname.includes("/category/")) {
-      navigate("/asset-attributes/categories");
+      navigate("/asset-attributes/attributes");
     } else {
       // For main pages, go back to labs
       navigate("/");
@@ -64,7 +64,7 @@ export function Layout() {
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       <NavLink
-        to="/asset-attributes/categories"
+        to="/asset-attributes/attributes"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) =>
