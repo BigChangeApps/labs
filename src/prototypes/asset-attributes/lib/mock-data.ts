@@ -5,126 +5,371 @@ import type {
   CoreAttribute,
 } from "../types";
 
-// All attributes in the library
-export const attributeLibrary: Attribute[] = [
-  // System attributes
-  {
-    id: "manufacturer",
-    label: "Manufacturer",
-    type: "dropdown",
-    isSystem: true,
-    isPreferred: true,
-    description: "Equipment manufacturer",
-    dropdownOptions: [
-      "Vaillant",
-      "Worcester Bosch",
-      "Baxi",
-      "Ideal",
-      "Viessmann",
-    ],
-  },
-  {
-    id: "model",
-    label: "Model",
-    type: "dropdown",
-    isSystem: true,
-    isPreferred: true,
-    description: "Equipment model",
-    dropdownOptions: [
-      "ecoTEC Plus",
-      "Greenstar",
-      "EcoBlue",
-      "Logic",
-      "Vitodens",
-    ],
-  },
-  {
-    id: "serial-number",
-    label: "Serial Number",
-    type: "text",
-    isSystem: true,
-    isPreferred: false,
-    description: "Equipment serial number",
-  },
-  {
-    id: "installation-date",
-    label: "Installation Date",
-    type: "date",
-    isSystem: true,
-    isPreferred: false,
-    description: "Date of installation",
-  },
-  {
-    id: "flue-type",
-    label: "Flue Type",
-    type: "dropdown",
-    isSystem: true,
-    isPreferred: false,
-    description: "Type of flue system",
-    dropdownOptions: ["Horizontal", "Vertical", "Balanced Flue", "Open Flue"],
-  },
-  {
-    id: "gas-pressure",
-    label: "Gas Pressure",
-    type: "number",
-    isSystem: true,
-    isPreferred: false,
-    description: "Gas pressure in mbar",
-    units: "mbar",
-  },
-  {
-    id: "capacity",
-    label: "Capacity",
-    type: "number",
-    isSystem: true,
-    isPreferred: false,
-    description: "Equipment capacity",
-  },
-  {
-    id: "voltage",
-    label: "Voltage",
-    type: "number",
-    isSystem: true,
-    isPreferred: false,
-    description: "Operating voltage",
-    units: "V",
-  },
-  // Custom attributes
-  {
-    id: "inspection-frequency",
-    label: "Inspection Frequency",
-    type: "dropdown",
-    isSystem: false,
-    isPreferred: false,
-    description: "How often equipment should be inspected",
-    dropdownOptions: ["Monthly", "Quarterly", "Annually", "Bi-annually"],
-  },
-  {
-    id: "warranty-expiry",
-    label: "Warranty Expiry",
-    type: "date",
-    isSystem: false,
-    isPreferred: false,
-    description: "Warranty expiration date",
-  },
-  {
-    id: "location",
-    label: "Location",
-    type: "text",
-    isSystem: false,
-    isPreferred: false,
-    description: "Physical location of the equipment",
-  },
-  {
-    id: "pressure-rating",
-    label: "Pressure Rating",
-    type: "number",
-    isSystem: false,
-    isPreferred: false,
-    description: "Maximum pressure rating in bar",
-    units: "bar",
-  },
-];
+// Pre-defined category-specific attributes (can be toggled on/off but not edited)
+// Each category can have its own set of pre-defined attributes
+export const predefinedCategoryAttributes: Record<string, Attribute[]> = {
+  boiler: [
+    {
+      id: "flue-type",
+      label: "Flue Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of flue system",
+      dropdownOptions: ["Horizontal", "Vertical", "Balanced Flue", "Open Flue"],
+    },
+    {
+      id: "gas-pressure",
+      label: "Gas Pressure",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Gas pressure in mbar",
+      units: "mbar",
+    },
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+  ],
+  "expansion-vessel": [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+  ],
+  "cold-water-tank": [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+  ],
+  "hot-water-cylinder": [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+  ],
+  pump: [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+  ],
+  "distribution-switchgear": [
+    {
+      id: "voltage",
+      label: "Voltage",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Operating voltage",
+      units: "V",
+    },
+  ],
+  radiator: [
+    {
+      id: "btu-output",
+      label: "BTU Output",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Heat output rating in BTU",
+      units: "BTU",
+    },
+    {
+      id: "valve-type",
+      label: "Valve Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of radiator valve",
+      dropdownOptions: ["Manual", "Thermostatic", "Lock Shield", "Lockshield"],
+    },
+    {
+      id: "sections",
+      label: "Number of Sections",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Number of radiator sections",
+    },
+  ],
+  chiller: [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+    {
+      id: "refrigerant-type",
+      label: "Refrigerant Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of refrigerant used",
+      dropdownOptions: ["R134a", "R410A", "R407C", "R22", "R32", "R1234ze"],
+    },
+    {
+      id: "compressor-type",
+      label: "Compressor Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of compressor",
+      dropdownOptions: ["Scroll", "Screw", "Centrifugal", "Reciprocating"],
+    },
+  ],
+  "ev-charger": [
+    {
+      id: "charging-power",
+      label: "Charging Power",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Maximum charging power",
+      units: "kW",
+    },
+    {
+      id: "connector-type",
+      label: "Connector Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of charging connector",
+      dropdownOptions: ["Type 2", "CCS", "CHAdeMO", "Type 1", "Tesla"],
+    },
+    {
+      id: "phase",
+      label: "Phase",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Electrical phase configuration",
+      dropdownOptions: ["Single Phase", "Three Phase"],
+    },
+  ],
+  "cctv-camera": [
+    {
+      id: "resolution",
+      label: "Resolution",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Camera resolution",
+      dropdownOptions: ["720p", "1080p", "2MP", "4MP", "5MP", "8MP", "12MP"],
+    },
+    {
+      id: "night-vision-range",
+      label: "Night Vision Range",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Infrared night vision range",
+      units: "m",
+    },
+    {
+      id: "ptz-capability",
+      label: "PTZ Capability",
+      type: "boolean",
+      isSystem: true,
+      isPreferred: false,
+      description: "Pan-tilt-zoom capability",
+    },
+  ],
+  "heat-pump-air": [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+    {
+      id: "cop-rating",
+      label: "COP Rating",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Coefficient of Performance rating",
+    },
+    {
+      id: "refrigerant-type",
+      label: "Refrigerant Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of refrigerant used",
+      dropdownOptions: ["R134a", "R410A", "R407C", "R32", "R1234ze"],
+    },
+  ],
+  "heat-pump-ground": [
+    {
+      id: "capacity",
+      label: "Capacity",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Equipment capacity",
+    },
+    {
+      id: "cop-rating",
+      label: "COP Rating",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Coefficient of Performance rating",
+    },
+    {
+      id: "ground-loop-type",
+      label: "Ground Loop Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of ground loop system",
+      dropdownOptions: ["Horizontal", "Vertical", "Slinky", "Pond/Lake"],
+    },
+  ],
+  "air-handling-unit": [
+    {
+      id: "air-flow-rate",
+      label: "Air Flow Rate",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Maximum air flow rate",
+      units: "m³/h",
+    },
+    {
+      id: "filter-type",
+      label: "Filter Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of air filter",
+      dropdownOptions: ["G4", "G5", "F7", "F8", "F9", "HEPA", "Carbon"],
+    },
+    {
+      id: "heat-recovery",
+      label: "Heat Recovery",
+      type: "boolean",
+      isSystem: true,
+      isPreferred: false,
+      description: "Heat recovery capability",
+    },
+  ],
+  compressor: [
+    {
+      id: "discharge-pressure",
+      label: "Discharge Pressure",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Maximum discharge pressure",
+      units: "bar",
+    },
+    {
+      id: "cfm-rating",
+      label: "CFM Rating",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Cubic feet per minute rating",
+      units: "CFM",
+    },
+    {
+      id: "compressor-type",
+      label: "Compressor Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of compressor",
+      dropdownOptions: ["Reciprocating", "Rotary Screw", "Scroll", "Centrifugal"],
+    },
+  ],
+  generator: [
+    {
+      id: "rated-power",
+      label: "Rated Power",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Rated power output",
+      units: "kW",
+    },
+    {
+      id: "fuel-type",
+      label: "Fuel Type",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Type of fuel used",
+      dropdownOptions: ["Diesel", "Gas", "Petrol", "Natural Gas", "LPG"],
+    },
+    {
+      id: "phase",
+      label: "Phase",
+      type: "dropdown",
+      isSystem: true,
+      isPreferred: false,
+      description: "Electrical phase configuration",
+      dropdownOptions: ["Single Phase", "Three Phase"],
+    },
+  ],
+  ups: [
+    {
+      id: "rated-power",
+      label: "Rated Power",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Rated power output",
+      units: "kVA",
+    },
+    {
+      id: "battery-runtime",
+      label: "Battery Runtime",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Battery backup runtime",
+      units: "min",
+    },
+    {
+      id: "output-voltage",
+      label: "Output Voltage",
+      type: "number",
+      isSystem: true,
+      isPreferred: false,
+      description: "Output voltage",
+      units: "V",
+    },
+  ],
+};
 
 // Hierarchical categories with the full tree structure
 export const categories: Category[] = [
@@ -144,16 +389,8 @@ export const categories: Category[] = [
       "expansion-vessel",
       "flue-system",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-      { attributeId: "serial-number", isEnabled: true, order: 2 },
-      { attributeId: "installation-date", isEnabled: true, order: 3 },
-    ],
-    customAttributes: [
-      { attributeId: "inspection-frequency", isEnabled: true, order: 0 },
-      { attributeId: "warranty-expiry", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
+    customAttributes: [],
   },
   {
     id: "boiler",
@@ -161,9 +398,9 @@ export const categories: Category[] = [
     parentId: "heating",
     children: [],
     systemAttributes: [
-      { attributeId: "flue-type", isEnabled: true, order: 4 },
-      { attributeId: "gas-pressure", isEnabled: true, order: 5 },
-      { attributeId: "capacity", isEnabled: true, order: 6 },
+      { attributeId: "flue-type", isEnabled: true, order: 0 },
+      { attributeId: "gas-pressure", isEnabled: true, order: 1 },
+      { attributeId: "capacity", isEnabled: true, order: 2 },
     ],
     customAttributes: [],
   },
@@ -172,7 +409,11 @@ export const categories: Category[] = [
     name: "Radiator / Heat Emitter",
     parentId: "heating",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "btu-output", isEnabled: true, order: 0 },
+      { attributeId: "valve-type", isEnabled: true, order: 1 },
+      { attributeId: "sections", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -188,7 +429,11 @@ export const categories: Category[] = [
     name: "Heat Pump (Air Source)",
     parentId: "heating",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 4 }],
+    systemAttributes: [
+      { attributeId: "capacity", isEnabled: true, order: 0 },
+      { attributeId: "cop-rating", isEnabled: true, order: 1 },
+      { attributeId: "refrigerant-type", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -196,7 +441,11 @@ export const categories: Category[] = [
     name: "Heat Pump (Ground Source)",
     parentId: "heating",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 4 }],
+    systemAttributes: [
+      { attributeId: "capacity", isEnabled: true, order: 0 },
+      { attributeId: "cop-rating", isEnabled: true, order: 1 },
+      { attributeId: "ground-loop-type", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -204,10 +453,8 @@ export const categories: Category[] = [
     name: "Expansion Vessel",
     parentId: "heating",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 4 }],
-    customAttributes: [
-      { attributeId: "pressure-rating", isEnabled: true, order: 0 },
-    ],
+    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 0 }],
+    customAttributes: [],
   },
   {
     id: "flue-system",
@@ -232,21 +479,15 @@ export const categories: Category[] = [
       "pipework",
       "water-softener",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-      { attributeId: "installation-date", isEnabled: true, order: 2 },
-    ],
-    customAttributes: [
-      { attributeId: "inspection-frequency", isEnabled: true, order: 0 },
-    ],
+    systemAttributes: [],
+    customAttributes: [],
   },
   {
     id: "cold-water-tank",
     name: "Cold Water Storage Tank",
     parentId: "water-plumbing",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 3 }],
+    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 0 }],
     customAttributes: [],
   },
   {
@@ -254,7 +495,7 @@ export const categories: Category[] = [
     name: "Hot Water Cylinder",
     parentId: "water-plumbing",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 3 }],
+    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 0 }],
     customAttributes: [],
   },
   {
@@ -270,7 +511,7 @@ export const categories: Category[] = [
     name: "Pump (General / Circulation / Booster)",
     parentId: "water-plumbing",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 3 }],
+    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 0 }],
     customAttributes: [],
   },
   {
@@ -279,9 +520,7 @@ export const categories: Category[] = [
     parentId: "water-plumbing",
     children: [],
     systemAttributes: [],
-    customAttributes: [
-      { attributeId: "pressure-rating", isEnabled: true, order: 0 },
-    ],
+    customAttributes: [],
   },
   {
     id: "pipework",
@@ -312,11 +551,7 @@ export const categories: Category[] = [
       "air-handling-unit",
       "extractor-fan",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-      { attributeId: "installation-date", isEnabled: true, order: 2 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -324,7 +559,11 @@ export const categories: Category[] = [
     name: "Chiller",
     parentId: "cooling-ventilation",
     children: [],
-    systemAttributes: [{ attributeId: "capacity", isEnabled: true, order: 3 }],
+    systemAttributes: [
+      { attributeId: "capacity", isEnabled: true, order: 0 },
+      { attributeId: "refrigerant-type", isEnabled: true, order: 1 },
+      { attributeId: "compressor-type", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -348,7 +587,11 @@ export const categories: Category[] = [
     name: "Air Handling Unit (AHU)",
     parentId: "cooling-ventilation",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "air-flow-rate", isEnabled: true, order: 0 },
+      { attributeId: "filter-type", isEnabled: true, order: 1 },
+      { attributeId: "heat-recovery", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -372,10 +615,7 @@ export const categories: Category[] = [
       "pressure-regulator",
       "safety-relief-valve",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -383,7 +623,11 @@ export const categories: Category[] = [
     name: "Compressor",
     parentId: "compressed-air",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "discharge-pressure", isEnabled: true, order: 0 },
+      { attributeId: "cfm-rating", isEnabled: true, order: 1 },
+      { attributeId: "compressor-type", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -432,10 +676,7 @@ export const categories: Category[] = [
       "lift-pump",
       "belt-pulley",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -443,7 +684,11 @@ export const categories: Category[] = [
     name: "Generator (Diesel / Gas)",
     parentId: "power-generation",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "rated-power", isEnabled: true, order: 0 },
+      { attributeId: "fuel-type", isEnabled: true, order: 1 },
+      { attributeId: "phase", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -493,10 +738,7 @@ export const categories: Category[] = [
     name: "Fuel & Storage Systems",
     parentId: undefined,
     children: ["fuel-tank", "fuel-transfer-pump", "pipework-bund"],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -585,9 +827,7 @@ export const categories: Category[] = [
       "surge-protection",
     ],
     systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-      { attributeId: "voltage", isEnabled: true, order: 2 },
+      { attributeId: "voltage", isEnabled: true, order: 0 },
     ],
     customAttributes: [],
   },
@@ -630,10 +870,7 @@ export const categories: Category[] = [
     name: "Power Quality & Backup",
     parentId: undefined,
     children: ["ups", "generator-electrical", "power-conditioner"],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -641,7 +878,11 @@ export const categories: Category[] = [
     name: "UPS",
     parentId: "power-quality",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "rated-power", isEnabled: true, order: 0 },
+      { attributeId: "battery-runtime", isEnabled: true, order: 1 },
+      { attributeId: "output-voltage", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -672,10 +913,7 @@ export const categories: Category[] = [
       "solar-array",
       "battery-storage",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -683,7 +921,11 @@ export const categories: Category[] = [
     name: "EV Charger",
     parentId: "ev-renewables",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "charging-power", isEnabled: true, order: 0 },
+      { attributeId: "connector-type", isEnabled: true, order: 1 },
+      { attributeId: "phase", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -771,10 +1013,7 @@ export const categories: Category[] = [
       "smoke-heat-detector",
       "sounder-beacon",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -816,10 +1055,7 @@ export const categories: Category[] = [
     name: "Emergency Lighting",
     parentId: undefined,
     children: ["emergency-light-fitting"],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -842,10 +1078,7 @@ export const categories: Category[] = [
       "gas-suppression-cylinder",
       "fire-extinguisher",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -923,10 +1156,7 @@ export const categories: Category[] = [
     name: "CCTV",
     parentId: undefined,
     children: ["cctv-camera", "nvr", "dvr", "cctv-power-supply"],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -934,7 +1164,11 @@ export const categories: Category[] = [
     name: "CCTV Camera",
     parentId: "cctv",
     children: [],
-    systemAttributes: [],
+    systemAttributes: [
+      { attributeId: "resolution", isEnabled: true, order: 0 },
+      { attributeId: "night-vision-range", isEnabled: true, order: 1 },
+      { attributeId: "ptz-capability", isEnabled: true, order: 2 },
+    ],
     customAttributes: [],
   },
   {
@@ -973,10 +1207,7 @@ export const categories: Category[] = [
       "door-contact",
       "siren-bell",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -1023,10 +1254,7 @@ export const categories: Category[] = [
       "intercom",
       "electric-lock",
     ],
-    systemAttributes: [
-      { attributeId: "manufacturer", isEnabled: true, order: 0 },
-      { attributeId: "model", isEnabled: true, order: 1 },
-    ],
+    systemAttributes: [],
     customAttributes: [],
   },
   {
@@ -1067,6 +1295,16 @@ export const categories: Category[] = [
 export const coreAttributes: CoreAttribute[] = [
   // Asset Information
   {
+    id: "core-asset-id",
+    label: "Asset ID",
+    type: "text",
+    section: "asset-info",
+    isEnabled: true,
+    isRequired: true,
+    description: "Internal asset ID for searching",
+    detailedDescription: "This is an internal asset ID set by us. It allows you to search and find your asset easily.",
+  },
+  {
     id: "core-customer-reference",
     label: "Customer reference",
     type: "text",
@@ -1082,7 +1320,8 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Asset barcode or QR code identifier",
+    description: "Scannable identifier for quick access",
+    detailedDescription: "A unique identifier that can be scanned to quickly access asset information.",
   },
   {
     id: "core-category",
@@ -1091,7 +1330,8 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Asset category (required)",
+    description: "Group assets by type using our category structure",
+    detailedDescription: "We provide you with access to a robust category structure to help you get the most out of the system. Categories group assets by type, helping organize and filter your asset inventory. If you have any suggestions for improvements, please let us know.",
   },
   {
     id: "core-manufacturer",
@@ -1100,7 +1340,8 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Equipment manufacturer",
+    description: "Track equipment manufacturers",
+    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
   },
   {
     id: "core-model",
@@ -1109,7 +1350,8 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Equipment model",
+    description: "Track equipment models",
+    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
   },
   {
     id: "core-manufacturer-serial",
@@ -1127,7 +1369,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: false,
-    description: "When the asset was manufactured",
   },
   {
     id: "core-date-installation",
@@ -1136,7 +1377,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: false,
-    description: "When the asset was installed",
   },
   {
     id: "core-date-last-service",
@@ -1144,8 +1384,9 @@ export const coreAttributes: CoreAttribute[] = [
     type: "date",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
-    description: "Most recent service date",
+    isRequired: true,
+    description: "Auto-updated from service records",
+    detailedDescription: "This is automatically updated by the system when service records are created. It helps track maintenance history and schedule future services.",
   },
 
   // End of Life
@@ -1178,19 +1419,18 @@ export const coreAttributes: CoreAttribute[] = [
     section: "status",
     isEnabled: true,
     isRequired: true,
-    description: "Current operational status",
-    dropdownOptions: ["Active", "Inactive", "Maintenance", "Decommissioned"],
+    dropdownOptions: ["Active", "Inactive"],
   },
 
   // Contact & Location
   {
     id: "core-contact",
-    label: "Contact",
+    label: "Site",
     type: "search",
     section: "contact",
     isEnabled: true,
     isRequired: true,
-    description: "Associated contact person",
+    description: "The site where this asset is located",
   },
   {
     id: "core-location",
@@ -1200,6 +1440,7 @@ export const coreAttributes: CoreAttribute[] = [
     isEnabled: true,
     isRequired: true,
     description: "Physical location of the asset",
+    detailedDescription: "The physical location where the asset is installed or stored. This helps you organize and find assets by their location.",
   },
 
   // Condition
@@ -1210,8 +1451,7 @@ export const coreAttributes: CoreAttribute[] = [
     section: "status",
     isEnabled: true,
     isRequired: true,
-    description: "Physical condition of the asset",
-    dropdownOptions: ["Unknown", "Excellent", "Good", "Fair", "Poor"],
+    dropdownOptions: ["Poor", "Fair", "Good", "Excellent", "Unknown"],
   },
 ];
 

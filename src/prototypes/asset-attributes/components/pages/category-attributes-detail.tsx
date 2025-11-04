@@ -1,55 +1,20 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Trash2,
-  Type,
-  Hash,
-  List,
-  Calendar,
-  CheckSquare,
-  Star,
-  MoreVertical,
-  Eye,
-  Plus,
-} from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/registry/ui/button";
-import { Badge } from "@/registry/ui/badge";
-import { Switch } from "@/registry/ui/switch";
 import { Card, CardContent } from "@/registry/ui/card";
-import { Separator } from "@/registry/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/registry/ui/popover";
+import { Alert, AlertDescription } from "@/registry/ui/alert";
 import { useAttributeStore } from "../../lib/store";
-import { AttributeDetailDrawer } from "../features/attributes/attribute-detail-drawer";
-import { CreateAttributeDrawer } from "../features/attributes/create-attribute-drawer";
+import { AttributeViewDrawer } from "../features/attributes/AttributeViewDrawer";
+import { AttributeEditDrawer } from "../features/attributes/AttributeEditDrawer";
+import { AttributeAddDrawer } from "../features/attributes/AttributeAddDrawer";
+import { AttributeCard, type AttributeCardVariant } from "../features/attributes/AttributeCard";
 import type {
   Attribute,
-  AttributeType,
   Category,
   CategoryAttributeConfig,
 } from "../../types";
-
-// Helper function to get icon for attribute type
-const getAttributeIcon = (type: AttributeType) => {
-  switch (type) {
-    case "text":
-      return Type;
-    case "number":
-      return Hash;
-    case "dropdown":
-      return List;
-    case "date":
-      return Calendar;
-    case "boolean":
-      return CheckSquare;
-    default:
-      return Type;
-  }
-};
+import { toast } from "sonner";
 
 export function CategoryAttributesDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -59,12 +24,11 @@ export function CategoryAttributesDetail() {
   );
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
   const {
     categories,
-    attributeLibrary,
+    predefinedCategoryAttributes,
+    customCategoryAttributes,
     toggleAttribute,
-    togglePreferred,
     removeAttributeFromCategory,
   } = useAttributeStore();
 
@@ -100,21 +64,17 @@ export function CategoryAttributesDetail() {
     isToggleable: boolean;
   };
 
-  // Build direct attributes array (system and custom)
-  const directAttributes: AttributeWithSource[] = [];
-
-  // Add direct system attributes (toggleable)
+  // Build system attributes array (separate from custom)
+  const systemAttributes: AttributeWithSource[] = [];
   category.systemAttributes.forEach((config: CategoryAttributeConfig) => {
-    const attribute = attributeLibrary.find(
+    // Look up in predefined category attributes
+    const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
+    const attribute = predefinedAttrs.find(
       (a: Attribute) => a.id === config.attributeId
     );
-    // Filter out system-wide attributes (manufacturer and model)
-    if (
-      attribute &&
-      attribute.id !== "manufacturer" &&
-      attribute.id !== "model"
-    ) {
-      directAttributes.push({
+    
+    if (attribute) {
+      systemAttributes.push({
         ...config,
         attribute,
         source: "system",
@@ -124,18 +84,28 @@ export function CategoryAttributesDetail() {
     }
   });
 
-  // Add direct custom attributes (deletable)
+  // Sort system attributes by order
+  systemAttributes.sort((a, b) => a.order - b.order);
+
+  // Split system attributes into preferred and other
+  const systemPreferredAttributes = systemAttributes.filter(
+    (item) => item.attribute.isPreferred === true
+  );
+  const systemOtherAttributes = systemAttributes.filter(
+    (item) => item.attribute.isPreferred === false
+  );
+
+  // Build custom attributes array (separate from system)
+  const customAttributes: AttributeWithSource[] = [];
   category.customAttributes.forEach((config: CategoryAttributeConfig) => {
-    const attribute = attributeLibrary.find(
+    // Look up in custom category attributes
+    const customAttrs = customCategoryAttributes[categoryId] || [];
+    const attribute = customAttrs.find(
       (a: Attribute) => a.id === config.attributeId
     );
-    // Filter out system-wide attributes (manufacturer and model)
-    if (
-      attribute &&
-      attribute.id !== "manufacturer" &&
-      attribute.id !== "model"
-    ) {
-      directAttributes.push({
+    
+    if (attribute) {
+      customAttributes.push({
         ...config,
         attribute,
         source: "custom",
@@ -145,246 +115,270 @@ export function CategoryAttributesDetail() {
     }
   });
 
-  // Sort direct attributes by source (system first, then custom), then by order
-  directAttributes.sort((a, b) => {
-    const sourceOrder: Record<"system" | "custom", number> = {
-      system: 0,
-      custom: 1,
-    };
-    const aOrder = sourceOrder[a.source];
-    const bOrder = sourceOrder[b.source];
-    if (aOrder !== bOrder) {
-      return aOrder - bOrder;
-    }
-    return a.order - b.order;
-  });
+  // Sort custom attributes by order
+  customAttributes.sort((a, b) => a.order - b.order);
+
+  // Split custom attributes into preferred and other
+  const preferredAttributes = customAttributes.filter(
+    (item) => item.attribute.isPreferred === true
+  );
+  const otherAttributes = customAttributes.filter(
+    (item) => item.attribute.isPreferred === false
+  );
 
   const handleDeleteAttribute = (attributeId: string, label: string) => {
     if (window.confirm(`Remove "${label}" from this category?`)) {
       removeAttributeFromCategory(attributeId, categoryId);
     }
-    setOpenPopoverId(null);
   };
 
   const handleViewDetails = (attributeId: string) => {
     setSelectedAttributeId(attributeId);
     setIsDetailDrawerOpen(true);
-    setOpenPopoverId(null);
   };
 
-  const handleCardClick = (attributeId: string) => {
-    handleViewDetails(attributeId);
+  const handleFeedbackClick = (attribute: Attribute) => {
+    // TODO: Implement feedback functionality
+    toast.info(`Feedback for "${attribute.label}"`);
+  };
+
+  // Helper function to render a list of attributes (for system or custom)
+  const renderAttributeList = (
+    attributes: AttributeWithSource[],
+    variant: AttributeCardVariant
+  ) => {
+    if (attributes.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="rounded-lg border bg-card">
+        {attributes.map((item, index) => {
+          const isLast = index === attributes.length - 1;
+          return (
+            <AttributeCard
+              key={item.attributeId}
+              attribute={item.attribute}
+              variant={variant}
+              isEnabled={item.isEnabled}
+              onToggle={
+                variant !== "system"
+                  ? () =>
+                      toggleAttribute(
+                        categoryId,
+                        item.attributeId,
+                        item.source === "system"
+                      )
+                  : undefined
+              }
+              onClick={
+                variant === "custom" || variant === "predefined"
+                  ? () => handleViewDetails(item.attributeId)
+                  : undefined
+              }
+              onDelete={
+                variant === "custom"
+                  ? () =>
+                      handleDeleteAttribute(
+                        item.attributeId,
+                        item.attribute.label
+                      )
+                  : undefined
+              }
+              onFeedback={
+                variant !== "custom"
+                  ? () => handleFeedbackClick(item.attribute)
+                  : undefined
+              }
+              showSeparator={!isLast}
+            />
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {category.name}
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage attributes for this category
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              {category.name}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Manage attributes for this category
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCreateDrawerOpen(true)}
+            className="shrink-0"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add attribute
+          </Button>
         </div>
 
-        {/* Direct Attributes Card */}
+        {/* Core Attributes Inheritance Alert */}
+        <Alert className="bg-muted/50 border-muted">
+          <AlertDescription className="text-sm text-muted-foreground">
+            This category will inherit all core attributes and settings. Including Asset ID, Status and Location. <br></br>To edit attributes that apply to all
+            assets, see{" "}
+            <Link
+              to="/asset-attributes/core-attributes"
+              className="text-primary underline hover:text-primary/80"
+            >
+              core attributes
+            </Link>
+            .
+          </AlertDescription>
+        </Alert>
+
+        {/* System Attributes Card */}
+        {systemAttributes.length > 0 && (
+          <Card>
+            <CardContent className="p-3 sm:p-5">
+              <div className="space-y-3 sm:space-y-4">
+                {/* Section Header */}
+                <div className="space-y-1">
+                  <h2 className="font-bold text-base">{category.name} attributes</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Pre-set attributes for this category
+                  </p>
+                </div>
+
+                {/* Conditional rendering based on preferred attributes */}
+                {systemPreferredAttributes.length > 0 ? (
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* Preferred Attributes Section */}
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-sm">Preferred attributes</h3>
+                      </div>
+                      {renderAttributeList(systemPreferredAttributes, "predefined")}
+                    </div>
+
+                    {/* Other Attributes Section */}
+                    {systemOtherAttributes.length > 0 && (
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="space-y-1">
+                          <h3 className="font-semibold text-sm">Other attributes</h3>
+                        </div>
+                        {renderAttributeList(systemOtherAttributes, "predefined")}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Single list when no preferred attributes exist
+                  renderAttributeList(systemAttributes, "predefined")
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Custom Attributes Card */}
         <Card>
           <CardContent className="p-3 sm:p-5">
             <div className="space-y-3 sm:space-y-4">
               {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <h2 className="font-bold text-base">Your attributes</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Attributes specific to this category
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <Badge variant="secondary">
-                    {directAttributes.filter((attr) => attr.isEnabled).length}/
-                    {directAttributes.length}
-                  </Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCreateDrawerOpen(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add attribute
-                  </Button>
-                </div>
+              <div className="space-y-1">
+                <h2 className="font-bold text-base">Your attributes</h2>
+                <p className="text-sm text-muted-foreground">
+                  Attributes specific to this category
+                </p>
               </div>
 
-              {/* Attributes List */}
-              <div className="rounded-lg border bg-card">
-                {directAttributes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    No attributes yet. Create a new one.
+              {/* Conditional rendering based on preferred attributes */}
+              {customAttributes.length === 0 ? (
+                <div className="rounded-lg border bg-card">
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground text-sm mb-4">
+                      No attributes yet. Click "Add attribute" to create one.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCreateDrawerOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add attribute
+                    </Button>
                   </div>
-                ) : (
-                  directAttributes.map((item, index) => {
-                    const IconComponent = getAttributeIcon(item.attribute.type);
-                    return (
-                      <div key={item.attributeId}>
-                        <div
-                          className="flex items-start justify-between gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer"
-                          onClick={() => handleCardClick(item.attributeId)}
-                        >
-                          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                            {/* Type Icon - hidden on mobile */}
-                            <div className="mt-0.5 hidden sm:block">
-                              <IconComponent className="h-4 w-4 text-muted-foreground" />
-                            </div>
+                </div>
+              ) : preferredAttributes.length > 0 ? (
+                <div className="space-y-4 sm:space-y-6">
+                  {/* Preferred Attributes Section */}
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-sm">Preferred attributes</h3>
+                    </div>
+                      {renderAttributeList(preferredAttributes, "custom")}
+                  </div>
 
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                <span className="font-medium text-sm">
-                                  {item.attribute.label}
-                                </span>
-
-                                {/* Custom indicator as plain text */}
-                                {item.source === "custom" && (
-                                  <span className="text-xs text-muted-foreground">
-                                    Custom
-                                  </span>
-                                )}
-
-                                {/* Preferred star toggle - right after name */}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 sm:h-6 sm:w-6 -ml-1"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePreferred(item.attributeId);
-                                  }}
-                                >
-                                  <Star
-                                    className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
-                                      item.attribute.isPreferred
-                                        ? "fill-yellow-400 text-yellow-400"
-                                        : "text-muted-foreground"
-                                    }`}
-                                  />
-                                </Button>
-                              </div>
-
-                              {/* Dropdown options */}
-                              {item.attribute.type === "dropdown" &&
-                                item.attribute.dropdownOptions && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {item.attribute.dropdownOptions.map(
-                                      (option) => (
-                                        <Badge
-                                          key={option}
-                                          variant="secondary"
-                                          className="text-xs font-normal"
-                                        >
-                                          {option}
-                                        </Badge>
-                                      )
-                                    )}
-                                  </div>
-                                )}
-                              {item.attribute.description && (
-                                <p className="text-xs text-muted-foreground mt-1 break-words">
-                                  {item.attribute.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div
-                            className="flex items-center gap-1 sm:gap-2 shrink-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {/* Toggle switch for all attributes */}
-                            <Switch
-                              checked={item.isEnabled}
-                              onCheckedChange={() =>
-                                toggleAttribute(
-                                  categoryId,
-                                  item.attributeId,
-                                  item.source === "system"
-                                )
-                              }
-                            />
-
-                            {/* 3-dot menu */}
-                            <Popover
-                              open={openPopoverId === item.attributeId}
-                              onOpenChange={(open) =>
-                                setOpenPopoverId(open ? item.attributeId : null)
-                              }
-                            >
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-48 p-1"
-                                align="end"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start h-9 px-2"
-                                  onClick={() =>
-                                    handleViewDetails(item.attributeId)
-                                  }
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
-                                </Button>
-                                {item.isDeletable && (
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-9 px-2 text-destructive hover:text-destructive"
-                                    onClick={() =>
-                                      handleDeleteAttribute(
-                                        item.attributeId,
-                                        item.attribute.label
-                                      )
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </Button>
-                                )}
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </div>
-                        {index < directAttributes.length - 1 && <Separator />}
+                  {/* Other Attributes Section */}
+                  {otherAttributes.length > 0 && (
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-sm">Other attributes</h3>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                      {renderAttributeList(otherAttributes, "custom")}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Single list when no preferred attributes exist
+                renderAttributeList(customAttributes, "custom")
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Attribute Detail Drawer */}
-      <AttributeDetailDrawer
-        attributeId={selectedAttributeId}
-        open={isDetailDrawerOpen}
-        onOpenChange={setIsDetailDrawerOpen}
-      />
+      {/* Attribute Detail Drawer - Show View or Edit based on attribute type */}
+      {selectedAttributeId && (() => {
+        // Check predefined attributes first
+        const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
+        const predefinedAttribute = predefinedAttrs.find((a: Attribute) => a.id === selectedAttributeId);
+        
+        // Check custom attributes
+        const customAttrs = customCategoryAttributes[categoryId] || [];
+        const customAttribute = customAttrs.find((a: Attribute) => a.id === selectedAttributeId);
+        
+        const attribute = predefinedAttribute || customAttribute;
+        
+        // Predefined attributes are view-only, custom attributes are editable
+        if (predefinedAttribute || attribute?.isSystem) {
+          return (
+            <AttributeViewDrawer
+              attributeId={selectedAttributeId}
+              open={isDetailDrawerOpen}
+              onOpenChange={setIsDetailDrawerOpen}
+              context="category"
+              categoryId={categoryId}
+            />
+          );
+        } else {
+          return (
+            <AttributeEditDrawer
+              attributeId={selectedAttributeId}
+              open={isDetailDrawerOpen}
+              onOpenChange={setIsDetailDrawerOpen}
+              context="category"
+              categoryId={categoryId}
+            />
+          );
+        }
+      })()}
 
       {/* Create Attribute Drawer */}
-      <CreateAttributeDrawer
+      <AttributeAddDrawer
         open={isCreateDrawerOpen}
         onOpenChange={setIsCreateDrawerOpen}
+        context="category"
         categoryId={categoryId}
       />
     </div>

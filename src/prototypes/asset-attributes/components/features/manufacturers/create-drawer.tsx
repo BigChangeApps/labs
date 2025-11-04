@@ -100,7 +100,7 @@ export function CreateManufacturerDrawer({
         </SheetHeader>
 
         <div className="flex flex-col space-y-6 mt-4 flex-1">
-          <div className="overflow-y-auto space-y-6 px-1">
+          <div className="overflow-y-auto flex flex-col gap-4 px-1">
             <div className="space-y-2">
               <Label htmlFor="manufacturer-name">Manufacturer Name *</Label>
               <Input

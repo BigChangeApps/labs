@@ -56,5 +56,6 @@ export interface CoreAttribute {
   isEnabled: boolean;
   isRequired: boolean;
   description?: string;
+  detailedDescription?: string;
   dropdownOptions?: string[];
 }
