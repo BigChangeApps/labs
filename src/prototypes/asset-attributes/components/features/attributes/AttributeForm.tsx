@@ -47,18 +47,43 @@ interface AttributeFormProps {
   formRef?: React.RefObject<{ submit: () => void }>;
 }
 
-// Utility function for text case handling
+// Utility function for smart sentence case handling
 function toSentenceCase(text: string): string {
   if (!text) return text;
   const trimmed = text.trim();
   if (!trimmed) return trimmed;
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+
+  // Split into words and apply smart casing logic
+  const words = trimmed.split(/\s+/);
+
+  const processedWords = words.map((word, index) => {
+    if (!word) return word;
+
+    const isAllCaps = word === word.toUpperCase() && /[A-Z]/.test(word);
+    const wordLength = word.replace(/[^A-Za-z]/g, '').length; // Count only letters
+
+    // First word: preserve short acronyms (2-4 letters), otherwise capitalize normally
+    if (index === 0) {
+      if (isAllCaps && wordLength >= 2 && wordLength <= 4) {
+        return word; // Keep acronym as-is (CPU, API, USB, ID, VIN)
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    // Subsequent words: title case (capitalize each word)
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+
+  return processedWords.join(' ');
 }
 
 export const AttributeForm = React.forwardRef<
   { submit: () => void },
   AttributeFormProps
 >(({ context, initialData, onSubmit }, ref) => {
+  const [hasAutoFormatted, setHasAutoFormatted] = React.useState(false);
+  const [autoFormattedValue, setAutoFormattedValue] = React.useState<string>("");
+
   const form = useForm({
     resolver: zodResolver(attributeFormSchema) as any,
     defaultValues: {
@@ -130,8 +155,21 @@ export const AttributeForm = React.forwardRef<
 
   const handleLabelBlur = () => {
     const currentValue = form.getValues("label");
-    if (currentValue && currentValue !== toSentenceCase(currentValue)) {
-      form.setValue("label", toSentenceCase(currentValue));
+    if (!currentValue) return;
+
+    const formattedValue = toSentenceCase(currentValue);
+
+    // If we previously auto-formatted and user changed it back, don't re-format
+    if (hasAutoFormatted && currentValue !== autoFormattedValue) {
+      // User has manually edited after our auto-format, so stop formatting
+      return;
+    }
+
+    // Only apply formatting if it would change the value
+    if (currentValue !== formattedValue) {
+      form.setValue("label", formattedValue);
+      setAutoFormattedValue(formattedValue);
+      setHasAutoFormatted(true);
     }
   };
 
