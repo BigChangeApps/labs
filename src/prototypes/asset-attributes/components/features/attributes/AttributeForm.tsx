@@ -1,5 +1,5 @@
 import React, { useEffect, useImperativeHandle } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { AttributeType, Attribute, CoreAttribute } from "../../../types";
 import { attributeTypeConfigs } from "../../../lib/utils";
@@ -85,6 +85,8 @@ export const AttributeForm = React.forwardRef<
   const [autoFormattedValue, setAutoFormattedValue] = React.useState<string>("");
 
   const form = useForm({
+    // @ts-expect-error - Zod version compatibility with react-hook-form resolver
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for Zod resolver compatibility
     resolver: zodResolver(attributeFormSchema) as any,
     defaultValues: {
       label: initialData?.label || "",
@@ -128,7 +130,7 @@ export const AttributeForm = React.forwardRef<
     }
   }, [watchedType, form]);
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = (data: FieldValues) => {
     if (!onSubmit) return;
 
     const formData: AttributeFormData = {

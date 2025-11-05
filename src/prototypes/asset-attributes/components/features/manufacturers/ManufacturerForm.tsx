@@ -1,5 +1,5 @@
 import React, { useEffect, useImperativeHandle, useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X, CornerDownLeft } from "lucide-react";
 import { manufacturerFormSchema } from "../../../lib/validation";
@@ -32,6 +32,8 @@ export const ManufacturerForm = React.forwardRef<
   ManufacturerFormProps
 >(({ initialData, onSubmit }, ref) => {
   const form = useForm({
+    // @ts-expect-error - Zod version compatibility with react-hook-form resolver
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for Zod resolver compatibility
     resolver: zodResolver(manufacturerFormSchema) as any,
     defaultValues: {
       name: initialData?.name || "",
@@ -57,7 +59,7 @@ export const ManufacturerForm = React.forwardRef<
     }
   }, [initialData, form]);
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = (data: FieldValues) => {
     if (!onSubmit) return;
 
     const formData: ManufacturerFormData = {

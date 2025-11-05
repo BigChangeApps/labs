@@ -7,8 +7,6 @@ interface AttributeViewContentProps {
   formData: AttributeFormData;
   context: AttributeFormContext;
   onPreferredChange?: (value: boolean) => void;
-  onStatusChange?: (value: boolean) => void;
-  isSystemAttribute?: boolean;
   attributeLabel?: string;
 }
 
@@ -16,8 +14,6 @@ export function AttributeViewContent({
   formData,
   context,
   onPreferredChange,
-  onStatusChange,
-  isSystemAttribute = false,
   attributeLabel,
 }: AttributeViewContentProps) {
   // System attributes that shouldn't show options (they use system-level data)

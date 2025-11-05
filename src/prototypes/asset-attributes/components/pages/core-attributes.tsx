@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
-import { Card, CardContent } from "@/registry/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +25,6 @@ const sectionLabels: Record<CoreAttributeSection, string> = {
   dates: "Dates & Lifecycle",
   warranty: "Warranty",
   custom: "Custom",
-};
-
-const sectionDescriptions: Record<CoreAttributeSection, string> = {
-  "asset-info": "Basic information about the asset",
-  status: "Status and physical condition",
-  contact: "Contact person and physical location",
-  dates: "Important dates and lifecycle information",
-  warranty: "Warranty information",
-  custom: "Custom attributes",
 };
 
 export function CoreAttributes() {
@@ -90,12 +80,6 @@ export function CoreAttributes() {
   const handleViewDetails = (attributeId: string) => {
     setSelectedAttributeId(attributeId);
     setIsDetailDrawerOpen(true);
-  };
-
-  // Handle delete from list view
-  const handleDeleteClick = (attribute: CoreAttribute) => {
-    setAttributeToDelete(attribute);
-    setDeleteDialogOpen(true);
   };
 
   // Determine variant based on attribute properties

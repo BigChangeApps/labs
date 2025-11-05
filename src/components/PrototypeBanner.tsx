@@ -15,9 +15,9 @@ export function PrototypeBanner({
   const location = useLocation();
   const showInternal = import.meta.env.VITE_SHOW_INTERNAL !== "false";
   const cameFromHome = Boolean(
-    (location.state as any)?.fromHome ||
+    (location.state as { fromHome?: boolean })?.fromHome ||
       (typeof window !== "undefined" &&
-        (window.history.state as any)?.usr?.fromHome)
+        (window.history.state as { usr?: { fromHome?: boolean } })?.usr?.fromHome)
   );
   const shouldShowBack = showInternal || cameFromHome;
 

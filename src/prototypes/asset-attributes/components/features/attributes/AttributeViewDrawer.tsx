@@ -4,7 +4,6 @@ import {
   ResponsiveModal,
   ResponsiveModalContent,
   ResponsiveModalDescription,
-  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/registry/ui/responsive-modal";
@@ -39,7 +38,6 @@ export function AttributeViewDrawer({
     customCategoryAttributes,
     coreAttributes,
     togglePreferred,
-    toggleCoreAttribute,
   } = useAttributeStore();
 
   const [isPreferred, setIsPreferred] = useState(false);
@@ -123,7 +121,6 @@ export function AttributeViewDrawer({
           formData={formData}
           context={context}
           onPreferredChange={handlePreferredToggle}
-          isSystemAttribute={isSystemAttribute}
           attributeLabel={attribute.label}
         />
 

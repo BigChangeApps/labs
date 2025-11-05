@@ -19,7 +19,7 @@ export interface AttributeCardProps {
   isDeleting?: boolean;
   showSeparator?: boolean;
   isDraggable?: boolean;
-  dragHandleProps?: any;
+  dragHandleProps?: Record<string, unknown>;
 }
 
 export function AttributeCard({
