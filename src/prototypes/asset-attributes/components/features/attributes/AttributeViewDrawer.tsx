@@ -124,6 +124,7 @@ export function AttributeViewDrawer({
           context={context}
           onPreferredChange={handlePreferredToggle}
           isSystemAttribute={isSystemAttribute}
+          attributeLabel={attribute.label}
         />
 
         <div className="space-y-4">
@@ -132,14 +133,14 @@ export function AttributeViewDrawer({
               <div className="space-y-3">
                 <AlertDescription className="text-sm text-muted-foreground">
                   {isSystemAttribute
-                    ? "This is a system attribute and cannot be modified."
+                    ? "This is an attribute managed by BigChange."
                     : "This is a predefined attribute."}
                 </AlertDescription>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleFeedbackClick}
-                  className="w-full"
+                  autoFocus={false}
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Make a suggestion
@@ -158,7 +159,7 @@ export function AttributeViewDrawer({
                   variant="outline"
                   size="sm"
                   onClick={handleFeedbackClick}
-                  className="w-full"
+                  autoFocus={false}
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Make a suggestion
@@ -166,12 +167,6 @@ export function AttributeViewDrawer({
               </div>
             </Alert>
           )}
-
-          <ResponsiveModalFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-          </ResponsiveModalFooter>
         </div>
       </ResponsiveModalContent>
     </ResponsiveModal>

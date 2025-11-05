@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, X, CornerDownLeft } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -9,10 +8,10 @@ import {
   ResponsiveModalTitle,
 } from "@/registry/ui/responsive-modal";
 import { Button } from "@/registry/ui/button";
-import { Input } from "@/registry/ui/input";
-import { Label } from "@/registry/ui/label";
-import { Kbd } from "@/registry/ui/kbd";
-import { toast } from "sonner";
+import {
+  ManufacturerForm,
+  type ManufacturerFormData,
+} from "./ManufacturerForm";
 
 interface CreateManufacturerDrawerProps {
   open: boolean;
@@ -25,67 +24,26 @@ export function CreateManufacturerDrawer({
   onOpenChange,
   onSave,
 }: CreateManufacturerDrawerProps) {
-  const [manufacturerName, setManufacturerName] = useState("");
-  const [models, setModels] = useState<string[]>([""]);
-  const [focusIndex, setFocusIndex] = useState<number | null>(null);
-  const [focusedInputIndex, setFocusedInputIndex] = useState<number | null>(
-    null
-  );
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const formRef = useRef<{ submit: () => void }>(null);
+  const [key, setKey] = useState(0);
 
+  // Reset form when modal opens/closes
   useEffect(() => {
-    if (focusIndex !== null && inputRefs.current[focusIndex]) {
-      inputRefs.current[focusIndex]?.focus();
-      setFocusIndex(null);
+    if (open) {
+      setKey((prev) => prev + 1);
     }
-  }, [focusIndex, models]);
+  }, [open]);
 
-  const handleAddModel = () => {
-    const newIndex = models.length;
-    setModels([...models, ""]);
-    setFocusIndex(newIndex);
-  };
-
-  const handleRemoveModel = (index: number) => {
-    if (models.length > 1) {
-      setModels(models.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleModelChange = (index: number, value: string) => {
-    const newModels = [...models];
-    newModels[index] = value;
-    setModels(newModels);
-  };
-
-  const handleModelKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddModel();
-    }
+  const handleSubmit = (formData: ManufacturerFormData) => {
+    onSave(formData.name, formData.models);
+    onOpenChange(false);
   };
 
   const handleSave = () => {
-    if (!manufacturerName.trim()) {
-      toast.error("Please enter a manufacturer name");
-      return;
-    }
-
-    // Filter out empty model names
-    const validModels = models
-      .map((model) => model.trim())
-      .filter((model) => model.length > 0);
-
-    onSave(manufacturerName.trim(), validModels);
-
-    // Reset form
-    setManufacturerName("");
-    setModels([""]);
+    formRef.current?.submit();
   };
 
   const handleCancel = () => {
-    setManufacturerName("");
-    setModels([""]);
     onOpenChange(false);
   };
 
@@ -99,78 +57,18 @@ export function CreateManufacturerDrawer({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <div className="flex flex-col space-y-6 mt-4 flex-1">
-          <div className="overflow-y-auto flex flex-col gap-4 px-1">
-            <div className="space-y-2">
-              <Label htmlFor="manufacturer-name">Manufacturer Name *</Label>
-              <Input
-                id="manufacturer-name"
-                placeholder="e.g., Siemens"
-                value={manufacturerName}
-                onChange={(e) => setManufacturerName(e.target.value)}
-              />
-            </div>
+        <ManufacturerForm
+          key={key}
+          ref={formRef}
+          onSubmit={handleSubmit}
+        />
 
-            <div className="space-y-2">
-              <Label>Models (Optional)</Label>
-              <div className="space-y-2">
-                {models.map((model, index) => (
-                  <div key={index} className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Input
-                        ref={(el) => {
-                          inputRefs.current[index] = el;
-                        }}
-                        placeholder={`Model ${index + 1}`}
-                        value={model}
-                        onChange={(e) =>
-                          handleModelChange(index, e.target.value)
-                        }
-                        onKeyDown={(e) => handleModelKeyDown(e)}
-                        onFocus={() => setFocusedInputIndex(index)}
-                        onBlur={() => setFocusedInputIndex(null)}
-                        className="pr-12"
-                      />
-                      {focusedInputIndex === index && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <Kbd>
-                            <CornerDownLeft className="h-3 w-3" />
-                          </Kbd>
-                        </div>
-                      )}
-                    </div>
-                    {models.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleRemoveModel(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddModel}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Model
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <ResponsiveModalFooter>
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>Save Manufacturer</Button>
-          </ResponsiveModalFooter>
-        </div>
+        <ResponsiveModalFooter>
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save Manufacturer</Button>
+        </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>
   );

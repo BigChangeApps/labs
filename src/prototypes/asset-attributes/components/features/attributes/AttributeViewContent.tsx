@@ -1,7 +1,6 @@
 import { Badge } from "@/registry/ui/badge";
 import { Label } from "@/registry/ui/label";
 import { AttributePreferredField } from "./fields/AttributePreferredField";
-import { AttributeStatusField } from "./fields/AttributeStatusField";
 import type { AttributeFormContext, AttributeFormData } from "./AttributeForm";
 
 interface AttributeViewContentProps {
@@ -10,6 +9,7 @@ interface AttributeViewContentProps {
   onPreferredChange?: (value: boolean) => void;
   onStatusChange?: (value: boolean) => void;
   isSystemAttribute?: boolean;
+  attributeLabel?: string;
 }
 
 export function AttributeViewContent({
@@ -18,11 +18,24 @@ export function AttributeViewContent({
   onPreferredChange,
   onStatusChange,
   isSystemAttribute = false,
+  attributeLabel,
 }: AttributeViewContentProps) {
+  // System attributes that shouldn't show options (they use system-level data)
+  const systemDropdownAttributes = ["Category", "Manufacturer", "Model"];
+  const shouldHideOptions = attributeLabel && systemDropdownAttributes.includes(attributeLabel);
+
+  const hasDropdownOptions = formData.type === "dropdown" && formData.dropdownOptions.length > 0 && !shouldHideOptions;
+  const hasUnits = formData.type === "number" && formData.units;
+  const showPreferredField = context === "category";
+
+  // Don't render anything if there's no content to display
+  const hasContent = hasDropdownOptions || hasUnits || showPreferredField;
+  if (!hasContent) return null;
+
   return (
-    <div className="flex-1 py-6 space-y-4">
+    <div className="flex-1 space-y-4">
       {/* Dropdown Options */}
-      {formData.type === "dropdown" && formData.dropdownOptions.length > 0 && (
+      {hasDropdownOptions && (
         <div className="space-y-2">
           <Label>Options</Label>
           <div className="flex flex-wrap gap-2">
@@ -36,7 +49,7 @@ export function AttributeViewContent({
       )}
 
       {/* Number Units */}
-      {formData.type === "number" && formData.units && (
+      {hasUnits && (
         <div className="space-y-2">
           <Label>Units</Label>
           <p className="text-sm text-muted-foreground">{formData.units}</p>
@@ -44,7 +57,7 @@ export function AttributeViewContent({
       )}
 
       {/* Mark as preferred - Category attributes only, always interactive */}
-      {context === "category" && (
+      {showPreferredField && (
         <AttributePreferredField
           value={formData.isPreferred}
           onChange={onPreferredChange || (() => {})}

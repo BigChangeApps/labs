@@ -1,0 +1,165 @@
+import React, { useEffect, useImperativeHandle } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, X, CornerDownLeft } from "lucide-react";
+import { manufacturerFormSchema } from "../../../lib/validation";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/registry/ui/form";
+import { Input } from "@/registry/ui/input";
+import { Button } from "@/registry/ui/button";
+import { Kbd } from "@/registry/ui/kbd";
+
+export interface ManufacturerFormData {
+  name: string;
+  models: string[];
+}
+
+interface ManufacturerFormProps {
+  initialData?: Partial<ManufacturerFormData>;
+  onSubmit?: (data: ManufacturerFormData) => void;
+  onCancel?: () => void;
+  formRef?: React.RefObject<{ submit: () => void }>;
+}
+
+export const ManufacturerForm = React.forwardRef<
+  { submit: () => void },
+  ManufacturerFormProps
+>(({ initialData, onSubmit }, ref) => {
+  const form = useForm({
+    resolver: zodResolver(manufacturerFormSchema) as any,
+    defaultValues: {
+      name: initialData?.name || "",
+      models: initialData?.models && initialData.models.length > 0
+        ? initialData.models
+        : [""],
+    },
+  });
+
+
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name || "",
+        models: initialData.models && initialData.models.length > 0
+          ? initialData.models
+          : [""],
+      });
+    }
+  }, [initialData, form]);
+
+  const handleFormSubmit = (data: any) => {
+    if (!onSubmit) return;
+
+    const formData: ManufacturerFormData = {
+      name: data.name.trim(),
+      models: (data.models || [])
+        .map((model: string) => model.trim())
+        .filter((model: string) => model.length > 0),
+    };
+
+    onSubmit(formData);
+  };
+
+  useImperativeHandle(ref, () => ({
+    submit: () => {
+      form.handleSubmit(handleFormSubmit)();
+    },
+  }));
+
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="flex-1 space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Manufacturer Name *</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Siemens" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="models"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Models (Optional)</FormLabel>
+              <div className="space-y-2">
+                {field.value?.map((_, index) => (
+                  <div key={index} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <FormControl>
+                        <Input
+                          placeholder={`Model ${index + 1}`}
+                          value={field.value?.[index] || ""}
+                          onChange={(e) => {
+                            const newModels = [...(field.value || [])];
+                            newModels[index] = e.target.value;
+                            field.onChange(newModels);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              field.onChange([...(field.value || []), ""]);
+                            }
+                          }}
+                          className="pr-12"
+                        />
+                      </FormControl>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Kbd>
+                          <CornerDownLeft className="h-3 w-3" />
+                        </Kbd>
+                      </div>
+                    </div>
+                    {field.value && field.value.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const newModels = field.value?.filter((_, i) => i !== index);
+                          field.onChange(newModels);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    field.onChange([...(field.value || []), ""]);
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Model
+                </Button>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
+  );
+});
+
+ManufacturerForm.displayName = "ManufacturerForm";
+

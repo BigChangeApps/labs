@@ -1,14 +1,28 @@
-import React, { useState, useEffect, useImperativeHandle } from "react";
+import React, { useEffect, useImperativeHandle } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { AttributeType, Attribute, CoreAttribute } from "../../../types";
 import { attributeTypeConfigs } from "../../../lib/utils";
+import { attributeFormSchema } from "../../../lib/validation";
 import {
-  AttributeLabelField,
-  AttributeTypeField,
-  AttributeDescriptionField,
-  AttributeDropdownOptionsField,
-  AttributeUnitsField,
-  AttributePreferredField,
-} from "./fields";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/registry/ui/form";
+import { Input } from "@/registry/ui/input";
+import { Textarea } from "@/registry/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/registry/ui/select";
+import { Button } from "@/registry/ui/button";
+import { X, Plus } from "lucide-react";
 
 export type AttributeFormMode = "add" | "edit";
 export type AttributeFormContext = "category" | "core";
@@ -33,151 +47,227 @@ interface AttributeFormProps {
   formRef?: React.RefObject<{ submit: () => void }>;
 }
 
+// Utility function for text case handling
+function toSentenceCase(text: string): string {
+  if (!text) return text;
+  const trimmed = text.trim();
+  if (!trimmed) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
 export const AttributeForm = React.forwardRef<
   { submit: () => void },
   AttributeFormProps
 >(({ context, initialData, onSubmit }, ref) => {
+  const form = useForm({
+    resolver: zodResolver(attributeFormSchema) as any,
+    defaultValues: {
+      label: initialData?.label || "",
+      type: (initialData?.type || "text") as AttributeType,
+      description: initialData?.description || "",
+      dropdownOptions: initialData?.dropdownOptions && initialData.dropdownOptions.length > 0
+        ? initialData.dropdownOptions
+        : [""],
+      units: initialData?.units || "",
+      isPreferred: initialData?.isPreferred || false,
+      isEnabled: initialData?.isEnabled ?? true,
+      section: initialData?.section || "custom",
+    },
+  });
 
-  const [label, setLabel] = useState(initialData?.label || "");
-  const [type, setType] = useState<AttributeType>(
-    initialData?.type || "text"
-  );
-  const [description, setDescription] = useState(
-    initialData?.description || ""
-  );
-  const [dropdownOptions, setDropdownOptions] = useState<string[]>(
-    initialData?.dropdownOptions && initialData.dropdownOptions.length > 0
-      ? initialData.dropdownOptions
-      : [""]
-  );
-  const [units, setUnits] = useState(initialData?.units || "");
-  const [isPreferred, setIsPreferred] = useState(
-    initialData?.isPreferred || false
-  );
-  const [isEnabled, setIsEnabled] = useState(
-    initialData?.isEnabled ?? true
-  );
-  const [section, setSection] = useState<
-    "asset-info" | "status" | "contact" | "dates" | "warranty" | "custom"
-  >(initialData?.section || "custom");
-
-  // Reset dropdown options when type changes away from dropdown
-  const handleTypeChange = () => {
-    if (type !== "dropdown") {
-      setDropdownOptions([""]);
-    } else if (
-      dropdownOptions.length === 0 ||
-      (dropdownOptions.length === 1 && dropdownOptions[0] === "")
-    ) {
-      setDropdownOptions([""]);
-    }
-  };
+  const watchedType = form.watch("type");
+  const typeConfig = attributeTypeConfigs[watchedType];
 
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
-      if (initialData.label !== undefined) setLabel(initialData.label);
-      if (initialData.type !== undefined) setType(initialData.type);
-      if (initialData.description !== undefined)
-        setDescription(initialData.description);
-      if (
-        initialData.dropdownOptions !== undefined &&
-        initialData.dropdownOptions.length > 0
-      ) {
-        setDropdownOptions(initialData.dropdownOptions);
-      } else if (type === "dropdown") {
-        setDropdownOptions([""]);
-      }
-      if (initialData.units !== undefined) setUnits(initialData.units);
-      if (initialData.isPreferred !== undefined)
-        setIsPreferred(initialData.isPreferred);
-      if (initialData.isEnabled !== undefined)
-        setIsEnabled(initialData.isEnabled);
-      if (initialData.section !== undefined) setSection(initialData.section);
+      form.reset({
+        label: initialData.label || "",
+        type: (initialData.type || "text") as AttributeType,
+        description: initialData.description || "",
+        dropdownOptions: initialData.dropdownOptions && initialData.dropdownOptions.length > 0
+          ? initialData.dropdownOptions
+          : [""],
+        units: initialData.units || "",
+        isPreferred: initialData.isPreferred || false,
+        isEnabled: initialData.isEnabled ?? true,
+        section: initialData.section || "custom",
+      });
     }
-  }, [initialData, type]);
+  }, [initialData, form]);
 
-  const handleSubmit = () => {
-    if (!onSubmit) return false;
-
-    // Validation
-    if (!label.trim()) {
-      return false;
+  // Reset dropdown options when type changes away from dropdown
+  useEffect(() => {
+    if (watchedType !== "dropdown") {
+      form.setValue("dropdownOptions", [""]);
     }
+  }, [watchedType, form]);
 
-    // Use centralized config for validation
-    const typeConfig = attributeTypeConfigs[type];
-    if (typeConfig.supportsDropdownOptions) {
-      const validOptions = dropdownOptions
-        .map((opt) => opt.trim())
-        .filter((opt) => opt.length > 0);
-      if (validOptions.length === 0) {
-        return false;
-      }
-    }
+  const handleFormSubmit = (data: any) => {
+    if (!onSubmit) return;
 
     const formData: AttributeFormData = {
-      label: label.trim(),
-      type,
-      description: description.trim(),
+      label: data.label.trim(),
+      type: data.type,
+      description: data.description?.trim() || "",
       dropdownOptions: typeConfig.supportsDropdownOptions
-        ? dropdownOptions.map((opt) => opt.trim()).filter((opt) => opt.length > 0)
+        ? (data.dropdownOptions || []).map((opt: string) => opt.trim()).filter((opt: string) => opt.length > 0)
         : [],
-      units: typeConfig.supportsUnits && units.trim() ? units.trim() : "",
-      isPreferred: context === "category" ? isPreferred : false,
-      isEnabled: context === "core" ? isEnabled : true,
-      section: context === "core" ? section : undefined,
+      units: typeConfig.supportsUnits && data.units ? data.units.trim() : "",
+      isPreferred: context === "category" ? data.isPreferred : false,
+      isEnabled: context === "core" ? data.isEnabled : true,
+      section: context === "core" ? data.section : undefined,
     };
 
     onSubmit(formData);
-    return true;
   };
 
   useImperativeHandle(ref, () => ({
     submit: () => {
-      return handleSubmit();
+      form.handleSubmit(handleFormSubmit)();
     },
   }));
 
+  const handleLabelBlur = () => {
+    const currentValue = form.getValues("label");
+    if (currentValue && currentValue !== toSentenceCase(currentValue)) {
+      form.setValue("label", toSentenceCase(currentValue));
+    }
+  };
+
   return (
-    <div className="flex-1 py-6 space-y-4">
-      <AttributeLabelField
-        value={label}
-        onChange={setLabel}
-      />
-
-      <AttributeDescriptionField
-        value={description}
-        onChange={setDescription}
-      />
-
-      <AttributeTypeField
-        value={type}
-        onChange={setType}
-        onTypeChange={handleTypeChange}
-      />
-
-      {attributeTypeConfigs[type].supportsDropdownOptions && (
-        <AttributeDropdownOptionsField
-          options={dropdownOptions}
-          onChange={setDropdownOptions}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="flex-1 space-y-6">
+        <FormField
+          control={form.control}
+          name="label"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Attribute Label</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  onBlur={() => {
+                    field.onBlur();
+                    handleLabelBlur();
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      )}
 
-      {attributeTypeConfigs[type].supportsUnits && (
-        <AttributeUnitsField
-          value={units}
-          onChange={setUnits}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (Optional)</FormLabel>
+              <FormControl>
+                <Textarea {...field} rows={3} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      )}
 
-      {context === "category" && (
-        <AttributePreferredField
-          value={isPreferred}
-          onChange={setIsPreferred}
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Attribute Type</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(attributeTypeConfigs).map((config) => (
+                    <SelectItem key={config.value} value={config.value}>
+                      {config.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      )}
-    </div>
+
+        {typeConfig.supportsDropdownOptions && (
+          <FormField
+            control={form.control}
+            name="dropdownOptions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dropdown Options</FormLabel>
+                <div className="space-y-2">
+                  {field.value?.map((option, index) => (
+                    <div key={index} className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...(field.value || [])];
+                            newOptions[index] = e.target.value;
+                            field.onChange(newOptions);
+                          }}
+                          placeholder={`Option ${index + 1}`}
+                        />
+                      </FormControl>
+                      {field.value && field.value.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const newOptions = field.value?.filter((_, i) => i !== index);
+                            field.onChange(newOptions);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      field.onChange([...(field.value || []), ""]);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Option
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {typeConfig.supportsUnits && (
+          <FormField
+            control={form.control}
+            name="units"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Units (Optional)</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="e.g., kg, cm, hours" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+      </form>
+    </Form>
   );
 });
 
@@ -198,7 +288,7 @@ export function formDataToAttribute(
         formData.dropdownOptions.length > 0
           ? formData.dropdownOptions
           : undefined,
-      units: formData.units || undefined, // Now supported for core attributes
+      units: formData.units || undefined,
     } as Omit<CoreAttribute, "id">;
   } else {
     // Category attribute
@@ -229,7 +319,7 @@ export function attributeToFormData(
       type: coreAttr.type as AttributeType,
       description: coreAttr.description || "",
       dropdownOptions: coreAttr.dropdownOptions || [""],
-      units: coreAttr.units || "", // Now reads units from core attributes
+      units: coreAttr.units || "",
       isPreferred: false,
       isEnabled: coreAttr.isEnabled,
       section: coreAttr.section,
@@ -247,4 +337,3 @@ export function attributeToFormData(
     };
   }
 }
-

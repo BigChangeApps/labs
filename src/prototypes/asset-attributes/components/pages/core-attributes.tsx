@@ -48,16 +48,20 @@ export function CoreAttributes() {
   const [attributeToDelete, setAttributeToDelete] = useState<CoreAttribute | null>(null);
   const [deletingAttributeIds, setDeletingAttributeIds] = useState<Set<string>>(new Set());
 
+  // Hide fundamental system attributes (Category and Asset ID) and Contact & Location section
+  const hiddenAttributes = ["Category", "Asset ID", "Site", "Location"];
+
   // Filter attributes based on search (include all attributes, required and optional)
   // Also include items being deleted so they can animate out
-  const filteredAttributes = searchQuery
+  const filteredAttributes = (searchQuery
     ? coreAttributes.filter(
         (attr) =>
           deletingAttributeIds.has(attr.id) ||
           attr.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           attr.description?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : coreAttributes;
+    : coreAttributes
+  ).filter((attr) => !hiddenAttributes.includes(attr.label));
 
   // Group attributes by section
   const groupedAttributes = filteredAttributes.reduce((acc, attr) => {

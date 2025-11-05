@@ -3,6 +3,23 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Alert, AlertDescription } from "@/registry/ui/alert";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useAttributeStore } from "../../lib/store";
 import { AttributeViewDrawer } from "../features/attributes/AttributeViewDrawer";
 import { AttributeEditDrawer } from "../features/attributes/AttributeEditDrawer";
@@ -13,6 +30,69 @@ import type {
   Category,
   CategoryAttributeConfig,
 } from "../../types";
+
+// Sortable wrapper component for AttributeCard
+function SortableAttributeCard({
+  item,
+  categoryId,
+  onViewDetails,
+  toggleAttribute,
+}: {
+  item: {
+    attributeId: string;
+    isEnabled: boolean;
+    order: number;
+    attribute: Attribute;
+    source: "system" | "custom";
+    isDeletable: boolean;
+    isToggleable: boolean;
+  };
+  categoryId: string;
+  onViewDetails: (id: string) => void;
+  toggleAttribute: (categoryId: string, attributeId: string, isSystem: boolean) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.attributeId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const variant: AttributeCardVariant = item.source === "custom" ? "custom" : "predefined";
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <AttributeCard
+        key={item.attributeId}
+        attribute={item.attribute}
+        variant={variant}
+        isEnabled={item.isEnabled}
+        onToggle={
+          item.isToggleable
+            ? () =>
+                toggleAttribute(
+                  categoryId,
+                  item.attributeId,
+                  item.source === "system"
+                )
+            : undefined
+        }
+        onClick={() => onViewDetails(item.attributeId)}
+        showSeparator={false}
+        isDraggable={false}
+        dragHandleProps={listeners}
+      />
+    </div>
+  );
+}
 
 export function CategoryAttributesDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -27,7 +107,16 @@ export function CategoryAttributesDetail() {
     predefinedCategoryAttributes,
     customCategoryAttributes,
     toggleAttribute,
+    reorderAttributes,
   } = useAttributeStore();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   if (!categoryId) {
     return (
@@ -108,41 +197,58 @@ export function CategoryAttributesDetail() {
     setIsDetailDrawerOpen(true);
   };
 
+  // Handle drag end - reorder attributes
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = allAttributes.findIndex(
+      (item) => item.attributeId === active.id
+    );
+    const newIndex = allAttributes.findIndex(
+      (item) => item.attributeId === over.id
+    );
+
+    // Create new ordered array
+    const reorderedAttributes = arrayMove(allAttributes, oldIndex, newIndex);
+
+    // Extract just the IDs in the new order and update the store
+    const orderedIds = reorderedAttributes.map((item) => item.attributeId);
+    reorderAttributes(categoryId, orderedIds);
+  };
+
   // Helper function to render a list of attributes
   const renderAttributeList = (attributes: AttributeWithSource[]) => {
     if (attributes.length === 0) {
       return null;
     }
 
-    return (
-      <div className="rounded-lg border bg-card">
-        {attributes.map((item, index) => {
-          const isLast = index === attributes.length - 1;
-          // Determine variant based on source
-          const variant: AttributeCardVariant = item.source === "custom" ? "custom" : "predefined";
+    // Get IDs for sortable context
+    const attributeIds = attributes.map((item) => item.attributeId);
 
-          return (
-            <AttributeCard
-              key={item.attributeId}
-              attribute={item.attribute}
-              variant={variant}
-              isEnabled={item.isEnabled}
-              onToggle={
-                item.isToggleable
-                  ? () =>
-                      toggleAttribute(
-                        categoryId,
-                        item.attributeId,
-                        item.source === "system"
-                      )
-                  : undefined
-              }
-              onClick={() => handleViewDetails(item.attributeId)}
-              showSeparator={!isLast}
-            />
-          );
-        })}
-      </div>
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
+          <div className="rounded-lg border bg-card divide-y">
+            {attributes.map((item) => (
+              <SortableAttributeCard
+                key={item.attributeId}
+                item={item}
+                categoryId={categoryId}
+                onViewDetails={handleViewDetails}
+                toggleAttribute={toggleAttribute}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     );
   };
 

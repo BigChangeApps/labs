@@ -176,6 +176,16 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
+        // Update both system and custom attributes with new order
+        const updatedSystemAttrs = attributeIds
+          .map((id, index) => {
+            const existing = cat.systemAttributes.find(
+              (a) => a.attributeId === id
+            );
+            return existing ? { ...existing, order: index } : null;
+          })
+          .filter(Boolean) as CategoryAttributeConfig[];
+
         const updatedCustomAttrs = attributeIds
           .map((id, index) => {
             const existing = cat.customAttributes.find(
@@ -187,6 +197,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
 
         return {
           ...cat,
+          systemAttributes: updatedSystemAttrs,
           customAttributes: updatedCustomAttrs,
         };
       });
@@ -219,6 +230,15 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
+        // Calculate the maximum order from both system and custom attributes
+        const maxSystemOrder = cat.systemAttributes.length > 0
+          ? Math.max(...cat.systemAttributes.map(a => a.order))
+          : -1;
+        const maxCustomOrder = cat.customAttributes.length > 0
+          ? Math.max(...cat.customAttributes.map(a => a.order))
+          : -1;
+        const newOrder = Math.max(maxSystemOrder, maxCustomOrder) + 1;
+
         return {
           ...cat,
           customAttributes: [
@@ -226,7 +246,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
             {
               attributeId: newId,
               isEnabled: true,
-              order: cat.customAttributes.length,
+              order: newOrder,
             },
           ],
         };

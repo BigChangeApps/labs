@@ -2,6 +2,7 @@ import { type MouseEvent } from "react";
 import { Badge } from "@/registry/ui/badge";
 import { Switch } from "@/registry/ui/switch";
 import { Separator } from "@/registry/ui/separator";
+import { GripVertical } from "lucide-react";
 import type { Attribute, CoreAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
 
@@ -17,6 +18,8 @@ export interface AttributeCardProps {
   onClick?: () => void;
   isDeleting?: boolean;
   showSeparator?: boolean;
+  isDraggable?: boolean;
+  dragHandleProps?: any;
 }
 
 export function AttributeCard({
@@ -27,6 +30,8 @@ export function AttributeCard({
   onClick,
   isDeleting = false,
   showSeparator = true,
+  isDraggable = false,
+  dragHandleProps,
 }: AttributeCardProps) {
   const IconComponent = getAttributeIcon(attribute.type);
 
@@ -44,7 +49,8 @@ export function AttributeCard({
     if (
       target.closest("button") ||
       target.closest('[role="switch"]') ||
-      target.closest('[data-badge]')
+      target.closest('[data-badge]') ||
+      target.closest('[data-drag-handle]')
     ) {
       return;
     }
@@ -63,6 +69,17 @@ export function AttributeCard({
         }`}
         onClick={handleCardClick}
       >
+        {/* Drag Handle - only shown for draggable items */}
+        {isDraggable && (
+          <div
+            {...dragHandleProps}
+            data-drag-handle
+            className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
           {/* Type Icon - hidden on mobile */}
           <div className="hidden sm:block">

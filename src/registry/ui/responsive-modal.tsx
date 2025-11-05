@@ -59,7 +59,7 @@ export function ResponsiveModalContent({
 
   if (isDesktop) {
     return (
-      <DialogContent className={cn("max-w-2xl", className)} {...props}>
+      <DialogContent className={cn("max-w-[500px]", className)} {...props}>
         {children}
       </DialogContent>
     );
