@@ -57,11 +57,63 @@ export function getAttributeTypeLabel(type: AttributeType | "search"): string {
   }
 }
 
+// Centralized configuration for attribute types
+export interface AttributeTypeConfig {
+  value: AttributeType;
+  label: string;
+  icon: LucideIcon;
+  description: string;
+  supportsUnits: boolean;
+  supportsDropdownOptions: boolean;
+}
+
+// Centralized type configurations - single source of truth for all attribute type metadata
+export const attributeTypeConfigs: Record<AttributeType, AttributeTypeConfig> = {
+  text: {
+    value: "text",
+    label: "Text",
+    icon: Type,
+    description: "Single line text input",
+    supportsUnits: false,
+    supportsDropdownOptions: false,
+  },
+  number: {
+    value: "number",
+    label: "Number",
+    icon: Hash,
+    description: "Numeric value with optional units",
+    supportsUnits: true,
+    supportsDropdownOptions: false,
+  },
+  dropdown: {
+    value: "dropdown",
+    label: "Dropdown",
+    icon: List,
+    description: "Select from predefined options",
+    supportsUnits: false,
+    supportsDropdownOptions: true,
+  },
+  date: {
+    value: "date",
+    label: "Date",
+    icon: Calendar,
+    description: "Date picker",
+    supportsUnits: false,
+    supportsDropdownOptions: false,
+  },
+  boolean: {
+    value: "boolean",
+    label: "Yes/No",
+    icon: CheckSquare,
+    description: "True or false value",
+    supportsUnits: false,
+    supportsDropdownOptions: false,
+  },
+};
+
 // Array of attribute types for consistent select dropdowns
-export const attributeTypes: { value: AttributeType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "dropdown", label: "Dropdown" },
-  { value: "date", label: "Date" },
-  { value: "boolean", label: "Yes/No" },
-];
+export const attributeTypes: { value: AttributeType; label: string }[] =
+  Object.values(attributeTypeConfigs).map(config => ({
+    value: config.value,
+    label: config.label,
+  }));

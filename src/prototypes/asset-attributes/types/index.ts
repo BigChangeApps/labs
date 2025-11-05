@@ -58,4 +58,5 @@ export interface CoreAttribute {
   description?: string;
   detailedDescription?: string;
   dropdownOptions?: string[];
+  units?: string; // Added for consistency with category attributes
 }

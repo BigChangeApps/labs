@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useImperativeHandle } from "react";
 import type { AttributeType, Attribute, CoreAttribute } from "../../../types";
+import { attributeTypeConfigs } from "../../../lib/utils";
 import {
   AttributeLabelField,
   AttributeTypeField,
@@ -104,7 +105,9 @@ export const AttributeForm = React.forwardRef<
       return false;
     }
 
-    if (type === "dropdown") {
+    // Use centralized config for validation
+    const typeConfig = attributeTypeConfigs[type];
+    if (typeConfig.supportsDropdownOptions) {
       const validOptions = dropdownOptions
         .map((opt) => opt.trim())
         .filter((opt) => opt.length > 0);
@@ -117,11 +120,10 @@ export const AttributeForm = React.forwardRef<
       label: label.trim(),
       type,
       description: description.trim(),
-      dropdownOptions:
-        type === "dropdown"
-          ? dropdownOptions.map((opt) => opt.trim()).filter((opt) => opt.length > 0)
-          : [],
-      units: type === "number" && units.trim() ? units.trim() : "",
+      dropdownOptions: typeConfig.supportsDropdownOptions
+        ? dropdownOptions.map((opt) => opt.trim()).filter((opt) => opt.length > 0)
+        : [],
+      units: typeConfig.supportsUnits && units.trim() ? units.trim() : "",
       isPreferred: context === "category" ? isPreferred : false,
       isEnabled: context === "core" ? isEnabled : true,
       section: context === "core" ? section : undefined,
@@ -155,14 +157,14 @@ export const AttributeForm = React.forwardRef<
         onTypeChange={handleTypeChange}
       />
 
-      {type === "dropdown" && (
+      {attributeTypeConfigs[type].supportsDropdownOptions && (
         <AttributeDropdownOptionsField
           options={dropdownOptions}
           onChange={setDropdownOptions}
         />
       )}
 
-      {type === "number" && context === "category" && (
+      {attributeTypeConfigs[type].supportsUnits && (
         <AttributeUnitsField
           value={units}
           onChange={setUnits}
@@ -196,6 +198,7 @@ export function formDataToAttribute(
         formData.dropdownOptions.length > 0
           ? formData.dropdownOptions
           : undefined,
+      units: formData.units || undefined, // Now supported for core attributes
     } as Omit<CoreAttribute, "id">;
   } else {
     // Category attribute
@@ -226,7 +229,7 @@ export function attributeToFormData(
       type: coreAttr.type as AttributeType,
       description: coreAttr.description || "",
       dropdownOptions: coreAttr.dropdownOptions || [""],
-      units: "",
+      units: coreAttr.units || "", // Now reads units from core attributes
       isPreferred: false,
       isEnabled: coreAttr.isEnabled,
       section: coreAttr.section,

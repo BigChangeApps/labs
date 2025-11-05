@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Alert, AlertDescription } from "@/registry/ui/alert";
 import { useAttributeStore } from "../../lib/store";
@@ -103,14 +103,6 @@ export function CategoryAttributesDetail() {
   // Sort all attributes by order
   allAttributes.sort((a, b) => a.order - b.order);
 
-  // Split attributes into preferred and other
-  const preferredAttributes = allAttributes.filter(
-    (item) => item.attribute.isPreferred === true
-  );
-  const otherAttributes = allAttributes.filter(
-    (item) => item.attribute.isPreferred === false
-  );
-
   const handleViewDetails = (attributeId: string) => {
     setSelectedAttributeId(attributeId);
     setIsDetailDrawerOpen(true);
@@ -158,24 +150,10 @@ export function CategoryAttributesDetail() {
     <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              {category.name}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Manage attributes for this category
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCreateDrawerOpen(true)}
-            className="shrink-0"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add attribute
-          </Button>
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {category.name}
+          </h1>
         </div>
 
         {/* Core Attributes Inheritance Alert */}
@@ -197,7 +175,7 @@ export function CategoryAttributesDetail() {
         <div className="space-y-3 sm:space-y-4">
           {/* Section Header with Add CTA */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 className="font-bold text-base">{category.name} attributes</h2>
+            <h2 className="font-bold text-base">Attributes</h2>
             <Button
               variant="secondary"
               size="sm"
@@ -217,24 +195,7 @@ export function CategoryAttributesDetail() {
                 </p>
               </div>
             </div>
-          ) : preferredAttributes.length > 0 ? (
-            <div className="space-y-8 sm:space-y-10">
-              {/* Preferred Attributes Section */}
-              <div className="space-y-3 sm:space-y-4">
-                <h3 className="font-semibold text-sm">Preferred attributes</h3>
-                {renderAttributeList(preferredAttributes)}
-              </div>
-
-              {/* Other Attributes Section */}
-              {otherAttributes.length > 0 && (
-                <div className="space-y-3 sm:space-y-4">
-                  <h3 className="font-semibold text-sm">Other attributes</h3>
-                  {renderAttributeList(otherAttributes)}
-                </div>
-              )}
-            </div>
           ) : (
-            // Single list when no preferred attributes exist
             renderAttributeList(allAttributes)
           )}
         </div>
