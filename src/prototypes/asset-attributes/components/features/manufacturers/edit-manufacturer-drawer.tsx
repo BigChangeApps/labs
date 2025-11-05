@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
 import {
   ResponsiveModal,
   ResponsiveModalContent,
@@ -129,27 +128,25 @@ export function EditManufacturerDrawer({
           onSubmit={handleSubmit}
         />
 
-        <div className="pt-4 border-t px-1">
+        <ResponsiveModalFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2">
           <Button
             type="button"
-            variant="destructive"
+            variant="ghost"
             onClick={handleDeleteManufacturer}
-            className="w-full"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Manufacturer
+            Delete
           </Button>
-        </div>
-
-        <ResponsiveModalFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <div className="flex flex-col-reverse sm:flex-row sm:space-x-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>

@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle } from "react";
+import React, { useEffect, useImperativeHandle, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X, CornerDownLeft } from "lucide-react";
@@ -40,6 +40,9 @@ export const ManufacturerForm = React.forwardRef<
         : [""],
     },
   });
+
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const inputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
 
   // Update form when initialData changes
@@ -98,48 +101,73 @@ export const ManufacturerForm = React.forwardRef<
             <FormItem>
               <FormLabel>Models (Optional)</FormLabel>
               <div className="space-y-2">
-                {field.value?.map((_, index) => (
-                  <div key={index} className="flex gap-2">
-                    <div className="relative flex-1">
-                      <FormControl>
-                        <Input
-                          placeholder={`Model ${index + 1}`}
-                          value={field.value?.[index] || ""}
-                          onChange={(e) => {
-                            const newModels = [...(field.value || [])];
-                            newModels[index] = e.target.value;
+                {field.value?.map((_, index) => {
+                  const isLastInput = index === (field.value?.length || 0) - 1;
+                  
+                  return (
+                    <div key={index} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <FormControl>
+                          <Input
+                            ref={(el: HTMLInputElement | null) => {
+                              if (el) {
+                                inputRefs.current.set(index, el);
+                              } else {
+                                inputRefs.current.delete(index);
+                              }
+                            }}
+                            placeholder={`Model ${index + 1}`}
+                            value={field.value?.[index] || ""}
+                            onChange={(e) => {
+                              const newModels = [...(field.value || [])];
+                              newModels[index] = e.target.value;
+                              field.onChange(newModels);
+                            }}
+                            onFocus={() => setFocusedIndex(index)}
+                            onBlur={() => setFocusedIndex(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (isLastInput) {
+                                  // Add new field and focus it
+                                  const newIndex = (field.value?.length || 0);
+                                  field.onChange([...(field.value || []), ""]);
+                                  setTimeout(() => {
+                                    inputRefs.current.get(newIndex)?.focus();
+                                  }, 0);
+                                } else {
+                                  // Focus next input
+                                  inputRefs.current.get(index + 1)?.focus();
+                                }
+                              }
+                            }}
+                            className="pr-12"
+                          />
+                        </FormControl>
+                        {focusedIndex === index && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <Kbd>
+                              <CornerDownLeft className="h-3 w-3" />
+                            </Kbd>
+                          </div>
+                        )}
+                      </div>
+                      {field.value && field.value.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const newModels = field.value?.filter((_, i) => i !== index);
                             field.onChange(newModels);
                           }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              field.onChange([...(field.value || []), ""]);
-                            }
-                          }}
-                          className="pr-12"
-                        />
-                      </FormControl>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Kbd>
-                          <CornerDownLeft className="h-3 w-3" />
-                        </Kbd>
-                      </div>
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                    {field.value && field.value.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          const newModels = field.value?.filter((_, i) => i !== index);
-                          field.onChange(newModels);
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
                 <Button
                   type="button"
                   variant="outline"
