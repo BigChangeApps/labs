@@ -2,12 +2,9 @@ import {
   NavLink,
   Outlet,
   useLocation,
-  useNavigate,
-  useParams,
 } from "react-router-dom";
-import { ArrowLeft, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/registry/ui/button";
-import { useAttributeStore } from "../lib/store";
 import {
   Sheet,
   SheetContent,
@@ -19,46 +16,13 @@ import { useState } from "react";
 
 export function Layout() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { categoryId } = useParams<{ categoryId: string }>();
-  const { categories } = useAttributeStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Determine if we're in a detail view (hide sidebar)
-  const prototypeBasePath = "/asset-attributes";
-  const isDetailView =
-    location.pathname.includes(`${prototypeBasePath}/category/`) ||
-    location.pathname === `${prototypeBasePath}/core-attributes`;
-
-  // Get the current page title
-  const getPageTitle = () => {
-    const prototypeBasePath = "/asset-attributes";
-    if (location.pathname === `${prototypeBasePath}/core-attributes`)
-      return "Core attributes";
-    if (
-      location.pathname.includes(`${prototypeBasePath}/category/`) &&
-      categoryId
-    ) {
-      // Find the category by ID and return its name
-      const category = categories.find((c) => c.id === categoryId);
-      return category ? category.name : "Category Details";
-    }
-    return "Asset Attributes";
-  };
-
-  // Handle back button navigation
-  const handleBackClick = () => {
-    if (location.pathname.includes("/core-attributes")) {
-      navigate("/asset-attributes/attributes");
-    } else if (location.pathname.includes("/category/")) {
-      navigate("/asset-attributes/attributes");
-    } else {
-      // For main pages, go back to labs
-      navigate("/");
-    }
-  };
-
-  // Close button behavior removed to mimic in-app settings
+  // Check if Attributes section is active (includes child routes)
+  const isAttributesActive = 
+    location.pathname === "/asset-attributes/attributes" ||
+    location.pathname.startsWith("/asset-attributes/category/") ||
+    location.pathname === "/asset-attributes/core-attributes";
 
   // Navigation component (reused for both sidebar and mobile menu)
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
@@ -67,13 +31,11 @@ export function Layout() {
         to="/asset-attributes/attributes"
         state={location.state}
         onClick={onClick}
-        className={({ isActive }) =>
-          `px-3 py-2.5 rounded-lg text-sm transition-colors ${
-            isActive
-              ? "bg-hw-surface-subtle text-hw-text font-bold"
-              : "text-hw-text hover:bg-accent font-normal"
-          }`
-        }
+        className={`px-3 py-2.5 rounded-lg text-sm transition-colors ${
+          isAttributesActive
+            ? "bg-hw-surface-subtle text-hw-text font-bold"
+            : "text-hw-text hover:bg-accent font-normal"
+        }`}
       >
         Attributes
       </NavLink>
@@ -95,70 +57,54 @@ export function Layout() {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Header Bar */}
-      <header className="border-b bg-background">
-        <div className="flex items-center justify-between px-3 sm:px-5 py-3">
-          <div className="flex items-center gap-2">
-            {/* Mobile Menu Button - Only show on mobile and when not in detail view */}
-            {!isDetailView && (
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 md:hidden"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[267px] p-6">
-                  <SheetHeader>
-                    <SheetTitle>Navigation</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <NavigationLinks onClick={() => setMobileMenuOpen(false)} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            )}
-
-            {/* Back Button - Only show in detail views */}
-            {isDetailView && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleBackClick}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            )}
-            <h1 className="text-base sm:text-lg font-extrabold truncate">
-              {getPageTitle()}
-            </h1>
+    <div className="h-full bg-background flex">
+      {/* Fixed Left Sidebar */}
+      <aside className="hidden md:flex md:flex-col md:w-[240px] md:fixed md:top-[61px] md:bottom-0 md:left-0 md:border-r md:bg-background">
+        <div className="flex flex-col h-full p-6">
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Settings
+            </h2>
+            <NavigationLinks />
           </div>
-          {/* Close button removed to mimic in-app settings behavior */}
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content with Navigation */}
-      <div className="flex-1 overflow-auto">
-        <div className="flex justify-center">
-          <div className="flex w-full max-w-7xl">
-            {/* Left Navigation - Hidden on mobile, visible on desktop when not in detail view */}
-            {!isDetailView && (
-              <aside className="hidden md:block w-[267px] p-6">
-                <NavigationLinks />
-              </aside>
-            )}
+      {/* Main Content Area */}
+      <div className="flex-1 md:ml-[240px] h-full flex flex-col overflow-hidden">
+        {/* Mobile Menu Button */}
+        <div className="md:hidden border-b bg-background shrink-0">
+          <div className="flex items-center px-3 sm:px-5 py-3">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[240px] p-6">
+                <SheetHeader>
+                  <SheetTitle>Settings</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6">
+                  <NavigationLinks onClick={() => setMobileMenuOpen(false)} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
 
-            {/* Page Content */}
-            <section className="flex-1 overflow-auto px-3 sm:px-6 py-4 sm:py-8">
+        {/* Page Content - Centered */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex justify-center">
+            <div className="w-full max-w-[700px] px-3 sm:px-6 py-4 sm:py-8">
               <Outlet />
-            </section>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

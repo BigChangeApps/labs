@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
 import { Alert, AlertDescription } from "@/registry/ui/alert";
 import {
@@ -96,7 +95,6 @@ function SortableAttributeCard({
 
 export function CategoryAttributesDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const navigate = useNavigate();
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(
     null
   );
@@ -130,10 +128,12 @@ export function CategoryAttributesDetail() {
   if (!category) {
     return (
       <div className="w-full">
-        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Categories
-        </Button>
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
+        >
+          ← Back to attributes
+        </Link>
         <p className="text-muted-foreground">Category not found</p>
       </div>
     );
@@ -253,8 +253,16 @@ export function CategoryAttributesDetail() {
   };
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
+    <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
+        {/* Back Button */}
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground inline-block"
+        >
+          ← Back to attributes
+        </Link>
+
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">

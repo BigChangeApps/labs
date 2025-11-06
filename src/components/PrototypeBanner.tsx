@@ -35,7 +35,7 @@ export function PrototypeBanner({
 
   return (
     <div
-      className="bg-blue-50 dark:bg-blue-950/20 border-b border-blue-200 dark:border-blue-900/50"
+      className="fixed top-0 left-0 right-0 z-50 bg-blue-50 dark:bg-blue-950/20 border-b border-blue-200 dark:border-blue-900/50"
       data-thumbnail-hide="true"
     >
       <div className="w-full px-6 py-3">

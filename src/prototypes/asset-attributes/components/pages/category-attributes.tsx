@@ -44,7 +44,7 @@ export function CategoryAttributes() {
 
   // Categories list view
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
+    <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">

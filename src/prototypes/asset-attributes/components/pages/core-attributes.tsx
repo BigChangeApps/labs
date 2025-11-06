@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
 import {
@@ -120,8 +121,16 @@ export function CoreAttributes() {
   };
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
+    <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
+        {/* Back Button */}
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground inline-block"
+        >
+          ← Back to attributes
+        </Link>
+
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
