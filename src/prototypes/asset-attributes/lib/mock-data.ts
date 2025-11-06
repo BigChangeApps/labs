@@ -14,7 +14,7 @@ export const predefinedCategoryAttributes: Record<string, Attribute[]> = {
       label: "Flue Type",
       type: "dropdown",
       isSystem: true,
-      isPreferred: false,
+      isPreferred: true,
       description: "Type of flue system",
       dropdownOptions: ["Horizontal", "Vertical", "Balanced Flue", "Open Flue"],
     },
