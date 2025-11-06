@@ -43,6 +43,15 @@ pnpm generate:thumbnails    # Generate prototype thumbnails
 - Use the existing Radix UI + Tailwind component patterns
 - Prototypes should be self-contained within their directories
 
+## MCP Servers
+This project uses Model Context Protocol (MCP) servers to extend Claude Code capabilities:
+
+**Project-level servers** (configured in `.mcp.json`):
+- **Playwright** - Browser automation and testing for UI prototypes
+- **Chrome DevTools** - Performance analysis, debugging, and browser inspection
+
+These servers are automatically available to all team members when using Claude Code in this project.
+
 ## Custom Slash Commands
 Available commands in `.claude/commands/`:
 - `/commit-push-quick` - Quick commit and push with fast validation (tsc + lint)
