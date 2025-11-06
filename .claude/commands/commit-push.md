@@ -8,8 +8,8 @@ Commit and push changes with comprehensive validation checks for production-read
 
 1. Run complete validation suite:
    - `tsc --noEmit` - Type checking (catches type errors)
-   - `npm run lint` - Linting (code quality checks)
-   - `npm run build` - Full build (ensures everything compiles and bundles correctly)
+   - `pnpm run lint` - Linting (code quality checks)
+   - `pnpm run build` - Full build (ensures everything compiles and bundles correctly)
 
 2. If any check fails, STOP immediately and report errors to the user
 

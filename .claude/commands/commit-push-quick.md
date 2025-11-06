@@ -8,7 +8,7 @@ Commit and push changes with quick validation checks for rapid development itera
 
 1. Run fast validation checks:
    - `tsc --noEmit` - Type checking (catches type errors)
-   - `npm run lint` - Linting (code quality checks)
+   - `pnpm run lint` - Linting (code quality checks)
 
 2. If any check fails, STOP immediately and report errors to the user
 
