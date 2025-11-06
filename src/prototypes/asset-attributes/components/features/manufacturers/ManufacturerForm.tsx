@@ -43,6 +43,10 @@ export const ManufacturerForm = React.forwardRef<
     },
   });
 
+  // NOTE: Enter key functionality for model inputs
+  // This state and ref management enables pressing Enter to add/focus next model
+  // Similar implementation exists in AttributeForm.tsx - kept separate for simplicity
+  // Consider extracting to shared component/hook if a third form needs this pattern
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
