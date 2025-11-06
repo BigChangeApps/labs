@@ -8,7 +8,7 @@ Commit and push changes with quick validation checks for rapid development itera
 
 1. Run fast validation checks:
    - `tsc --noEmit` - Type checking (catches type errors)
-   - `npm run lint` - Linting (code quality checks)
+   - `pnpm run lint` - Linting (code quality checks)
 
 2. If any check fails, STOP immediately and report errors to the user
 
@@ -25,6 +25,14 @@ Commit and push changes with quick validation checks for rapid development itera
      Co-Authored-By: Claude <noreply@anthropic.com>
      ```
    - Check if branch has upstream tracking
+   - **Before pushing, check if branch is behind remote:**
+     - Run `git fetch` to get latest remote info
+     - Run `git status` to check if branch is behind
+     - If behind, inform the user and ask if they want to pull first using AskUserQuestion tool
+     - If user confirms pull, run `git pull --rebase` (rebase to keep history clean)
+     - If pull succeeds, proceed with push
+     - If pull fails (e.g., conflicts), stop and report the issue
+     - If user declines pull, stop and remind them to pull manually
    - Push to remote (use `-u origin <branch>` if no upstream exists)
    - Show final git status
 
