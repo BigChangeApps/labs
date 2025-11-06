@@ -275,7 +275,14 @@ export const AttributeForm = React.forwardRef<
                                 field.onChange(newOptions);
                               }}
                               onFocus={() => setFocusedIndex(index)}
-                              onBlur={() => setFocusedIndex(null)}
+                              onBlur={() => {
+                                setFocusedIndex(null);
+                                // Remove empty options on blur, but keep at least one input
+                                if (!option.trim() && field.value && field.value.length > 1) {
+                                  const newOptions = field.value.filter((_, i) => i !== index);
+                                  field.onChange(newOptions);
+                                }
+                              }}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                   e.preventDefault();

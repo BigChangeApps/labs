@@ -130,7 +130,15 @@ export const ManufacturerForm = React.forwardRef<
                               field.onChange(newModels);
                             }}
                             onFocus={() => setFocusedIndex(index)}
-                            onBlur={() => setFocusedIndex(null)}
+                            onBlur={() => {
+                              setFocusedIndex(null);
+                              // Remove empty models on blur, but keep at least one input
+                              const currentValue = field.value?.[index] || "";
+                              if (!currentValue.trim() && field.value && field.value.length > 1) {
+                                const newModels = field.value.filter((_, i) => i !== index);
+                                field.onChange(newModels);
+                              }
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
                                 e.preventDefault();
