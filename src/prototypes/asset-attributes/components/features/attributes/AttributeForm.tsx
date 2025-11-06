@@ -298,6 +298,11 @@ export const AttributeForm = React.forwardRef<
                                     inputRefs.current.get(index + 1)?.focus();
                                   }
                                 }
+                                // Handle Shift+Tab to navigate backwards
+                                if (e.key === "Tab" && e.shiftKey && index > 0) {
+                                  e.preventDefault();
+                                  inputRefs.current.get(index - 1)?.focus();
+                                }
                               }}
                               placeholder={`Option ${index + 1}`}
                               className="pr-12"
