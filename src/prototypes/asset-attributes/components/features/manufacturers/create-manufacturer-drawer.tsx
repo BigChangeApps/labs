@@ -3,7 +3,6 @@ import {
   ResponsiveModal,
   ResponsiveModalContent,
   ResponsiveModalDescription,
-  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/registry/ui/responsive-modal";
@@ -39,17 +38,15 @@ export function CreateManufacturerDrawer({
     onOpenChange(false);
   };
 
-  const handleSave = () => {
-    formRef.current?.submit();
-  };
-
   const handleCancel = () => {
     onOpenChange(false);
   };
 
+  const formId = "manufacturer-add-form";
+
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
-      <ResponsiveModalContent className="flex flex-col">
+      <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Add Manufacturer</ResponsiveModalTitle>
           <ResponsiveModalDescription>
@@ -57,18 +54,21 @@ export function CreateManufacturerDrawer({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <ManufacturerForm
-          key={key}
-          ref={formRef}
-          onSubmit={handleSubmit}
-        />
+        <div className="flex flex-col gap-6">
+          <ManufacturerForm
+            key={key}
+            ref={formRef}
+            onSubmit={handleSubmit}
+            formId={formId}
+          />
 
-        <ResponsiveModalFooter>
-          <Button type="button" variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Manufacturer</Button>
-        </ResponsiveModalFooter>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" form={formId}>Save Manufacturer</Button>
+          </div>
+        </div>
       </ResponsiveModalContent>
     </ResponsiveModal>
   );

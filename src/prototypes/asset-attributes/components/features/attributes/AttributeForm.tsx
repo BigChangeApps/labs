@@ -46,6 +46,7 @@ interface AttributeFormProps {
   onSubmit?: (data: AttributeFormData) => void;
   onCancel?: () => void;
   formRef?: React.RefObject<{ submit: () => void }>;
+  formId?: string;
 }
 
 // Utility function for smart sentence case handling
@@ -81,7 +82,7 @@ function toSentenceCase(text: string): string {
 export const AttributeForm = React.forwardRef<
   { submit: () => void },
   AttributeFormProps
->(({ context, initialData, onSubmit }, ref) => {
+>(({ context, initialData, onSubmit, formId = "attribute-form" }, ref) => {
   const [hasAutoFormatted, setHasAutoFormatted] = React.useState(false);
   const [autoFormattedValue, setAutoFormattedValue] = React.useState<string>("");
 
@@ -91,6 +92,7 @@ export const AttributeForm = React.forwardRef<
   // Consider extracting to shared component/hook if a third form needs this pattern
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
+  const addOptionButtonRef = useRef<HTMLButtonElement>(null);
 
   const form = useForm({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- Zod v4 compatibility with react-hook-form resolver
@@ -186,11 +188,11 @@ export const AttributeForm = React.forwardRef<
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="flex-1 space-y-6">
-        <FormField
-          control={form.control}
-          name="label"
-          render={({ field }) => (
+      <form id={formId} onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="label"
+            render={({ field }) => (
             <FormItem>
               <FormLabel>Attribute Label</FormLabel>
               <FormControl>
@@ -260,55 +262,60 @@ export const AttributeForm = React.forwardRef<
                     return (
                       <div key={index} className="flex gap-2">
                         <div className="relative flex-1">
-                          <FormControl>
-                            <Input
-                              ref={(el: HTMLInputElement | null) => {
-                                if (el) {
-                                  inputRefs.current.set(index, el);
+                          <Input
+                            ref={(el: HTMLInputElement | null) => {
+                              if (el) {
+                                inputRefs.current.set(index, el);
+                              } else {
+                                inputRefs.current.delete(index);
+                              }
+                            }}
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...(field.value || [])];
+                              newOptions[index] = e.target.value;
+                              field.onChange(newOptions);
+                            }}
+                            onFocus={() => setFocusedIndex(index)}
+                            onBlur={() => setFocusedIndex(null)}
+                            onKeyDown={(e) => {
+                              // Handle Enter on the last input to add a new option
+                              if (e.key === "Enter" && isLastInput) {
+                                e.preventDefault();
+                                // Add new field and focus it
+                                const newIndex = (field.value?.length || 0);
+                                field.onChange([...(field.value || []), ""]);
+                                setTimeout(() => {
+                                  inputRefs.current.get(newIndex)?.focus();
+                                }, 0);
+                              }
+
+                              // Handle Tab to manually move focus to remove button
+                              if (e.key === "Tab" && !e.shiftKey && field.value && field.value.length > 1) {
+                                e.preventDefault();
+                                // Focus the remove button next to this input
+                                const currentInput = e.currentTarget;
+                                const removeButton = currentInput.parentElement?.nextElementSibling as HTMLElement;
+                                if (removeButton && removeButton.tagName === "BUTTON") {
+                                  removeButton.focus();
+                                }
+                              }
+
+                              // Handle Shift+Tab for backwards navigation
+                              if (e.key === "Tab" && e.shiftKey && index > 0) {
+                                e.preventDefault();
+                                // Focus the previous input or button
+                                const prevRemoveButton = inputRefs.current.get(index - 1)?.parentElement?.nextElementSibling as HTMLElement;
+                                if (prevRemoveButton && prevRemoveButton.tagName === "BUTTON" && field.value && field.value.length > 1) {
+                                  prevRemoveButton.focus();
                                 } else {
-                                  inputRefs.current.delete(index);
-                                }
-                              }}
-                              value={option}
-                              onChange={(e) => {
-                                const newOptions = [...(field.value || [])];
-                                newOptions[index] = e.target.value;
-                                field.onChange(newOptions);
-                              }}
-                              onFocus={() => setFocusedIndex(index)}
-                              onBlur={() => {
-                                setFocusedIndex(null);
-                                // Remove empty options on blur, but keep at least one input
-                                if (!option.trim() && field.value && field.value.length > 1) {
-                                  const newOptions = field.value.filter((_, i) => i !== index);
-                                  field.onChange(newOptions);
-                                }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  if (isLastInput) {
-                                    // Add new field and focus it
-                                    const newIndex = (field.value?.length || 0);
-                                    field.onChange([...(field.value || []), ""]);
-                                    setTimeout(() => {
-                                      inputRefs.current.get(newIndex)?.focus();
-                                    }, 0);
-                                  } else {
-                                    // Focus next input
-                                    inputRefs.current.get(index + 1)?.focus();
-                                  }
-                                }
-                                // Handle Shift+Tab to navigate backwards
-                                if (e.key === "Tab" && e.shiftKey && index > 0) {
-                                  e.preventDefault();
                                   inputRefs.current.get(index - 1)?.focus();
                                 }
-                              }}
-                              placeholder={`Option ${index + 1}`}
-                              className="pr-12"
-                            />
-                          </FormControl>
+                              }
+                            }}
+                            placeholder={`Option ${index + 1}`}
+                            className="pr-12"
+                          />
                           {focusedIndex === index && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               <Kbd>
@@ -322,9 +329,29 @@ export const AttributeForm = React.forwardRef<
                             type="button"
                             variant="outline"
                             size="icon"
+                            tabIndex={0}
                             onClick={() => {
                               const newOptions = field.value?.filter((_, i) => i !== index);
                               field.onChange(newOptions);
+                            }}
+                            onKeyDown={(e) => {
+                              // Handle Tab to move to next input or Add Option button
+                              if (e.key === "Tab" && !e.shiftKey) {
+                                e.preventDefault();
+                                const nextIndex = index + 1;
+                                if (nextIndex < (field.value?.length || 0)) {
+                                  inputRefs.current.get(nextIndex)?.focus();
+                                } else {
+                                  // We're on the last remove button, focus the "Add Option" button
+                                  addOptionButtonRef.current?.focus();
+                                }
+                              }
+
+                              // Handle Shift+Tab to move back to current input
+                              if (e.key === "Tab" && e.shiftKey) {
+                                e.preventDefault();
+                                inputRefs.current.get(index)?.focus();
+                              }
                             }}
                           >
                             <X className="h-4 w-4" />
@@ -334,6 +361,7 @@ export const AttributeForm = React.forwardRef<
                     );
                   })}
                   <Button
+                    ref={addOptionButtonRef}
                     type="button"
                     variant="outline"
                     size="sm"

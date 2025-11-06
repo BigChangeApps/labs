@@ -25,12 +25,13 @@ interface ManufacturerFormProps {
   onSubmit?: (data: ManufacturerFormData) => void;
   onCancel?: () => void;
   formRef?: React.RefObject<{ submit: () => void }>;
+  formId?: string;
 }
 
 export const ManufacturerForm = React.forwardRef<
   { submit: () => void },
   ManufacturerFormProps
->(({ initialData, onSubmit }, ref) => {
+>(({ initialData, onSubmit, formId = "manufacturer-form" }, ref) => {
   const form = useForm({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- Zod v4 compatibility with react-hook-form resolver
     // @ts-ignore - Zod v4 compatibility with react-hook-form resolver (using @ts-ignore instead of @ts-expect-error to avoid unused directive error in some build environments)
@@ -50,6 +51,7 @@ export const ManufacturerForm = React.forwardRef<
   // Consider extracting to shared component/hook if a third form needs this pattern
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
+  const addModelButtonRef = useRef<HTMLButtonElement>(null);
 
 
   // Update form when initialData changes
@@ -86,11 +88,11 @@ export const ManufacturerForm = React.forwardRef<
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="flex-1 space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
+      <form id={formId} onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
             <FormItem>
               <FormLabel>Manufacturer Name *</FormLabel>
               <FormControl>
@@ -114,56 +116,60 @@ export const ManufacturerForm = React.forwardRef<
                   return (
                     <div key={index} className="flex gap-2">
                       <div className="relative flex-1">
-                        <FormControl>
-                          <Input
-                            ref={(el: HTMLInputElement | null) => {
-                              if (el) {
-                                inputRefs.current.set(index, el);
+                        <Input
+                          ref={(el: HTMLInputElement | null) => {
+                            if (el) {
+                              inputRefs.current.set(index, el);
+                            } else {
+                              inputRefs.current.delete(index);
+                            }
+                          }}
+                          placeholder={`Model ${index + 1}`}
+                          value={field.value?.[index] || ""}
+                          onChange={(e) => {
+                            const newModels = [...(field.value || [])];
+                            newModels[index] = e.target.value;
+                            field.onChange(newModels);
+                          }}
+                          onFocus={() => setFocusedIndex(index)}
+                          onBlur={() => setFocusedIndex(null)}
+                          onKeyDown={(e) => {
+                            // Handle Enter on the last input to add a new model
+                            if (e.key === "Enter" && isLastInput) {
+                              e.preventDefault();
+                              // Add new field and focus it
+                              const newIndex = (field.value?.length || 0);
+                              field.onChange([...(field.value || []), ""]);
+                              setTimeout(() => {
+                                inputRefs.current.get(newIndex)?.focus();
+                              }, 0);
+                            }
+
+                            // Handle Tab to manually move focus to remove button
+                            if (e.key === "Tab" && !e.shiftKey && field.value && field.value.length > 1) {
+                              e.preventDefault();
+                              // Focus the remove button next to this input
+                              const currentInput = e.currentTarget;
+                              const removeButton = currentInput.parentElement?.nextElementSibling as HTMLElement;
+                              if (removeButton && removeButton.tagName === "BUTTON") {
+                                removeButton.focus();
+                              }
+                            }
+
+                            // Handle Shift+Tab for backwards navigation
+                            if (e.key === "Tab" && e.shiftKey && index > 0) {
+                              e.preventDefault();
+                              // Focus the previous input or button
+                              const prevRemoveButton = inputRefs.current.get(index - 1)?.parentElement?.nextElementSibling as HTMLElement;
+                              if (prevRemoveButton && prevRemoveButton.tagName === "BUTTON" && field.value && field.value.length > 1) {
+                                prevRemoveButton.focus();
                               } else {
-                                inputRefs.current.delete(index);
-                              }
-                            }}
-                            placeholder={`Model ${index + 1}`}
-                            value={field.value?.[index] || ""}
-                            onChange={(e) => {
-                              const newModels = [...(field.value || [])];
-                              newModels[index] = e.target.value;
-                              field.onChange(newModels);
-                            }}
-                            onFocus={() => setFocusedIndex(index)}
-                            onBlur={() => {
-                              setFocusedIndex(null);
-                              // Remove empty models on blur, but keep at least one input
-                              const currentValue = field.value?.[index] || "";
-                              if (!currentValue.trim() && field.value && field.value.length > 1) {
-                                const newModels = field.value.filter((_, i) => i !== index);
-                                field.onChange(newModels);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                if (isLastInput) {
-                                  // Add new field and focus it
-                                  const newIndex = (field.value?.length || 0);
-                                  field.onChange([...(field.value || []), ""]);
-                                  setTimeout(() => {
-                                    inputRefs.current.get(newIndex)?.focus();
-                                  }, 0);
-                                } else {
-                                  // Focus next input
-                                  inputRefs.current.get(index + 1)?.focus();
-                                }
-                              }
-                              // Handle Shift+Tab to navigate backwards
-                              if (e.key === "Tab" && e.shiftKey && index > 0) {
-                                e.preventDefault();
                                 inputRefs.current.get(index - 1)?.focus();
                               }
-                            }}
-                            className="pr-12"
-                          />
-                        </FormControl>
+                            }
+                          }}
+                          className="pr-12"
+                        />
                         {focusedIndex === index && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                             <Kbd>
@@ -177,9 +183,29 @@ export const ManufacturerForm = React.forwardRef<
                           type="button"
                           variant="outline"
                           size="icon"
+                          tabIndex={0}
                           onClick={() => {
                             const newModels = field.value?.filter((_, i) => i !== index);
                             field.onChange(newModels);
+                          }}
+                          onKeyDown={(e) => {
+                            // Handle Tab to move to next input or Add Model button
+                            if (e.key === "Tab" && !e.shiftKey) {
+                              e.preventDefault();
+                              const nextIndex = index + 1;
+                              if (nextIndex < (field.value?.length || 0)) {
+                                inputRefs.current.get(nextIndex)?.focus();
+                              } else {
+                                // We're on the last remove button, focus the "Add Model" button
+                                addModelButtonRef.current?.focus();
+                              }
+                            }
+
+                            // Handle Shift+Tab to move back to current input
+                            if (e.key === "Tab" && e.shiftKey) {
+                              e.preventDefault();
+                              inputRefs.current.get(index)?.focus();
+                            }
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -189,6 +215,7 @@ export const ManufacturerForm = React.forwardRef<
                   );
                 })}
                 <Button
+                  ref={addModelButtonRef}
                   type="button"
                   variant="outline"
                   onClick={() => {
