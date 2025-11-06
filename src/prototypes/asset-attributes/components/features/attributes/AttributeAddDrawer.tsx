@@ -3,7 +3,6 @@ import {
   ResponsiveModal,
   ResponsiveModalContent,
   ResponsiveModalDescription,
-  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/registry/ui/responsive-modal";
@@ -64,14 +63,6 @@ export function AttributeAddDrawer({
     onOpenChange(false);
   };
 
-  const handleSave = () => {
-    const success = formRef.current?.submit();
-    if (!success) {
-      // Validation failed - show error
-      toast.error("Please fill in all required fields");
-    }
-  };
-
   const handleCancel = () => {
     onOpenChange(false);
   };
@@ -83,30 +74,33 @@ export function AttributeAddDrawer({
       ? "Create a new attribute for this category"
       : "Add a new custom attribute to the Custom Attributes section.";
 
+  const formId = "attribute-add-form";
+
   return (
     <ResponsiveModal open={open} onOpenChange={onOpenChange}>
-      <ResponsiveModalContent className="flex flex-col">
+      <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
           <ResponsiveModalDescription>{description}</ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <AttributeForm
-          ref={formRef}
-          mode="add"
-          context={context}
-          onSubmit={handleSubmit}
-        />
+        <div className="flex flex-col gap-6">
+          <AttributeForm
+            ref={formRef}
+            mode="add"
+            context={context}
+            onSubmit={handleSubmit}
+            formId={formId}
+          />
 
-        <div className="space-y-4">
-          <ResponsiveModalFooter className="pt-4">
-            <Button variant="outline" onClick={handleCancel}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button type="submit" form={formId}>
               {context === "category" ? "Save Attribute" : "Add Attribute"}
             </Button>
-          </ResponsiveModalFooter>
+          </div>
         </div>
       </ResponsiveModalContent>
     </ResponsiveModal>
