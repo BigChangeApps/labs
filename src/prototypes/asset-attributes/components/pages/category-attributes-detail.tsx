@@ -305,7 +305,7 @@ export function CategoryAttributesDetail() {
             <div className="rounded-lg border bg-card">
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm mb-4">
-                  No attributes yet. Click "Add attribute" to create one.
+                  There are no attributes for this category yet.
                 </p>
               </div>
             </div>

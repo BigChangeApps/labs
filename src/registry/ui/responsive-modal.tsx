@@ -150,6 +150,7 @@ export function ResponsiveModalTitle({
     </DrawerTitle>
   );
 }
+ResponsiveModalTitle.displayName = "ResponsiveModalTitle";
 
 interface ResponsiveModalDescriptionProps
   extends React.HTMLAttributes<HTMLParagraphElement> {

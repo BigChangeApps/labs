@@ -99,7 +99,7 @@ export function AttributeAddDrawer({
         />
 
         <div className="space-y-4">
-          <ResponsiveModalFooter>
+          <ResponsiveModalFooter className="pt-4">
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>

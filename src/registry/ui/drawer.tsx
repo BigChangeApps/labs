@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
+import { X } from "lucide-react";
 
 import { cn } from "@/registry/lib/utils";
 
@@ -55,13 +56,58 @@ DrawerContent.displayName = "DrawerContent";
 
 const DrawerHeader = ({
   className,
+  children,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
-    {...props}
-  />
-);
+}: React.HTMLAttributes<HTMLDivElement>) => {
+  const childrenArray = React.Children.toArray(children);
+  
+  // Find title - check for DrawerTitle or ResponsiveModalTitle
+  // Also check if first child looks like a title element
+  const titleIndex = childrenArray.findIndex((child: any) => {
+    if (!React.isValidElement(child)) return false;
+    const displayName = child.type?.displayName;
+    // Check for DrawerTitle directly or ResponsiveModalTitle (which wraps DrawerTitle)
+    if (displayName === "DrawerTitle" || displayName === "ResponsiveModalTitle") {
+      return true;
+    }
+    return false;
+  });
+  
+  // If no title found by displayName, check if first child exists (likely a title)
+  const effectiveTitleIndex = titleIndex !== -1 ? titleIndex : (childrenArray.length > 0 ? 0 : -1);
+  
+  if (effectiveTitleIndex !== -1 && childrenArray.length > 0) {
+    const title = childrenArray[effectiveTitleIndex];
+    const beforeTitle = childrenArray.slice(0, effectiveTitleIndex);
+    const afterTitle = childrenArray.slice(effectiveTitleIndex + 1);
+    
+    return (
+      <div
+        className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+        {...props}
+      >
+        {beforeTitle}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">{title}</div>
+          <DrawerPrimitive.Close className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-accent hover:text-accent-foreground cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none shrink-0">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </DrawerPrimitive.Close>
+        </div>
+        {afterTitle}
+      </div>
+    );
+  }
+  
+  return (
+    <div
+      className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 DrawerHeader.displayName = "DrawerHeader";
 
 const DrawerFooter = ({

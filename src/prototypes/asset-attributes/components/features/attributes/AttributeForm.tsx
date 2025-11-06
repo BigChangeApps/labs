@@ -24,6 +24,7 @@ import {
 import { Button } from "@/registry/ui/button";
 import { Kbd } from "@/registry/ui/kbd";
 import { X, Plus, CornerDownLeft } from "lucide-react";
+import { AttributePreferredField } from "./fields/AttributePreferredField";
 
 export type AttributeFormMode = "add" | "edit";
 export type AttributeFormContext = "category" | "core";
@@ -360,6 +361,24 @@ export const AttributeForm = React.forwardRef<
                 <FormLabel>Units (Optional)</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="e.g., kg, cm, hours" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {context === "category" && (
+          <FormField
+            control={form.control}
+            name="isPreferred"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <AttributePreferredField
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

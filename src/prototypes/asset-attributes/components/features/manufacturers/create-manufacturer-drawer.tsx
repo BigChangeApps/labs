@@ -63,7 +63,7 @@ export function CreateManufacturerDrawer({
           onSubmit={handleSubmit}
         />
 
-        <ResponsiveModalFooter>
+        <ResponsiveModalFooter className="pt-4">
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>

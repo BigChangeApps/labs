@@ -7,6 +7,14 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from "@/registry/ui/responsive-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
 import {
   ManufacturerForm,
@@ -43,6 +51,13 @@ export function EditManufacturerDrawer({
   const formRef = useRef<{ submit: () => void }>(null);
 
   const [initialData, setInitialData] = useState<ManufacturerFormData | undefined>(undefined);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // When delete dialog opens, temporarily close the parent modal
+  // When delete dialog closes, restore the parent modal if it should be open
+  // But if we're deleting, keep parent modal closed
+  const parentModalOpen = open && !isDeleteDialogOpen && !isDeleting;
 
   // Update initialData when manufacturer changes
   useEffect(() => {
@@ -101,19 +116,26 @@ export function EditManufacturerDrawer({
   };
 
   const handleDeleteManufacturer = () => {
-    if (
-      confirm(
-        `Delete ${manufacturer.name}? This will delete all models. This action cannot be undone.`
-      )
-    ) {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    // Mark as deleting to prevent parent modal from reopening
+    setIsDeleting(true);
+    setIsDeleteDialogOpen(false);
+    
+    // Then close parent modal and delete - use setTimeout to ensure delete dialog closes first
+    setTimeout(() => {
       deleteManufacturer(manufacturer.id);
       toast.success("Manufacturer deleted");
+      setIsDeleting(false);
       onOpenChange(false);
-    }
+    }, 0);
   };
 
   return (
-    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+    <>
+      <ResponsiveModal open={parentModalOpen} onOpenChange={onOpenChange}>
       <ResponsiveModalContent className="flex flex-col">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Edit Manufacturer</ResponsiveModalTitle>
@@ -128,12 +150,12 @@ export function EditManufacturerDrawer({
           onSubmit={handleSubmit}
         />
 
-        <ResponsiveModalFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2">
+        <ResponsiveModalFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4">
           <Button
             type="button"
             variant="ghost"
             onClick={handleDeleteManufacturer}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20"
           >
             Delete
           </Button>
@@ -150,5 +172,33 @@ export function EditManufacturerDrawer({
         </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="z-[100]" overlayClassName="z-[100]">
+          <DialogHeader>
+            <DialogTitle>Delete {manufacturer.name}</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this manufacturer? This will delete
+              all models. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                // Parent modal will be restored automatically
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
