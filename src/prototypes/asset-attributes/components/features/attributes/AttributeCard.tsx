@@ -2,7 +2,13 @@ import { type MouseEvent } from "react";
 import { Badge } from "@/registry/ui/badge";
 import { Switch } from "@/registry/ui/switch";
 import { Separator } from "@/registry/ui/separator";
-import { GripVertical } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/registry/ui/tooltip";
+import { GripVertical, BadgeCheck, Check } from "lucide-react";
 import type { Attribute, CoreAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
 
@@ -116,7 +122,7 @@ export function AttributeCard({
 
         {/* Actions */}
         <div
-          className="flex items-center gap-1 sm:gap-2 shrink-0"
+          className="flex items-center gap-1 sm:gap-3 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Custom badge for user-created attributes */}
@@ -128,6 +134,45 @@ export function AttributeCard({
             >
               Custom
             </Badge>
+          )}
+
+          {/* Preferred indicator - only for category attributes */}
+          {"isPreferred" in attribute && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {attribute.isPreferred ? (
+                    <span className="relative inline-flex items-center justify-center h-6 w-6">
+                      <BadgeCheck
+                        className="h-6 w-6 text-green-600 absolute"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      />
+                      <Check
+                        className="h-3.5 w-3.5 text-white relative z-10"
+                        strokeWidth="3"
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">Preferred</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center h-6 w-6">
+                      <BadgeCheck
+                        className="h-6 w-6 text-muted-foreground opacity-50"
+                        aria-disabled
+                      />
+                    </span>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {attribute.isPreferred
+                      ? "This attribute is preferred"
+                      : "This attribute isn't preferred"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
 
           {/* Toggle switch (system attributes have no toggle or badge) */}
