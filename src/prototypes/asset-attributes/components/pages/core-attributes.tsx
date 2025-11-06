@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
@@ -38,6 +38,14 @@ export function CoreAttributes() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [attributeToDelete, setAttributeToDelete] = useState<CoreAttribute | null>(null);
   const [deletingAttributeIds, setDeletingAttributeIds] = useState<Set<string>>(new Set());
+
+  // Clear selectedAttributeId if the attribute was deleted
+  useEffect(() => {
+    if (selectedAttributeId && !coreAttributes.find((a) => a.id === selectedAttributeId)) {
+      setSelectedAttributeId(null);
+      setIsDetailDrawerOpen(false);
+    }
+  }, [coreAttributes, selectedAttributeId]);
 
   // Hide fundamental system attributes (Category and Asset ID) and Contact & Location section
   const hiddenAttributes = ["Category", "Asset ID", "Site", "Location"];
@@ -219,7 +227,11 @@ export function CoreAttributes() {
       {/* Core Attribute Detail Drawer - Show View or Edit based on attribute type */}
       {selectedAttributeId && (() => {
         const attribute = coreAttributes.find((a: CoreAttribute) => a.id === selectedAttributeId);
-        const variant = getAttributeVariant(attribute!);
+        
+        // Don't render drawer if attribute doesn't exist (was deleted)
+        if (!attribute) return null;
+        
+        const variant = getAttributeVariant(attribute);
 
         // System and predefined attributes are view-only, custom attributes are editable
         if (variant === "system" || variant === "predefined") {
@@ -227,7 +239,12 @@ export function CoreAttributes() {
             <AttributeViewDrawer
               attributeId={selectedAttributeId}
               open={isDetailDrawerOpen}
-              onOpenChange={setIsDetailDrawerOpen}
+              onOpenChange={(open) => {
+                setIsDetailDrawerOpen(open);
+                if (!open) {
+                  setSelectedAttributeId(null);
+                }
+              }}
               context="core"
             />
           );
@@ -236,7 +253,12 @@ export function CoreAttributes() {
             <AttributeEditDrawer
               attributeId={selectedAttributeId}
               open={isDetailDrawerOpen}
-              onOpenChange={setIsDetailDrawerOpen}
+              onOpenChange={(open) => {
+                setIsDetailDrawerOpen(open);
+                if (!open) {
+                  setSelectedAttributeId(null);
+                }
+              }}
               context="core"
             />
           );

@@ -93,7 +93,8 @@ export const AttributeForm = React.forwardRef<
   const inputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
   const form = useForm({
-    // @ts-expect-error - Zod version compatibility with react-hook-form resolver
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- Zod v4 compatibility with react-hook-form resolver
+    // @ts-ignore - Zod v4 compatibility with react-hook-form resolver (using @ts-ignore instead of @ts-expect-error to avoid unused directive error in some build environments)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for Zod resolver compatibility
     resolver: zodResolver(attributeFormSchema) as any,
     defaultValues: {
