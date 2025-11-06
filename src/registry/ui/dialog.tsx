@@ -58,9 +58,12 @@ const DialogHeader = ({
   
   // Find title - check for DialogTitle or ResponsiveModalTitle
   // Also check if first child looks like a title element
-  const titleIndex = childrenArray.findIndex((child: any) => {
+  const titleIndex = childrenArray.findIndex((child: React.ReactNode) => {
     if (!React.isValidElement(child)) return false;
-    const displayName = child.type?.displayName;
+    const type = child.type;
+    const displayName = typeof type === "object" && type !== null && "displayName" in type
+      ? (type as { displayName?: string }).displayName
+      : undefined;
     // Check for DialogTitle directly or ResponsiveModalTitle (which wraps DialogTitle)
     if (displayName === "DialogTitle" || displayName === "ResponsiveModalTitle") {
       return true;

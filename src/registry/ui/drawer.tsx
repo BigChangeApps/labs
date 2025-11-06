@@ -63,9 +63,12 @@ const DrawerHeader = ({
   
   // Find title - check for DrawerTitle or ResponsiveModalTitle
   // Also check if first child looks like a title element
-  const titleIndex = childrenArray.findIndex((child: any) => {
+  const titleIndex = childrenArray.findIndex((child: React.ReactNode) => {
     if (!React.isValidElement(child)) return false;
-    const displayName = child.type?.displayName;
+    const type = child.type;
+    const displayName = typeof type === "object" && type !== null && "displayName" in type
+      ? (type as { displayName?: string }).displayName
+      : undefined;
     // Check for DrawerTitle directly or ResponsiveModalTitle (which wraps DrawerTitle)
     if (displayName === "DrawerTitle" || displayName === "ResponsiveModalTitle") {
       return true;
