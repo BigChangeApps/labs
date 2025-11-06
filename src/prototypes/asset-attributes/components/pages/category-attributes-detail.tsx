@@ -273,7 +273,7 @@ export function CategoryAttributesDetail() {
         {/* Core Attributes Inheritance Alert */}
         <Alert className="bg-muted/50 border-muted">
           <AlertDescription className="text-sm text-muted-foreground">
-            This category will inherit all core attributes and settings. Including Asset ID, Status and Location. <br></br>To edit attributes that apply to all
+            This category will inherit all core attributes and settings. <br></br>To edit attributes that apply to all
             assets, see{" "}
             <Link
               to="/asset-attributes/core-attributes"
