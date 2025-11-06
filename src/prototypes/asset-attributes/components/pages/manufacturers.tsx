@@ -17,6 +17,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/registry/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/registry/ui/dialog";
 import { useAttributeStore } from "../../lib/store";
 import { toast } from "sonner";
 import type { Manufacturer, Model } from "../../types";
@@ -31,6 +39,10 @@ export function Manufacturers() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editDrawerManufacturerId, setEditDrawerManufacturerId] = useState<
+    string | null
+  >(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [manufacturerToDelete, setManufacturerToDelete] = useState<
     string | null
   >(null);
 
@@ -83,10 +95,17 @@ export function Manufacturers() {
     );
     if (!manufacturer) return;
 
-    if (confirm(`Delete ${manufacturer.name}? This action cannot be undone.`)) {
-      deleteManufacturer(manufacturerId);
-      toast.success("Manufacturer deleted");
-    }
+    setManufacturerToDelete(manufacturerId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!manufacturerToDelete) return;
+
+    deleteManufacturer(manufacturerToDelete);
+    toast.success("Manufacturer deleted");
+    setDeleteDialogOpen(false);
+    setManufacturerToDelete(null);
   };
 
   return (
@@ -254,6 +273,39 @@ export function Manufacturers() {
           if (!open) setEditDrawerManufacturerId(null);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Delete{" "}
+              {manufacturerToDelete
+                ? manufacturers.find((m) => m.id === manufacturerToDelete)?.name
+                : ""}
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this manufacturer? This will remove
+              the manufacturer and all associated models. This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setManufacturerToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
