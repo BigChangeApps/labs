@@ -1,12 +1,11 @@
 import { useState, useRef } from "react";
-import { Trash2, MoreVertical } from "lucide-react";
 import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/registry/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/registry/ui/popover";
 import { Button } from "@/registry/ui/button";
 import {
   AttributeForm,
@@ -59,7 +53,13 @@ export function AttributeEditDrawer({
   } = useAttributeStore();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const formRef = useRef<{ submit: () => void }>(null);
+  
+  // When delete dialog opens, temporarily close the parent modal
+  // When delete dialog closes, restore the parent modal if it should be open
+  // But if we're deleting, keep parent modal closed
+  const parentModalOpen = open && !isDeleteDialogOpen && !isDeleting;
 
   // Load attribute based on context
   const attribute =
@@ -122,67 +122,52 @@ export function AttributeEditDrawer({
   };
 
   const handleDelete = () => {
-    if (!attributeId) return;
+    if (!attributeId || !attribute) return;
 
-    if (context === "category") {
-      const catId = categoryId || currentCategoryId;
-      if (!catId) {
-        toast.error("Category ID is required");
-        return;
-      }
-      deleteAttribute(attributeId, catId);
-      toast.success(`Deleted "${attribute?.label}"`);
-    } else {
-      deleteCoreAttribute(attributeId);
-      toast.success(`Deleted "${attribute?.label}"`);
-    }
+    // Save label before deletion
+    const attributeLabel = attribute.label;
 
+    // Mark as deleting to prevent parent modal from reopening
+    setIsDeleting(true);
     setIsDeleteDialogOpen(false);
-    onOpenChange(false);
+    
+    // Then close parent modal and delete - use setTimeout to ensure delete dialog closes first
+    setTimeout(() => {
+      if (context === "category") {
+        const catId = categoryId || currentCategoryId;
+        if (!catId) {
+          toast.error("Category ID is required");
+          setIsDeleting(false);
+          return;
+        }
+        deleteAttribute(attributeId, catId);
+        toast.success(`Deleted "${attributeLabel}"`);
+      } else {
+        deleteCoreAttribute(attributeId);
+        toast.success(`Deleted "${attributeLabel}"`);
+      }
+      setIsDeleting(false);
+      onOpenChange(false);
+    }, 0);
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
 
-  if (!attribute) return null;
-
-  // Don't allow editing system/required attributes
-  if (isSystemAttribute) {
-    return null; // Should use AttributeViewDrawer instead
-  }
+  // Early return - don't render modal if no data available or if it's a system attribute
+  if (!attribute || isSystemAttribute) return null;
 
   const title =
     context === "category" ? attribute.label : attribute.label;
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex flex-col w-[400px] sm:w-[540px]">
-          <SheetHeader>
-            <div className="flex items-center justify-between">
-              <SheetTitle>{title}</SheetTitle>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-48 p-0">
-                  <div className="p-1">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-destructive"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </SheetHeader>
+      <ResponsiveModal open={parentModalOpen} onOpenChange={onOpenChange}>
+        <ResponsiveModalContent className="flex flex-col">
+          <ResponsiveModalHeader>
+            <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
+          </ResponsiveModalHeader>
 
           <AttributeForm
             ref={formRef}
@@ -192,22 +177,32 @@ export function AttributeEditDrawer({
             onSubmit={handleSubmit}
           />
 
-          <div className="space-y-4">
-            <SheetFooter className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel} className="flex-1">
+          <ResponsiveModalFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20"
+            >
+              Delete
+            </Button>
+            <div className="flex flex-col-reverse sm:flex-row sm:space-x-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave} className="flex-1">
-                Save Changes
-              </Button>
-            </SheetFooter>
-          </div>
-        </SheetContent>
-      </Sheet>
+              <Button onClick={handleSave}>Save Changes</Button>
+            </div>
+          </ResponsiveModalFooter>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="z-[100]" overlayClassName="z-[100]">
           <DialogHeader>
             <DialogTitle>Delete {attribute.label}</DialogTitle>
             <DialogDescription>
@@ -219,7 +214,10 @@ export function AttributeEditDrawer({
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                // Parent modal will be restored via useEffect
+              }}
             >
               Cancel
             </Button>

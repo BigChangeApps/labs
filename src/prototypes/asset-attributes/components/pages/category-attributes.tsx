@@ -44,112 +44,110 @@ export function CategoryAttributes() {
 
   // Categories list view
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
-      <div className="space-y-4 sm:space-y-6">
+    <div className="w-full">
+      <div className="flex flex-col gap-8">
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Attributes
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Attributes are used to store extra information about your assets.
-          </p>
         </div>
 
-        {/* Core Attributes Card */}
-        <Card>
-          <CardContent className="p-3 sm:p-5">
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Icon */}
-              <div className="bg-muted rounded-lg p-2">
-                <Settings className="h-5 w-5 text-hw-text" />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1">
-                <div className="font-bold text-base">Core attributes</div>
-                <div className="text-sm text-muted-foreground">
-                  Core attributes apply to all your assets in BigChange
+        {/* Content */}
+        <div className="flex flex-col gap-10">
+          {/* Core Attributes Card */}
+          <Card>
+            <CardContent className="p-2 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Icon */}
+                <div className="bg-muted rounded-lg p-2">
+                  <Settings className="h-5 w-5 text-hw-text" />
                 </div>
+
+                {/* Content */}
+                <div className="flex-1">
+                  <div className="font-medium text-sm">Manage core attributes</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manage the attributes that apply to all your assets
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAllCategoriesSelect}
+                >
+                  Manage
+                </Button>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Actions */}
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleAllCategoriesSelect}
-              >
-                Configure
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Category Attributes Section */}
+          <div className="space-y-3 sm:space-y-4">
+          {/* Section Header */}
+          <div className="space-y-2 pb-2">
+            <h2 className="font-medium text-lg">Category attributes</h2>
+            <p className="text-sm text-muted-foreground ">
+            Different asset categories may need their own data fields. Use category attributes to 
+            define and manage the information that’s unique to each type, helping you keep your assets organised.
+            </p>
+          </div>
 
-        {/* Category Attributes Section */}
-        <Card>
-          <CardContent className="p-3 sm:p-5">
-            <div className="space-y-3 sm:space-y-4">
-              {/* Section Header */}
-              <div className="space-y-1">
-                <h2 className="font-bold text-base">Category attributes</h2>
-                <p className="text-sm text-muted-foreground">
-                  Organise the types of data you'd like to collect for certain
-                  categories of assets.
-                </p>
-              </div>
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-              {/* Search bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          {/* Categories List */}
+          <Card>
+            <CardContent className="p-0">
+              {displayCategories.map((category, index) => {
+                const enabledCount = getEnabledAttributeCount(category);
 
-              {/* Categories List */}
-              <div className="rounded-lg border bg-card">
-                {displayCategories.map((category, index) => {
-                  const enabledCount = getEnabledAttributeCount(category);
-
-                  return (
-                    <div key={category.id}>
-                      <div
-                        className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer"
-                        onClick={() => handleCategorySelect(category.id)}
-                      >
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-hw-text truncate">
-                            {category.name}
-                          </div>
-                        </div>
-
-                        {/* Right side actions */}
-                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                          {/* Attribute Count */}
-                          {enabledCount > 0 && (
-                            <div className="px-2 py-1 bg-muted text-xs font-medium text-hw-text rounded-full">
-                              {enabledCount}
-                            </div>
-                          )}
-
-                          {/* Actions */}
-                          <div className="p-2">
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          </div>
+                return (
+                  <div key={category.id}>
+                    <div
+                      className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer"
+                      onClick={() => handleCategorySelect(category.id)}
+                    >
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-hw-text truncate">
+                          {category.name}
                         </div>
                       </div>
-                      {index < displayCategories.length - 1 && <Separator />}
+
+                      {/* Right side actions */}
+                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                        {/* Attribute Count */}
+                        {enabledCount > 0 && (
+                          <div className="px-2 py-1 bg-muted text-xs font-medium text-hw-text rounded-full">
+                            {enabledCount}
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="p-2">
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                    {index < displayCategories.length - 1 && <Separator />}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

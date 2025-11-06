@@ -1,14 +1,14 @@
 import { type MouseEvent } from "react";
-import { MoreVertical, Trash2, MessageSquare } from "lucide-react";
-import { Button } from "@/registry/ui/button";
 import { Badge } from "@/registry/ui/badge";
 import { Switch } from "@/registry/ui/switch";
 import { Separator } from "@/registry/ui/separator";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/registry/ui/popover";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/registry/ui/tooltip";
+import { GripVertical, BadgeCheck, Check } from "lucide-react";
 import type { Attribute, CoreAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
 
@@ -22,10 +22,10 @@ export interface AttributeCardProps {
   isEnabled: boolean;
   onToggle?: () => void;
   onClick?: () => void;
-  onDelete?: () => void;
-  onFeedback?: () => void;
   isDeleting?: boolean;
   showSeparator?: boolean;
+  isDraggable?: boolean;
+  dragHandleProps?: Record<string, unknown>;
 }
 
 export function AttributeCard({
@@ -34,21 +34,18 @@ export function AttributeCard({
   isEnabled,
   onToggle,
   onClick,
-  onDelete,
-  onFeedback,
   isDeleting = false,
   showSeparator = true,
+  isDraggable = false,
+  dragHandleProps,
 }: AttributeCardProps) {
   const IconComponent = getAttributeIcon(attribute.type);
 
-  // Determine if card is clickable (predefined and custom can be clicked)
-  const isClickable = (variant === "predefined" || variant === "custom") && !!onClick;
-  
-  // Determine if toggle should be shown
+  // All variants can be clicked to open side panel
+  const isClickable = !!onClick;
+
+  // Determine if toggle should be shown (system attributes don't have toggles)
   const showToggle = variant !== "system" && !!onToggle;
-  
-  // Determine if toggle should be interactive (predefined/custom can toggle)
-  const toggleDisabled = variant === "system";
 
   // Handle card click
   const handleCardClick = (e: MouseEvent) => {
@@ -59,8 +56,7 @@ export function AttributeCard({
       target.closest("button") ||
       target.closest('[role="switch"]') ||
       target.closest('[data-badge]') ||
-      target.closest('[role="dialog"]') ||
-      target.closest('[data-radix-popper-content-wrapper]')
+      target.closest('[data-drag-handle]')
     ) {
       return;
     }
@@ -74,9 +70,22 @@ export function AttributeCard({
           isDeleting ? "opacity-0 scale-[0.98]" : ""
         } ${
           isClickable ? "hover:bg-muted/50 cursor-pointer" : ""
+        } ${
+          variant === "custom" ? "bg-muted/30" : ""
         }`}
         onClick={handleCardClick}
       >
+        {/* Drag Handle - only shown for draggable items */}
+        {isDraggable && (
+          <div
+            {...dragHandleProps}
+            data-drag-handle
+            className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
           {/* Type Icon - hidden on mobile */}
           <div className="hidden sm:block">
@@ -113,77 +122,67 @@ export function AttributeCard({
 
         {/* Actions */}
         <div
-          className="flex items-center gap-1 sm:gap-2 shrink-0"
+          className="flex items-center gap-1 sm:gap-3 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Toggle switch or System badge */}
-          {variant === "system" ? (
+          {/* Custom badge for user-created attributes */}
+          {variant === "custom" && (
             <Badge
               variant="secondary"
               className="text-xs"
               data-badge
             >
-              System
+              Custom
             </Badge>
-          ) : (
-            showToggle && (
-              <Switch
-                checked={isEnabled}
-                onCheckedChange={onToggle}
-                disabled={toggleDisabled}
-                onClick={(e) => e.stopPropagation()}
-              />
-            )
           )}
 
-          {/* 3-dot menu */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="w-48 p-1"
+          {/* Preferred indicator - only for category attributes */}
+          {"isPreferred" in attribute && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {attribute.isPreferred ? (
+                    <span className="relative inline-flex items-center justify-center h-6 w-6">
+                      <BadgeCheck
+                        className="h-6 w-6 text-green-600 absolute"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      />
+                      <Check
+                        className="h-3.5 w-3.5 text-white relative z-10"
+                        strokeWidth="3"
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">Preferred</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-center h-6 w-6">
+                      <BadgeCheck
+                        className="h-6 w-6 text-muted-foreground opacity-50"
+                        aria-disabled
+                      />
+                    </span>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {attribute.isPreferred
+                      ? "This attribute is preferred"
+                      : "This attribute isn't preferred"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+          {/* Toggle switch (system attributes have no toggle or badge) */}
+          {showToggle && (
+            <Switch
+              checked={isEnabled}
+              onCheckedChange={onToggle}
               onClick={(e) => e.stopPropagation()}
-            >
-              {variant === "custom" ? (
-                onDelete && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )
-              ) : (
-                onFeedback && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onFeedback();
-                    }}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Give feedback
-                  </Button>
-                )
-              )}
-            </PopoverContent>
-          </Popover>
+            />
+          )}
         </div>
       </div>
       {showSeparator && <Separator />}

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/registry/ui/tooltip";
@@ -10,11 +11,22 @@ import { Layout } from "./components/layout";
 
 function AssetAttributesApp() {
   const location = useLocation();
+  
+  // Prevent body/html scrolling when this app is mounted
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+  
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="h-screen bg-background flex flex-col overflow-hidden">
         <PrototypeBanner deviceType="desktop" />
-        <main className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-hidden pt-[61px]">
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Navigate to="attributes" replace state={location.state} />} />
@@ -27,7 +39,7 @@ function AssetAttributesApp() {
               <Route path="manufacturers" element={<Manufacturers />} />
             </Route>
           </Routes>
-        </main>
+        </div>
       </div>
       <Toaster position="bottom-right" />
     </TooltipProvider>

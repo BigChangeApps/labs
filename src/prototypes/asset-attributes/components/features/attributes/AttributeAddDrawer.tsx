@@ -1,12 +1,11 @@
 import { useRef } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
 import { Button } from "@/registry/ui/button";
 import {
   AttributeForm,
@@ -15,6 +14,7 @@ import {
   type AttributeFormContext,
 } from "./AttributeForm";
 import { useAttributeStore } from "../../../lib/store";
+import type { CoreAttributeSection } from "../../../types";
 import { toast } from "sonner";
 
 interface AttributeAddDrawerProps {
@@ -22,6 +22,7 @@ interface AttributeAddDrawerProps {
   onOpenChange: (open: boolean) => void;
   context: AttributeFormContext;
   categoryId?: string; // Required when context is "category"
+  section?: CoreAttributeSection | null; // Optional section for core attributes
 }
 
 export function AttributeAddDrawer({
@@ -29,6 +30,7 @@ export function AttributeAddDrawer({
   onOpenChange,
   context,
   categoryId,
+  section,
 }: AttributeAddDrawerProps) {
   const { addAttribute, addCoreAttribute, categories } = useAttributeStore();
   const formRef = useRef<{ submit: () => void }>(null);
@@ -53,20 +55,12 @@ export function AttributeAddDrawer({
       const coreAttributeData = formDataToAttribute(formData) as Parameters<
         typeof addCoreAttribute
       >[0];
-      addCoreAttribute(coreAttributeData);
+      addCoreAttribute(coreAttributeData, section || undefined);
 
-      toast.success(`Added "${formData.label.trim()}" to Custom Attributes`);
+      toast.success(`Added "${formData.label.trim()}"`);
     }
 
     onOpenChange(false);
-  };
-
-  const handleSave = () => {
-    const success = formRef.current?.submit();
-    if (!success) {
-      // Validation failed - show error
-      toast.error("Please fill in all required fields");
-    }
   };
 
   const handleCancel = () => {
@@ -80,33 +74,36 @@ export function AttributeAddDrawer({
       ? "Create a new attribute for this category"
       : "Add a new custom attribute to the Custom Attributes section.";
 
+  const formId = "attribute-add-form";
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
+          <ResponsiveModalDescription>{description}</ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
-        <AttributeForm
-          ref={formRef}
-          mode="add"
-          context={context}
-          onSubmit={handleSubmit}
-        />
+        <div className="flex flex-col gap-6">
+          <AttributeForm
+            ref={formRef}
+            mode="add"
+            context={context}
+            onSubmit={handleSubmit}
+            formId={formId}
+          />
 
-        <div className="space-y-4">
-          <SheetFooter>
-            <Button variant="outline" onClick={handleCancel}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button type="submit" form={formId}>
               {context === "category" ? "Save Attribute" : "Add Attribute"}
             </Button>
-          </SheetFooter>
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
 

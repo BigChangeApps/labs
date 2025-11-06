@@ -24,18 +24,12 @@ export function AttributePreferredField({
       <div className="space-y-0.5">
         <div className="flex items-center gap-1.5">
           <Label>Mark as preferred</Label>
-          <TooltipProvider>
+          <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  className="inline-flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  aria-label="Preferred field information"
-                  disabled={disabled}
-                >
+                <span className="inline-flex items-center justify-center" aria-label="Preferred field information">
                   <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
+                </span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>

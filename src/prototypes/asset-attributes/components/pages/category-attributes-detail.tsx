@@ -1,9 +1,24 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
-import { Card, CardContent } from "@/registry/ui/card";
 import { Alert, AlertDescription } from "@/registry/ui/alert";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useAttributeStore } from "../../lib/store";
 import { AttributeViewDrawer } from "../features/attributes/AttributeViewDrawer";
 import { AttributeEditDrawer } from "../features/attributes/AttributeEditDrawer";
@@ -14,11 +29,72 @@ import type {
   Category,
   CategoryAttributeConfig,
 } from "../../types";
-import { toast } from "sonner";
+
+// Sortable wrapper component for AttributeCard
+function SortableAttributeCard({
+  item,
+  categoryId,
+  onViewDetails,
+  toggleAttribute,
+}: {
+  item: {
+    attributeId: string;
+    isEnabled: boolean;
+    order: number;
+    attribute: Attribute;
+    source: "system" | "custom";
+    isDeletable: boolean;
+    isToggleable: boolean;
+  };
+  categoryId: string;
+  onViewDetails: (id: string) => void;
+  toggleAttribute: (categoryId: string, attributeId: string, isSystem: boolean) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.attributeId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const variant: AttributeCardVariant = item.source === "custom" ? "custom" : "predefined";
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <AttributeCard
+        key={item.attributeId}
+        attribute={item.attribute}
+        variant={variant}
+        isEnabled={item.isEnabled}
+        onToggle={
+          item.isToggleable
+            ? () =>
+                toggleAttribute(
+                  categoryId,
+                  item.attributeId,
+                  item.source === "system"
+                )
+            : undefined
+        }
+        onClick={() => onViewDetails(item.attributeId)}
+        showSeparator={false}
+        isDraggable={false}
+        dragHandleProps={listeners}
+      />
+    </div>
+  );
+}
 
 export function CategoryAttributesDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const navigate = useNavigate();
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(
     null
   );
@@ -29,8 +105,16 @@ export function CategoryAttributesDetail() {
     predefinedCategoryAttributes,
     customCategoryAttributes,
     toggleAttribute,
-    removeAttributeFromCategory,
+    reorderAttributes,
   } = useAttributeStore();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   if (!categoryId) {
     return (
@@ -44,10 +128,12 @@ export function CategoryAttributesDetail() {
   if (!category) {
     return (
       <div className="w-full">
-        <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Categories
-        </Button>
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
+        >
+          ← Back to attributes
+        </Link>
         <p className="text-muted-foreground">Category not found</p>
       </div>
     );
@@ -64,17 +150,18 @@ export function CategoryAttributesDetail() {
     isToggleable: boolean;
   };
 
-  // Build system attributes array (separate from custom)
-  const systemAttributes: AttributeWithSource[] = [];
+  // Build all attributes array (both system and custom)
+  const allAttributes: AttributeWithSource[] = [];
+
+  // Add system attributes
   category.systemAttributes.forEach((config: CategoryAttributeConfig) => {
-    // Look up in predefined category attributes
     const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
     const attribute = predefinedAttrs.find(
       (a: Attribute) => a.id === config.attributeId
     );
-    
+
     if (attribute) {
-      systemAttributes.push({
+      allAttributes.push({
         ...config,
         attribute,
         source: "system",
@@ -84,148 +171,109 @@ export function CategoryAttributesDetail() {
     }
   });
 
-  // Sort system attributes by order
-  systemAttributes.sort((a, b) => a.order - b.order);
-
-  // Split system attributes into preferred and other
-  const systemPreferredAttributes = systemAttributes.filter(
-    (item) => item.attribute.isPreferred === true
-  );
-  const systemOtherAttributes = systemAttributes.filter(
-    (item) => item.attribute.isPreferred === false
-  );
-
-  // Build custom attributes array (separate from system)
-  const customAttributes: AttributeWithSource[] = [];
+  // Add custom attributes
   category.customAttributes.forEach((config: CategoryAttributeConfig) => {
-    // Look up in custom category attributes
     const customAttrs = customCategoryAttributes[categoryId] || [];
     const attribute = customAttrs.find(
       (a: Attribute) => a.id === config.attributeId
     );
-    
+
     if (attribute) {
-      customAttributes.push({
+      allAttributes.push({
         ...config,
         attribute,
         source: "custom",
         isDeletable: true,
-        isToggleable: false,
+        isToggleable: true,
       });
     }
   });
 
-  // Sort custom attributes by order
-  customAttributes.sort((a, b) => a.order - b.order);
-
-  // Split custom attributes into preferred and other
-  const preferredAttributes = customAttributes.filter(
-    (item) => item.attribute.isPreferred === true
-  );
-  const otherAttributes = customAttributes.filter(
-    (item) => item.attribute.isPreferred === false
-  );
-
-  const handleDeleteAttribute = (attributeId: string, label: string) => {
-    if (window.confirm(`Remove "${label}" from this category?`)) {
-      removeAttributeFromCategory(attributeId, categoryId);
-    }
-  };
+  // Sort all attributes by order
+  allAttributes.sort((a, b) => a.order - b.order);
 
   const handleViewDetails = (attributeId: string) => {
     setSelectedAttributeId(attributeId);
     setIsDetailDrawerOpen(true);
   };
 
-  const handleFeedbackClick = (attribute: Attribute) => {
-    // TODO: Implement feedback functionality
-    toast.info(`Feedback for "${attribute.label}"`);
+  // Handle drag end - reorder attributes
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = allAttributes.findIndex(
+      (item) => item.attributeId === active.id
+    );
+    const newIndex = allAttributes.findIndex(
+      (item) => item.attributeId === over.id
+    );
+
+    // Create new ordered array
+    const reorderedAttributes = arrayMove(allAttributes, oldIndex, newIndex);
+
+    // Extract just the IDs in the new order and update the store
+    const orderedIds = reorderedAttributes.map((item) => item.attributeId);
+    reorderAttributes(categoryId, orderedIds);
   };
 
-  // Helper function to render a list of attributes (for system or custom)
-  const renderAttributeList = (
-    attributes: AttributeWithSource[],
-    variant: AttributeCardVariant
-  ) => {
+  // Helper function to render a list of attributes
+  const renderAttributeList = (attributes: AttributeWithSource[]) => {
     if (attributes.length === 0) {
       return null;
     }
 
+    // Get IDs for sortable context
+    const attributeIds = attributes.map((item) => item.attributeId);
+
     return (
-      <div className="rounded-lg border bg-card">
-        {attributes.map((item, index) => {
-          const isLast = index === attributes.length - 1;
-          return (
-            <AttributeCard
-              key={item.attributeId}
-              attribute={item.attribute}
-              variant={variant}
-              isEnabled={item.isEnabled}
-              onToggle={
-                variant !== "system"
-                  ? () =>
-                      toggleAttribute(
-                        categoryId,
-                        item.attributeId,
-                        item.source === "system"
-                      )
-                  : undefined
-              }
-              onClick={
-                variant === "custom" || variant === "predefined"
-                  ? () => handleViewDetails(item.attributeId)
-                  : undefined
-              }
-              onDelete={
-                variant === "custom"
-                  ? () =>
-                      handleDeleteAttribute(
-                        item.attributeId,
-                        item.attribute.label
-                      )
-                  : undefined
-              }
-              onFeedback={
-                variant !== "custom"
-                  ? () => handleFeedbackClick(item.attribute)
-                  : undefined
-              }
-              showSeparator={!isLast}
-            />
-          );
-        })}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
+          <div className="rounded-lg border bg-card divide-y">
+            {attributes.map((item) => (
+              <SortableAttributeCard
+                key={item.attributeId}
+                item={item}
+                categoryId={categoryId}
+                onViewDetails={handleViewDetails}
+                toggleAttribute={toggleAttribute}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     );
   };
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
+    <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
+        {/* Back Button */}
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground inline-block"
+        >
+          ← Back to attributes
+        </Link>
+
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              {category.name}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Manage attributes for this category
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCreateDrawerOpen(true)}
-            className="shrink-0"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add attribute
-          </Button>
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {category.name}
+          </h1>
         </div>
 
         {/* Core Attributes Inheritance Alert */}
         <Alert className="bg-muted/50 border-muted">
           <AlertDescription className="text-sm text-muted-foreground">
-            This category will inherit all core attributes and settings. Including Asset ID, Status and Location. <br></br>To edit attributes that apply to all
+            This category will inherit all core attributes and settings. <br></br>To edit attributes that apply to all
             assets, see{" "}
             <Link
               to="/asset-attributes/core-attributes"
@@ -237,121 +285,45 @@ export function CategoryAttributesDetail() {
           </AlertDescription>
         </Alert>
 
-        {/* System Attributes Card */}
-        {systemAttributes.length > 0 && (
-          <Card>
-            <CardContent className="p-3 sm:p-5">
-              <div className="space-y-3 sm:space-y-4">
-                {/* Section Header */}
-                <div className="space-y-1">
-                  <h2 className="font-bold text-base">{category.name} attributes</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Pre-set attributes for this category
-                  </p>
-                </div>
+        {/* Attributes Section - Unified display of all attributes */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Section Header with Add CTA */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="font-bold text-base">Attributes</h2>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsCreateDrawerOpen(true)}
+              className="shrink-0"
+            >
+              Add attributes
+            </Button>
+          </div>
 
-                {/* Conditional rendering based on preferred attributes */}
-                {systemPreferredAttributes.length > 0 ? (
-                  <div className="space-y-4 sm:space-y-6">
-                    {/* Preferred Attributes Section */}
-                    <div className="space-y-3 sm:space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-sm">Preferred attributes</h3>
-                      </div>
-                      {renderAttributeList(systemPreferredAttributes, "predefined")}
-                    </div>
-
-                    {/* Other Attributes Section */}
-                    {systemOtherAttributes.length > 0 && (
-                      <div className="space-y-3 sm:space-y-4">
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-sm">Other attributes</h3>
-                        </div>
-                        {renderAttributeList(systemOtherAttributes, "predefined")}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  // Single list when no preferred attributes exist
-                  renderAttributeList(systemAttributes, "predefined")
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Custom Attributes Card */}
-        <Card>
-          <CardContent className="p-3 sm:p-5">
-            <div className="space-y-3 sm:space-y-4">
-              {/* Section Header */}
-              <div className="space-y-1">
-                <h2 className="font-bold text-base">Your attributes</h2>
-                <p className="text-sm text-muted-foreground">
-                  Attributes specific to this category
+          {/* Conditional rendering based on attributes */}
+          {allAttributes.length === 0 ? (
+            <div className="rounded-lg border bg-card">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm mb-4">
+                  There are no attributes for this category yet.
                 </p>
               </div>
-
-              {/* Conditional rendering based on preferred attributes */}
-              {customAttributes.length === 0 ? (
-                <div className="rounded-lg border bg-card">
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground text-sm mb-4">
-                      No attributes yet. Click "Add attribute" to create one.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsCreateDrawerOpen(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add attribute
-                    </Button>
-                  </div>
-                </div>
-              ) : preferredAttributes.length > 0 ? (
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Preferred Attributes Section */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold text-sm">Preferred attributes</h3>
-                    </div>
-                      {renderAttributeList(preferredAttributes, "custom")}
-                  </div>
-
-                  {/* Other Attributes Section */}
-                  {otherAttributes.length > 0 && (
-                    <div className="space-y-3 sm:space-y-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-sm">Other attributes</h3>
-                      </div>
-                      {renderAttributeList(otherAttributes, "custom")}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Single list when no preferred attributes exist
-                renderAttributeList(customAttributes, "custom")
-              )}
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            renderAttributeList(allAttributes)
+          )}
+        </div>
       </div>
 
       {/* Attribute Detail Drawer - Show View or Edit based on attribute type */}
       {selectedAttributeId && (() => {
-        // Check predefined attributes first
-        const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
-        const predefinedAttribute = predefinedAttrs.find((a: Attribute) => a.id === selectedAttributeId);
-        
-        // Check custom attributes
-        const customAttrs = customCategoryAttributes[categoryId] || [];
-        const customAttribute = customAttrs.find((a: Attribute) => a.id === selectedAttributeId);
-        
-        const attribute = predefinedAttribute || customAttribute;
-        
-        // Predefined attributes are view-only, custom attributes are editable
-        if (predefinedAttribute || attribute?.isSystem) {
+        // Find the attribute in our combined list to determine its source
+        const attributeItem = allAttributes.find(
+          (item) => item.attributeId === selectedAttributeId
+        );
+
+        // System (predefined) attributes are view-only, custom attributes are editable
+        if (attributeItem?.source === "system") {
           return (
             <AttributeViewDrawer
               attributeId={selectedAttributeId}

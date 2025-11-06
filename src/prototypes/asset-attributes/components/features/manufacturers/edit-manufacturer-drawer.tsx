@@ -1,16 +1,25 @@
-import { useState, useEffect, useRef } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/registry/ui/sheet";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/registry/ui/responsive-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
-import { Input } from "@/registry/ui/input";
-import { Label } from "@/registry/ui/label";
+import {
+  ManufacturerForm,
+  type ManufacturerFormData,
+} from "./ManufacturerForm";
 import { useAttributeStore } from "../../../lib/store";
 import type { Manufacturer } from "../../../types";
 import { toast } from "sonner";
@@ -39,43 +48,62 @@ export function EditManufacturerDrawer({
     (m: Manufacturer) => m.id === manufacturerId
   );
 
-  const [manufacturerName, setManufacturerName] = useState("");
-  const [models, setModels] = useState<{ id: string; name: string }[]>([]);
-  const [draftModels, setDraftModels] = useState<string[]>([]);
-  const [focusDraftIndex, setFocusDraftIndex] = useState<number | null>(null);
-  const draftInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const formRef = useRef<{ submit: () => void }>(null);
 
+  const [initialData, setInitialData] = useState<ManufacturerFormData | undefined>(undefined);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // When delete dialog opens, temporarily close the parent modal
+  // When delete dialog closes, restore the parent modal if it should be open
+  // But if we're deleting, keep parent modal closed
+  const parentModalOpen = open && !isDeleteDialogOpen && !isDeleting;
+
+  // Update initialData when manufacturer changes
   useEffect(() => {
     if (manufacturer) {
-      setManufacturerName(manufacturer.name);
-      setModels([...manufacturer.models]);
-      setDraftModels([]);
+      setInitialData({
+        name: manufacturer.name,
+        models: manufacturer.models.map((m) => m.name),
+      });
     }
   }, [manufacturer]);
 
-  useEffect(() => {
-    if (focusDraftIndex !== null && draftInputRefs.current[focusDraftIndex]) {
-      draftInputRefs.current[focusDraftIndex]?.focus();
-      setFocusDraftIndex(null);
-    }
-  }, [focusDraftIndex, draftModels]);
+  if (!manufacturer || !initialData) return null;
 
-  if (!manufacturer) return null;
-
-  const handleSave = () => {
-    if (!manufacturerName.trim()) {
-      toast.error("Manufacturer name cannot be empty");
-      return;
-    }
-
+  const handleSubmit = (formData: ManufacturerFormData) => {
     // Update manufacturer name
-    editManufacturer(manufacturer.id, manufacturerName.trim());
+    editManufacturer(manufacturer.id, formData.name);
 
-    // Update existing models
-    models.forEach((model) => {
-      const originalModel = manufacturer.models.find((m) => m.id === model.id);
-      if (originalModel && originalModel.name !== model.name.trim()) {
-        editModel(manufacturer.id, model.id, model.name.trim());
+    // Update models
+    const trimmedModels = formData.models;
+
+    // Find models to delete (existed before but not in new list)
+    manufacturer.models.forEach((oldModel) => {
+      if (!trimmedModels.includes(oldModel.name)) {
+        deleteModel(manufacturer.id, oldModel.id);
+      }
+    });
+
+    // Find models to add (in new list but didn't exist before)
+    trimmedModels.forEach((newModelName: string) => {
+      const existed = manufacturer.models.some((m) => m.name === newModelName);
+      if (!existed) {
+        addModel(manufacturer.id, newModelName);
+      }
+    });
+
+    // Update existing model names if changed
+    manufacturer.models.forEach((oldModel) => {
+      const newIndex = manufacturer.models.findIndex(
+        (m) => m.id === oldModel.id
+      );
+      if (
+        newIndex >= 0 &&
+        trimmedModels[newIndex] &&
+        trimmedModels[newIndex] !== oldModel.name
+      ) {
+        editModel(manufacturer.id, oldModel.id, trimmedModels[newIndex]);
       }
     });
 
@@ -83,184 +111,94 @@ export function EditManufacturerDrawer({
     onOpenChange(false);
   };
 
-  const handleAddDraftModel = () => {
-    const newIndex = draftModels.length;
-    setDraftModels([...draftModels, ""]);
-    setFocusDraftIndex(newIndex);
-  };
-
-  const handleDraftModelChange = (index: number, value: string) => {
-    const newDrafts = [...draftModels];
-    newDrafts[index] = value;
-    setDraftModels(newDrafts);
-  };
-
-  const handleDraftModelKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const draftValue = draftModels[index].trim();
-      if (draftValue) {
-        // Save the model immediately
-        addModel(manufacturer.id, draftValue);
-        toast.success("Model added");
-        // Remove this draft and add a new blank one
-        const newDrafts = draftModels.filter((_, i) => i !== index);
-        setDraftModels([...newDrafts, ""]);
-        setFocusDraftIndex(newDrafts.length);
-      } else {
-        // Just add a new blank field
-        handleAddDraftModel();
-      }
-    }
-  };
-
-  const handleDraftModelBlur = (index: number) => {
-    const draftValue = draftModels[index].trim();
-    if (draftValue) {
-      // Save the model on blur
-      addModel(manufacturer.id, draftValue);
-      toast.success("Model added");
-      // Remove this draft
-      setDraftModels(draftModels.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleRemoveDraft = (index: number) => {
-    setDraftModels(draftModels.filter((_, i) => i !== index));
-  };
-
-  const handleDeleteModel = (modelId: string) => {
-    const model = models.find((m) => m.id === modelId);
-    if (!model) return;
-
-    if (confirm(`Delete ${model.name}? This action cannot be undone.`)) {
-      deleteModel(manufacturer.id, modelId);
-      setModels(models.filter((m) => m.id !== modelId));
-      toast.success("Model deleted");
-    }
+  const handleSave = () => {
+    formRef.current?.submit();
   };
 
   const handleDeleteManufacturer = () => {
-    if (
-      confirm(
-        `Delete ${manufacturer.name}? This will delete all models. This action cannot be undone.`
-      )
-    ) {
-      deleteManufacturer(manufacturer.id);
-      toast.success("Manufacturer deleted");
-      onOpenChange(false);
-    }
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleModelNameChange = (modelId: string, name: string) => {
-    setModels(models.map((m) => (m.id === modelId ? { ...m, name } : m)));
+  const handleConfirmDelete = () => {
+    // Mark as deleting to prevent parent modal from reopening
+    setIsDeleting(true);
+    setIsDeleteDialogOpen(false);
+    
+    // Then close parent modal and delete - use setTimeout to ensure delete dialog closes first
+    setTimeout(() => {
+      deleteManufacturer(manufacturer.id);
+      toast.success("Manufacturer deleted");
+      setIsDeleting(false);
+      onOpenChange(false);
+    }, 0);
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col">
-        <SheetHeader>
-          <SheetTitle>Edit Manufacturer</SheetTitle>
-          <SheetDescription>
+    <>
+      <ResponsiveModal open={parentModalOpen} onOpenChange={onOpenChange}>
+      <ResponsiveModalContent className="flex flex-col">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Edit Manufacturer</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
             Modify manufacturer details and manage models
-          </SheetDescription>
-        </SheetHeader>
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
 
-        <div className="flex flex-col space-y-6 mt-4 flex-1">
-          <div className="overflow-y-auto flex flex-col gap-4 px-1">
-            <div className="space-y-2">
-              <Label htmlFor="manufacturer-name">Manufacturer Name *</Label>
-              <Input
-                id="manufacturer-name"
-                placeholder="e.g., Siemens"
-                value={manufacturerName}
-                onChange={(e) => setManufacturerName(e.target.value)}
-              />
-            </div>
+        <ManufacturerForm
+          ref={formRef}
+          initialData={initialData}
+          onSubmit={handleSubmit}
+        />
 
-            <div className="space-y-2">
-              <Label>Models</Label>
-              <div className="space-y-2">
-                {models.map((model) => (
-                  <div key={model.id} className="flex gap-2">
-                    <Input
-                      placeholder="Model name"
-                      value={model.name}
-                      onChange={(e) =>
-                        handleModelNameChange(model.id, e.target.value)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDeleteModel(model.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-
-                {draftModels.map((draft, index) => (
-                  <div key={`draft-${index}`} className="flex gap-2">
-                    <Input
-                      ref={(el) => {
-                        draftInputRefs.current[index] = el;
-                      }}
-                      placeholder="New model name"
-                      value={draft}
-                      onChange={(e) =>
-                        handleDraftModelChange(index, e.target.value)
-                      }
-                      onKeyDown={(e) => handleDraftModelKeyDown(index, e)}
-                      onBlur={() => handleDraftModelBlur(index)}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleRemoveDraft(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddDraftModel}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Model
-                </Button>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <Button
-                variant="destructive"
-                onClick={handleDeleteManufacturer}
-                className="w-full"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Manufacturer
-              </Button>
-            </div>
-          </div>
-
-          <SheetFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <ResponsiveModalFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleDeleteManufacturer}
+            className="text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20"
+          >
+            Delete
+          </Button>
+          <div className="flex flex-col-reverse sm:flex-row sm:space-x-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleSave}>Save Changes</Button>
-          </SheetFooter>
-        </div>
-      </SheetContent>
-    </Sheet>
+          </div>
+        </ResponsiveModalFooter>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="z-[100]" overlayClassName="z-[100]">
+          <DialogHeader>
+            <DialogTitle>Delete {manufacturer.name}</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this manufacturer? This will delete
+              all models. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                // Parent modal will be restored automatically
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

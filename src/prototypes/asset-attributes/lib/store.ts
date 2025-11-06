@@ -5,6 +5,7 @@ import type {
   Manufacturer,
   CategoryAttributeConfig,
   CoreAttribute,
+  CoreAttributeSection,
 } from "../types";
 import {
   predefinedCategoryAttributes as initialPredefinedCategoryAttributes,
@@ -58,7 +59,7 @@ interface AttributeStore {
 
   // Core attribute actions
   toggleCoreAttribute: (attributeId: string) => void;
-  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">) => string;
+  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">, section?: CoreAttributeSection) => string;
   editCoreAttribute: (attributeId: string, updates: Partial<CoreAttribute>) => void;
   deleteCoreAttribute: (attributeId: string) => void;
 }
@@ -175,6 +176,16 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
+        // Update both system and custom attributes with new order
+        const updatedSystemAttrs = attributeIds
+          .map((id, index) => {
+            const existing = cat.systemAttributes.find(
+              (a) => a.attributeId === id
+            );
+            return existing ? { ...existing, order: index } : null;
+          })
+          .filter(Boolean) as CategoryAttributeConfig[];
+
         const updatedCustomAttrs = attributeIds
           .map((id, index) => {
             const existing = cat.customAttributes.find(
@@ -186,6 +197,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
 
         return {
           ...cat,
+          systemAttributes: updatedSystemAttrs,
           customAttributes: updatedCustomAttrs,
         };
       });
@@ -218,6 +230,15 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       const categories = state.categories.map((cat) => {
         if (cat.id !== categoryId) return cat;
 
+        // Calculate the maximum order from both system and custom attributes
+        const maxSystemOrder = cat.systemAttributes.length > 0
+          ? Math.max(...cat.systemAttributes.map(a => a.order))
+          : -1;
+        const maxCustomOrder = cat.customAttributes.length > 0
+          ? Math.max(...cat.customAttributes.map(a => a.order))
+          : -1;
+        const newOrder = Math.max(maxSystemOrder, maxCustomOrder) + 1;
+
         return {
           ...cat,
           customAttributes: [
@@ -225,7 +246,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
             {
               attributeId: newId,
               isEnabled: true,
-              order: cat.customAttributes.length,
+              order: newOrder,
             },
           ],
         };
@@ -396,12 +417,12 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  addCoreAttribute: (attribute) => {
+  addCoreAttribute: (attribute, section) => {
     const newId = `core-custom-${Date.now()}`;
     const newCoreAttribute: CoreAttribute = {
       ...attribute,
       id: newId,
-      section: "custom", // Always place custom attributes in the custom section
+      section: section || attribute.section || "custom", // Use provided section or attribute's section, fallback to custom
     };
 
     set((state) => {

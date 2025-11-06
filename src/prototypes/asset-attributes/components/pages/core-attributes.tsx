@@ -1,14 +1,8 @@
 import { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
-import { Card, CardContent } from "@/registry/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/registry/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -31,38 +25,34 @@ const sectionLabels: Record<CoreAttributeSection, string> = {
   contact: "Contact & Location",
   dates: "Dates & Lifecycle",
   warranty: "Warranty",
-  custom: "Your attributes",
-};
-
-const sectionDescriptions: Record<CoreAttributeSection, string> = {
-  "asset-info": "Basic information about the asset",
-  status: "Status and physical condition",
-  contact: "Contact person and physical location",
-  dates: "Important dates and lifecycle information",
-  warranty: "Warranty information",
-  custom: "User-defined attributes",
+  custom: "Custom",
 };
 
 export function CoreAttributes() {
   const { coreAttributes, toggleCoreAttribute, deleteCoreAttribute } = useAttributeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
+  const [createDrawerSection, setCreateDrawerSection] = useState<CoreAttributeSection | null>(null);
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [attributeToDelete, setAttributeToDelete] = useState<CoreAttribute | null>(null);
   const [deletingAttributeIds, setDeletingAttributeIds] = useState<Set<string>>(new Set());
 
+  // Hide fundamental system attributes (Category and Asset ID) and Contact & Location section
+  const hiddenAttributes = ["Category", "Asset ID", "Site", "Location"];
+
   // Filter attributes based on search (include all attributes, required and optional)
   // Also include items being deleted so they can animate out
-  const filteredAttributes = searchQuery
+  const filteredAttributes = (searchQuery
     ? coreAttributes.filter(
         (attr) =>
           deletingAttributeIds.has(attr.id) ||
           attr.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           attr.description?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : coreAttributes;
+    : coreAttributes
+  ).filter((attr) => !hiddenAttributes.includes(attr.label));
 
   // Group attributes by section
   const groupedAttributes = filteredAttributes.reduce((acc, attr) => {
@@ -79,14 +69,11 @@ export function CoreAttributes() {
     "contact",
     "dates",
     "warranty",
-    "custom",
   ];
 
-  // Separate collapsible sections from custom
-  const collapsibleSections = sections.filter((s) => s !== "custom");
-
-  // Handle opening create drawer
-  const handleAddCustomAttribute = () => {
+  // Handle opening create drawer for a specific section
+  const handleAddAttribute = (section: CoreAttributeSection) => {
+    setCreateDrawerSection(section);
     setCreateDrawerOpen(true);
   };
 
@@ -96,24 +83,13 @@ export function CoreAttributes() {
     setIsDetailDrawerOpen(true);
   };
 
-  // Handle delete from list view
-  const handleDeleteClick = (attribute: CoreAttribute) => {
-    setAttributeToDelete(attribute);
-    setDeleteDialogOpen(true);
-  };
-
-  // Handle feedback click
-  const handleFeedbackClick = (attribute: CoreAttribute) => {
-    // TODO: Implement feedback functionality
-    toast.info(`Feedback for "${attribute.label}"`);
-  };
-
   // Determine variant based on attribute properties
   const getAttributeVariant = (attribute: CoreAttribute): AttributeCardVariant => {
     if (attribute.isRequired) {
       return "system";
     }
-    if (attribute.section === "custom") {
+    // Check if it's a custom attribute (created by user)
+    if (attribute.id.startsWith("core-custom-")) {
       return "custom";
     }
     return "predefined";
@@ -145,27 +121,24 @@ export function CoreAttributes() {
   };
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: "700px" }}>
+    <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
+        {/* Back Button */}
+        <Link
+          to="/asset-attributes/attributes"
+          className="text-sm text-muted-foreground hover:text-foreground inline-block"
+        >
+          ← Back to attributes
+        </Link>
+
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Core Attributes
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Manage universal fields that appear on every asset
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAddCustomAttribute}
-            className="shrink-0"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add attribute
-          </Button>
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Core Attributes
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Manage universal fields that appear on every asset
+          </p>
         </div>
 
         {/* Search */}
@@ -180,178 +153,88 @@ export function CoreAttributes() {
         </div>
 
         {/* Attributes by Section */}
-        <div className="w-full space-y-4 sm:space-y-6">
-          {/* Collapsible Sections */}
-          <Accordion type="multiple" className="w-full">
-            {collapsibleSections.map((section) => {
-              const attributes = groupedAttributes[section] || [];
-              if (attributes.length === 0) return null;
-
-              return (
-                <AccordionItem
-                  key={section}
-                  value={section}
-                  className="border rounded-lg mb-4 sm:mb-6 last:mb-0"
-                >
-                  <AccordionTrigger className="px-3 sm:px-5 hover:no-underline border-b-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full text-left">
-                      <div className="space-y-1">
-                        <h2 className="font-bold text-base">
-                          {sectionLabels[section]}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          {sectionDescriptions[section]}
-                        </p>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3 sm:px-5 pb-3 sm:pb-5">
-                    <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4">
-                      {/* Attributes List */}
-                      <div className="rounded-lg border bg-card">
-                        {attributes.map((attribute, index) => {
-                          const variant = getAttributeVariant(attribute);
-                          const isDeleting = deletingAttributeIds.has(attribute.id);
-                          const isLast = index === attributes.length - 1;
-                          return (
-                            <AttributeCard
-                              key={attribute.id}
-                              attribute={attribute}
-                              variant={variant}
-                              isEnabled={attribute.isEnabled}
-                              onToggle={
-                                variant !== "system"
-                                  ? () => toggleCoreAttribute(attribute.id)
-                                  : undefined
-                              }
-                              onClick={
-                                variant === "custom"
-                                  ? () => handleViewDetails(attribute.id)
-                                  : undefined
-                              }
-                              onDelete={
-                                variant === "custom"
-                                  ? () => handleDeleteClick(attribute)
-                                  : undefined
-                              }
-                              onFeedback={
-                                variant !== "custom"
-                                  ? () => handleFeedbackClick(attribute)
-                                  : undefined
-                              }
-                              isDeleting={isDeleting}
-                              showSeparator={!isLast}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-
-          {/* Custom Section - Always visible, not collapsible */}
-          {(() => {
-            const section = "custom";
+        <div className="w-full space-y-8 sm:space-y-10">
+          {sections.map((section) => {
             const attributes = groupedAttributes[section] || [];
+            if (attributes.length === 0) return null;
 
             return (
-              <Card>
-                <CardContent className="p-3 sm:p-5">
-                  <div className="space-y-3 sm:space-y-4">
-                    {/* Section Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <h2 className="font-bold text-base">
-                          {sectionLabels[section]}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          {sectionDescriptions[section]}
-                        </p>
-                      </div>
-                    </div>
+              <div key={section} className="space-y-3 sm:space-y-4">
+                {/* Section Header with Add CTA */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <h2 className="font-bold text-base">
+                    {sectionLabels[section]}
+                  </h2>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleAddAttribute(section)}
+                    className="shrink-0"
+                  >
+                    Add attribute
+                  </Button>
+                </div>
 
-                    {/* Attributes List */}
-                    <div className="rounded-lg border bg-card">
-                      {attributes.length === 0 ? (
-                        <div className="text-center py-8">
-                          <p className="text-muted-foreground text-sm mb-4">
-                            No attributes yet. Click "Add attribute" to create
-                            one.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAddCustomAttribute}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add attribute
-                          </Button>
-                        </div>
-                      ) : (
-                        attributes.map((attribute, index) => {
-                          const variant = getAttributeVariant(attribute);
-                          const isDeleting = deletingAttributeIds.has(attribute.id);
-                          const isLast = index === attributes.length - 1;
-                          return (
-                            <AttributeCard
-                              key={attribute.id}
-                              attribute={attribute}
-                              variant={variant}
-                              isEnabled={attribute.isEnabled}
-                              onToggle={
-                                variant !== "system"
-                                  ? () => toggleCoreAttribute(attribute.id)
-                                  : undefined
-                              }
-                              onClick={
-                                variant === "custom"
-                                  ? () => handleViewDetails(attribute.id)
-                                  : undefined
-                              }
-                              onDelete={
-                                variant === "custom"
-                                  ? () => handleDeleteClick(attribute)
-                                  : undefined
-                              }
-                              onFeedback={
-                                variant !== "custom"
-                                  ? () => handleFeedbackClick(attribute)
-                                  : undefined
-                              }
-                              isDeleting={isDeleting}
-                              showSeparator={!isLast}
-                            />
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                {/* Attributes List */}
+                <div className="rounded-lg border bg-card">
+                  {attributes.map((attribute, index) => {
+                    const variant = getAttributeVariant(attribute);
+                    const isDeleting = deletingAttributeIds.has(attribute.id);
+                    const isLast = index === attributes.length - 1;
+                    return (
+                      <AttributeCard
+                        key={attribute.id}
+                        attribute={attribute}
+                        variant={variant}
+                        isEnabled={attribute.isEnabled}
+                        onToggle={
+                          variant !== "system"
+                            ? () => toggleCoreAttribute(attribute.id)
+                            : undefined
+                        }
+                        onClick={() => handleViewDetails(attribute.id)}
+                        isDeleting={isDeleting}
+                        showSeparator={!isLast}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             );
-          })()}
+          })}
         </div>
       </div>
 
       {/* Create Core Attribute Drawer */}
       <AttributeAddDrawer
         open={createDrawerOpen}
-        onOpenChange={setCreateDrawerOpen}
+        onOpenChange={(open) => {
+          setCreateDrawerOpen(open);
+          if (!open) setCreateDrawerSection(null);
+        }}
         context="core"
+        section={createDrawerSection}
       />
 
       {/* Core Attribute Detail Drawer - Show View or Edit based on attribute type */}
       {selectedAttributeId && (() => {
         const attribute = coreAttributes.find((a: CoreAttribute) => a.id === selectedAttributeId);
-        if (attribute?.isRequired) {
+        // Don't render drawer if attribute was deleted
+        if (!attribute) return null;
+        const variant = getAttributeVariant(attribute);
+
+        // System and predefined attributes are view-only, custom attributes are editable
+        if (variant === "system" || variant === "predefined") {
           return (
             <AttributeViewDrawer
               attributeId={selectedAttributeId}
               open={isDetailDrawerOpen}
-              onOpenChange={setIsDetailDrawerOpen}
+              onOpenChange={(open) => {
+                setIsDetailDrawerOpen(open);
+                if (!open) {
+                  setSelectedAttributeId(null);
+                }
+              }}
               context="core"
             />
           );
@@ -360,7 +243,12 @@ export function CoreAttributes() {
             <AttributeEditDrawer
               attributeId={selectedAttributeId}
               open={isDetailDrawerOpen}
-              onOpenChange={setIsDetailDrawerOpen}
+              onOpenChange={(open) => {
+                setIsDetailDrawerOpen(open);
+                if (!open) {
+                  setSelectedAttributeId(null);
+                }
+              }}
               context="core"
             />
           );

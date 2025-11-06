@@ -1306,12 +1306,11 @@ export const coreAttributes: CoreAttribute[] = [
   },
   {
     id: "core-customer-reference",
-    label: "Customer reference",
+    label: "Reference",
     type: "text",
     section: "asset-info",
     isEnabled: true,
     isRequired: false,
-    description: "Optional customer reference number",
   },
   {
     id: "core-barcode",
@@ -1320,7 +1319,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Scannable identifier for quick access",
     detailedDescription: "A unique identifier that can be scanned to quickly access asset information.",
   },
   {
@@ -1340,8 +1338,7 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Track equipment manufacturers",
-    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
+    detailedDescription: "This attribute displays manufacturers from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
     id: "core-model",
@@ -1350,8 +1347,7 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Track equipment models",
-    detailedDescription: "You can manage your own manufacturers and models to track equipment.",
+    detailedDescription: "This attribute displays models from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
     id: "core-manufacturer-serial",
@@ -1360,7 +1356,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: false,
-    description: "Serial number from manufacturer",
   },
   {
     id: "core-date-manufacture",
@@ -1385,7 +1380,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "asset-info",
     isEnabled: true,
     isRequired: true,
-    description: "Auto-updated from service records",
     detailedDescription: "This is automatically updated by the system when service records are created. It helps track maintenance history and schedule future services.",
   },
 
@@ -1397,7 +1391,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "dates",
     isEnabled: true,
     isRequired: false,
-    description: "Expected end of life or replacement date",
   },
 
   // Warranty
@@ -1408,7 +1401,6 @@ export const coreAttributes: CoreAttribute[] = [
     section: "warranty",
     isEnabled: true,
     isRequired: false,
-    description: "When the warranty expires",
   },
 
   // Status
