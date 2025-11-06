@@ -26,6 +26,14 @@ Commit and push changes with comprehensive validation checks for production-read
      Co-Authored-By: Claude <noreply@anthropic.com>
      ```
    - Check if branch has upstream tracking
+   - **Before pushing, check if branch is behind remote:**
+     - Run `git fetch` to get latest remote info
+     - Run `git status` to check if branch is behind
+     - If behind, inform the user and ask if they want to pull first using AskUserQuestion tool
+     - If user confirms pull, run `git pull --rebase` (rebase to keep history clean)
+     - If pull succeeds, proceed with push
+     - If pull fails (e.g., conflicts), stop and report the issue
+     - If user declines pull, stop and remind them to pull manually
    - Push to remote (use `-u origin <branch>` if no upstream exists)
    - Show final git status
 
