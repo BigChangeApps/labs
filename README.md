@@ -126,6 +126,20 @@ The design system uses a three-layer token architecture:
 
 ### Creating a New Prototype
 
+Use the `/new-prototype` slash command in Claude Code to automatically scaffold a new prototype with the proper structure:
+
+```
+/new-prototype
+```
+
+This command will:
+- Ask for the prototype name, description, device type, and visibility
+- Create the complete prototype structure with necessary files
+- Update routing configuration
+- Register the prototype in the app
+
+Alternatively, you can manually create a prototype:
+
 1. Create a new directory under `src/prototypes/`:
    ```bash
    mkdir -p src/prototypes/my-prototype/{components,lib,types}
@@ -134,11 +148,14 @@ The design system uses a three-layer token architecture:
 2. Organize your prototype with the following structure:
    ```
    src/prototypes/my-prototype/
+   ├── App.tsx              # Main app component
    ├── components/
    │   ├── pages/           # Page components
    │   ├── features/        # Feature-specific logic
    │   └── layout.tsx       # Layout wrapper
    ├── lib/                 # Utilities and helpers
+   │   ├── store.ts         # Zustand state management
+   │   └── mock-data.ts     # Mock data
    └── types/               # TypeScript types
    ```
 
@@ -146,6 +163,16 @@ The design system uses a three-layer token architecture:
    ```typescript
    import { Button, Card } from "@/registry/ui/button"
    ```
+
+### Removing a Prototype
+
+Use the `/remove-prototype` slash command to cleanly remove a prototype:
+
+```
+/remove-prototype
+```
+
+This command will remove all prototype files, routes, and configuration.
 
 ### Adding a New Component
 
@@ -177,10 +204,9 @@ cp .env.example .env
 
 When contributing to this project:
 
-1. Verify light and dark modes work correctly
-2. Run linting before committing: `pnpm lint`
-3. Use semantic commit messages
-4. Update documentation when adding features
+1. Run linting before committing: `pnpm lint`
+2. Use semantic commit messages
+3. Update documentation when adding features
 
 ## License
 
