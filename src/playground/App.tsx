@@ -7,6 +7,7 @@ import { getFirstComponent } from "./lib/registry";
 
 // Component demos
 import { CategorySearchDemo } from "./components/category-search";
+import { NavigationDemo } from "./components/navigation";
 
 function PlaygroundApp() {
   const location = useLocation();
@@ -39,6 +40,7 @@ function PlaygroundApp() {
                 }
               />
               <Route path="category-search" element={<CategorySearchDemo />} />
+              <Route path="navigation" element={<NavigationDemo />} />
             </Route>
           </Routes>
         </div>

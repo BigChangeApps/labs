@@ -86,8 +86,8 @@ export function Layout() {
 
         {/* Page Content - Centered */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="flex justify-center">
-            <div className="w-full max-w-[700px] px-3 sm:px-6 py-4 sm:py-8">
+          <div className={location.pathname === '/playground/navigation' ? 'flex justify-center w-full' : 'flex justify-center'}>
+            <div className={location.pathname === '/playground/navigation' ? 'w-full max-w-[1400px] px-3 sm:px-6 py-4 sm:py-8' : 'w-full max-w-[700px] px-3 sm:px-6 py-4 sm:py-8'}>
               <Outlet />
             </div>
           </div>

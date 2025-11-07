@@ -4,15 +4,11 @@ description: "Scaffold a new component demo in the playground"
 
 Create a new playground component demo with the following structure:
 
-**Step 1:** Ask the user: "What's the name of your component demo?" (e.g., "Button Variants" - will be converted to kebab-case for the ID and path)
+**Step 1:** Ask the user: "What's the name of your component demo?" (e.g., "Button Variants" - will be converted to kebab-case for the ID and path, and used as the title)
 
-**Step 2:** After receiving the name, ask: "What's the title for this component?" (e.g., "Button Variants" - defaults to the name if not provided)
+**Step 2:** After receiving the name, ask: "What's a brief description for this component demo?"
 
-**Step 3:** After receiving the title, ask: "What's a brief description for this component demo?"
-
-**Step 4:** After receiving the description, ask: "What category does this belong to?" (Options: forms, navigation, data-display, feedback. Default: forms)
-
-**Step 5:** After receiving all information, create the following:
+**Step 3:** After receiving all information, create the following:
 
 1. `src/playground/components/{component-name}/index.tsx` - Component demo template:
    ```tsx
@@ -20,7 +16,7 @@ Create a new playground component demo with the following structure:
      return (
        <div className="space-y-6">
          <div>
-           <h1 className="text-2xl font-bold text-hw-text mb-2">{title}</h1>
+           <h1 className="text-2xl font-bold text-hw-text mb-2">{name}</h1>
            <p className="text-sm text-muted-foreground">
              {description}
            </p>
@@ -37,8 +33,8 @@ Create a new playground component demo with the following structure:
    ```tsx
    {
      id: "{kebab-case-version-of-name}",
-     title: "{title}",
-     category: "{category}",
+     title: "{name}",
+     category: "forms",
      path: "/playground/{kebab-case-version-of-name}",
      description: "{description}",
    },
@@ -49,8 +45,9 @@ Create a new playground component demo with the following structure:
    - Add route: `<Route path="{kebab-case-version-of-name}" element={<{PascalCaseName}Demo />} />`
 
 **Conversion Rules:**
-- Component name "Button Variants" → kebab-case: "button-variants"
-- Component name "Button Variants" → PascalCase: "ButtonVariantsDemo"
+- Component name "Button Variants" → kebab-case: "button-variants" (used for id and path)
+- Component name "Button Variants" → PascalCase: "ButtonVariantsDemo" (used for function name)
+- Component name "Button Variants" → title: "Button Variants" (used as-is for display title)
 - Path will be: "/playground/button-variants"
 
 After creating the files, inform the user that:

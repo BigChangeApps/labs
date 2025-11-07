@@ -8,6 +8,13 @@ export const components: ComponentMetadata[] = [
     path: "/playground/category-search",
     description: "Search and filter categories",
   },
+  {
+    id: "navigation",
+    title: "Navigation",
+    category: "navigation",
+    path: "/playground/navigation",
+    description: "Demo of the navigation built with shadcn.",
+  },
 ];
 
 export function getAllComponents(): ComponentMetadata[] {
