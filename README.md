@@ -4,15 +4,14 @@ Design prototype playground for testing concepts with customers - aligned with B
 
 ## Overview
 
-BigChange Labs is a **multi-brand design system** playground that enables rapid prototyping and customer concept testing. Built with modern web technologies, it features a registry-style component library with real-time brand switching and full light/dark mode support.
+BigChange Labs is a design system playground that enables rapid prototyping and customer concept testing. Built with modern web technologies, it features a registry-style component library with full light/dark mode support.
 
 ### Key Features
 
-- 🎨 **Multi-Brand Support** - Switch between BigChange and SimPro brands in real-time
-- 🌓 **Light & Dark Modes** - Full theme support across all brands
 - 🎯 **Registry-Based Components** - Shared component library as single source of truth
-- 🎨 **OKLCH Color Space** - Perceptually uniform colors for better accessibility
 - ⚡ **Fast Iteration** - Hot reload enabled, edit once and updates everywhere
+- 🌓 **Light & Dark Modes** - Full theme support
+- 🎨 **OKLCH Color Space** - Perceptually uniform colors for better accessibility
 - 🔧 **Modern Stack** - Vite + React + TypeScript + Tailwind CSS v4
 
 ## Tech Stack
@@ -67,14 +66,23 @@ The application will be available at `http://localhost:5173`
 ├── src/
 │   ├── registry/          # Component library (single source of truth)
 │   │   └── ui/           # All UI components (Button, Card, Dialog, etc.)
-│   ├── components/        # App-specific components (BrandSwitcher, etc.)
-│   ├── prototypes/        # Design prototypes and experiments
+│   ├── components/        # App-specific components
+│   ├── prototypes/        # Design prototypes organized by feature
+│   │   └── [prototype-name]/    # Example: asset-attributes, job-scheduler, etc.
+│   │       ├── components/      # Prototype-specific components
+│   │       │   ├── pages/       # Page-level components
+│   │       │   ├── features/    # Feature-specific UI logic
+│   │       │   └── layout.tsx   # Prototype layout wrapper
+│   │       ├── lib/             # Prototype utilities
+│   │       │   ├── validation.ts
+│   │       │   └── utils.ts
+│   │       └── types/           # TypeScript type definitions
 │   ├── data/             # Static data and configuration
 │   ├── tokens.tsx        # Interactive token showcase page
 │   ├── home.tsx          # Home page
 │   └── app.tsx           # Main routing
 ├── styles/
-│   ├── tokens.css        # Semantic hw- tokens (multi-brand support)
+│   ├── tokens.css        # Semantic design tokens
 │   └── primitives/       # Brand-specific color primitives
 │       ├── bigchange.css # BigChange brand colors
 │       └── simpro.css    # SimPro brand colors
@@ -84,12 +92,6 @@ The application will be available at `http://localhost:5173`
 ```
 
 ## Design System
-
-### Three-Layer Token Architecture
-
-1. **Brand Primitives** (`styles/primitives/`) - Raw OKLCH color scales per brand
-2. **Semantic Tokens** (`styles/tokens.css`) - Purpose-based names like `--hw-interactive`, `--hw-text`
-3. **Tailwind Utilities** - Classes like `bg-hw-interactive`, `text-hw-text`
 
 ### Component Library
 
@@ -106,12 +108,13 @@ Available components:
 - Popover, Separator, Sheet, Switch, Table
 - Tooltip, Kbd
 
-### Brand Switching
+### Token Architecture
 
-Switch between brands using the `BrandSwitcher` component. Changes are:
-- Applied instantly via CSS data attributes
-- Persisted to localStorage
-- Completely CSS-driven (no JavaScript re-renders needed)
+The design system uses a three-layer token architecture:
+
+1. **Brand Primitives** (`styles/primitives/`) - Raw OKLCH color scales
+2. **Semantic Tokens** (`styles/tokens.css`) - Purpose-based names like `--hw-interactive`, `--hw-text`
+3. **Tailwind Utilities** - Classes like `bg-hw-interactive`, `text-hw-text`
 
 ## Documentation
 
@@ -120,6 +123,29 @@ Switch between brands using the `BrandSwitcher` component. Changes are:
 - **Token Showcase** - Interactive token reference at `/tokens` route
 
 ## Development Workflow
+
+### Creating a New Prototype
+
+1. Create a new directory under `src/prototypes/`:
+   ```bash
+   mkdir -p src/prototypes/my-prototype/{components,lib,types}
+   ```
+
+2. Organize your prototype with the following structure:
+   ```
+   src/prototypes/my-prototype/
+   ├── components/
+   │   ├── pages/           # Page components
+   │   ├── features/        # Feature-specific logic
+   │   └── layout.tsx       # Layout wrapper
+   ├── lib/                 # Utilities and helpers
+   └── types/               # TypeScript types
+   ```
+
+3. Import shared components from the registry:
+   ```typescript
+   import { Button, Card } from "@/registry/ui/button"
+   ```
 
 ### Adding a New Component
 
@@ -137,7 +163,6 @@ Switch between brands using the `BrandSwitcher` component. Changes are:
 
 - Run dev server: `pnpm dev`
 - Navigate to `/tokens` to view all tokens
-- Use BrandSwitcher to test across brands
 - Toggle dark mode to verify adaptations
 
 ## Environment Configuration
@@ -152,11 +177,10 @@ cp .env.example .env
 
 When contributing to this project:
 
-1. Test across all brands (BigChange, SimPro)
-2. Verify light and dark modes work correctly
-3. Run linting before committing: `pnpm lint`
-4. Use semantic commit messages
-5. Update documentation when adding features
+1. Verify light and dark modes work correctly
+2. Run linting before committing: `pnpm lint`
+3. Use semantic commit messages
+4. Update documentation when adding features
 
 ## License
 
