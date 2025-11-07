@@ -43,6 +43,13 @@ pnpm generate:thumbnails    # Generate prototype thumbnails
 - Use the existing Radix UI + Tailwind component patterns
 - Prototypes should be self-contained within their directories
 
+## Git Workflow & Commit Guidelines
+- **NEVER commit changes unless explicitly requested by the user**
+- Always ask for permission before creating commits
+- Only use git commands (add, commit, push) when the user specifically asks
+- Use custom slash commands like `/commit-push` or `/commit-push-quick` only when instructed
+- If unsure whether to commit, always ask first
+
 ## MCP Servers
 This project uses Model Context Protocol (MCP) servers to extend Claude Code capabilities:
 
