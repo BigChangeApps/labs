@@ -15,6 +15,7 @@ Create a new prototype with the following structure:
 **Step 5:** After receiving the visibility, create the following files:
 
 1. `src/prototypes/{prototype-name}/App.tsx` - Main app component with:
+   - useEffect hook to set document.title to "Labs | {title-as-provided}"
    - TooltipProvider wrapper
    - PrototypeBanner component
    - Simple splash page with title and description

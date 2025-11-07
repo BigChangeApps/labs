@@ -11,7 +11,12 @@ import { Layout } from "./components/layout";
 
 function AssetAttributesApp() {
   const location = useLocation();
-  
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Labs | Asset Attributes Management";
+  }, []);
+
   // Prevent body/html scrolling when this app is mounted
   useEffect(() => {
     document.body.style.overflow = 'hidden';
