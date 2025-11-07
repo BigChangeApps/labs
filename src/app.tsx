@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "@/home";
 import TokensPage from "@/tokens";
 import AssetAttributesApp from "@/prototypes/asset-attributes/App";
+import PlaygroundApp from "@/playground/App";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { BrandSwitcher } from "@/components/BrandSwitcher";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -20,6 +21,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         {showInternal && <Route path="/tokens" element={<TokensPage />} />}
+        {/* Component playground (internal only) */}
+        {showInternal && (
+          <Route path="/playground/*" element={<PlaygroundApp />} />
+        )}
         {/* Prototype routes */}
         <Route
           path="/asset-attributes/*"

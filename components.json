@@ -10,11 +10,15 @@
     "cssVariables": true,
     "prefix": ""
   },
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@/registry",
     "utils": "@/registry/lib/utils",
     "ui": "@/registry/ui",
     "lib": "@/registry/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@reui": "https://reui.io/r/{name}.json"
   }
 }
