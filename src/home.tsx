@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { PrototypeGrid } from "@/components/PrototypeGrid";
 import { getVisiblePrototypes, searchPrototypes } from "@/data/prototypes";
@@ -7,6 +7,11 @@ import { Separator } from "@/registry/ui/separator";
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const visiblePrototypes = useMemo(() => getVisiblePrototypes(), []);
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Labs";
+  }, []);
 
   const filteredPrototypes = useMemo(() => {
     if (!searchQuery) {
