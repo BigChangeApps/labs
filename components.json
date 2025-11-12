@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
+  "style": "new-york",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -16,5 +16,8 @@
     "ui": "@/registry/ui",
     "lib": "@/registry/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@highway": "http://localhost:3001/r/{name}.json"
   }
 }

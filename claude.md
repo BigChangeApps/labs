@@ -14,6 +14,37 @@ This is a design prototype playground for testing concepts with customers, align
 - **Drag & Drop**: dnd-kit
 - **Package Manager**: pnpm 10.18.3
 
+## UI Components & Registry
+This project uses a **custom shadcn component registry** hosted at `highway-shadcn` on GitHub.
+
+### Adding Components
+**IMPORTANT**: Always use the `@highway` registry when adding components:
+
+```bash
+# ✅ Correct - Use the custom registry
+npx shadcn@latest add @highway/button
+npx shadcn@latest add @highway/dialog
+npx shadcn@latest add @highway/form
+
+# ❌ Wrong - Do NOT use the default registry
+npx shadcn@latest add button  # This will fail or use wrong components
+```
+
+### Why @highway Registry?
+- **Customized components**: highway-shadcn components have BigChange-specific modifications
+- **Consistency**: Ensures all prototypes use the same component versions
+- **Team alignment**: Matches the BigChange MFE Suite component standards
+
+### Registry Configuration
+The custom registry is configured in `components.json`:
+```json
+"registries": {
+  "@highway": "https://raw.githubusercontent.com/Simpro-Group/highway-shadcn/..."
+}
+```
+
+**Security Note**: The registry URL contains a GitHub token for private repo access. Do not commit changes that expose this token in logs or screenshots.
+
 ## Project Structure
 ```
 labs/
