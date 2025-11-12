@@ -33,8 +33,7 @@ export function AttributePreferredField({
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  Marking an attribute as preferred will give it more emphasis
-                  when adding data entries for assets.
+                  Preferred attributes are highlighted to engineers as fields that should be prioritised when recording asset data.
                 </p>
               </TooltipContent>
             </Tooltip>

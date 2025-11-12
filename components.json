@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
+  "style": "new-york",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -19,6 +19,6 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@reui": "https://reui.io/r/{name}.json"
+    "@highway": "http://localhost:3001/r/{name}.json"
   }
 }

@@ -14,6 +14,37 @@ This is a design prototype playground for testing concepts with customers, align
 - **Drag & Drop**: dnd-kit
 - **Package Manager**: pnpm 10.18.3
 
+## UI Components & Registry
+This project uses a **custom shadcn component registry** hosted at `highway-shadcn` on GitHub.
+
+### Adding Components
+**IMPORTANT**: Always use the `@highway` registry when adding components:
+
+```bash
+# ✅ Correct - Use the custom registry
+npx shadcn@latest add @highway/button
+npx shadcn@latest add @highway/dialog
+npx shadcn@latest add @highway/form
+
+# ❌ Wrong - Do NOT use the default registry
+npx shadcn@latest add button  # This will fail or use wrong components
+```
+
+### Why @highway Registry?
+- **Customized components**: highway-shadcn components have BigChange-specific modifications
+- **Consistency**: Ensures all prototypes use the same component versions
+- **Team alignment**: Matches the BigChange MFE Suite component standards
+
+### Registry Configuration
+The custom registry is configured in `components.json`:
+```json
+"registries": {
+  "@highway": "https://raw.githubusercontent.com/Simpro-Group/highway-shadcn/..."
+}
+```
+
+**Security Note**: The registry URL contains a GitHub token for private repo access. Do not commit changes that expose this token in logs or screenshots.
+
 ## Project Structure
 ```
 labs/
@@ -42,6 +73,22 @@ pnpm generate:thumbnails    # Generate prototype thumbnails
 - Always run `npx tsc --noEmit` before committing to ensure type safety
 - Use the existing Radix UI + Tailwind component patterns
 - Prototypes should be self-contained within their directories
+
+## Git Workflow & Commit Guidelines
+- **NEVER commit changes unless explicitly requested by the user**
+- Always ask for permission before creating commits
+- Only use git commands (add, commit, push) when the user specifically asks
+- Use custom slash commands like `/commit-push` or `/commit-push-quick` only when instructed
+- If unsure whether to commit, always ask first
+
+## MCP Servers
+This project uses Model Context Protocol (MCP) servers to extend Claude Code capabilities:
+
+**Project-level servers** (configured in `.mcp.json`):
+- **Playwright** - Browser automation and testing for UI prototypes
+- **Chrome DevTools** - Performance analysis, debugging, and browser inspection
+
+These servers are automatically available to all team members when using Claude Code in this project.
 
 ## Custom Slash Commands
 Available commands in `.claude/commands/`:

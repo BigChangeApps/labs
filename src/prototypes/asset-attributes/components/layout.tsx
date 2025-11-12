@@ -18,12 +18,6 @@ export function Layout() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Check if Attributes section is active (includes child routes)
-  const isAttributesActive = 
-    location.pathname === "/asset-attributes/attributes" ||
-    location.pathname.startsWith("/asset-attributes/category/") ||
-    location.pathname === "/asset-attributes/core-attributes";
-
   // Navigation component (reused for both sidebar and mobile menu)
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
@@ -31,11 +25,21 @@ export function Layout() {
         to="/asset-attributes/attributes"
         state={location.state}
         onClick={onClick}
-        className={`px-3 py-2.5 rounded-lg text-sm transition-colors ${
-          isAttributesActive
-            ? "bg-hw-surface-subtle text-hw-text font-bold"
-            : "text-hw-text hover:bg-accent font-normal"
-        }`}
+        className={({ isActive }) => {
+          // Check if we're on attributes, category detail, or core attributes routes
+          const pathname = location.pathname;
+          const isAttributesRoute =
+            isActive ||
+            pathname.startsWith("/asset-attributes/category/") ||
+            pathname === "/asset-attributes/core-attributes" ||
+            pathname === "/asset-attributes/core-attributes/";
+          
+          return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            isAttributesRoute
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
+          }`;
+        }}
       >
         Attributes
       </NavLink>
