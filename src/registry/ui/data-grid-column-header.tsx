@@ -1,4 +1,4 @@
-import { HTMLAttributes, ReactNode } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/registry/lib/utils';
 import { Button } from '@/registry/ui/button';
 import { useDataGrid } from '@/registry/ui/data-grid';
@@ -15,7 +15,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/registry/ui/dropdown-menu';
-import { Column } from '@tanstack/react-table';
+import { type Column } from '@tanstack/react-table';
 import {
   ArrowDown,
   ArrowLeft,
@@ -131,7 +131,6 @@ function DataGridColumnHeader<TData, TValue>({
   const headerPin = () => {
     return (
       <Button
-        mode="icon"
         size="sm"
         variant="ghost"
         className="-me-1 size-7 rounded-md"

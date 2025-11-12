@@ -1,4 +1,4 @@
-import { CSSProperties, Fragment, useId } from 'react';
+import { Fragment, useId, type CSSProperties } from 'react';
 import { Button } from '@/registry/ui/button';
 import { useDataGrid } from '@/registry/ui/data-grid';
 import {
@@ -29,7 +29,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { horizontalListSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Cell, flexRender, Header, HeaderGroup, Row } from '@tanstack/react-table';
+import { flexRender, type Cell, type Header, type HeaderGroup, type Row } from '@tanstack/react-table';
 import { GripVertical } from 'lucide-react';
 
 function DataGridTableDndHeader<TData>({ header }: { header: Header<TData, unknown> }) {
@@ -54,9 +54,8 @@ function DataGridTableDndHeader<TData>({ header }: { header: Header<TData, unkno
     <DataGridTableHeadRowCell header={header} dndStyle={style} dndRef={setNodeRef}>
       <div className="flex items-center justify-start gap-0.5">
         <Button
-          mode="icon"
           size="sm"
-          variant="dim"
+          variant="ghost"
           className="-ms-2 size-6"
           {...attributes}
           {...listeners}

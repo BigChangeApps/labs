@@ -13,7 +13,7 @@ import {
 } from '@/registry/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/registry/ui/popover';
 import { Separator } from '@/registry/ui/separator';
-import { Column } from '@tanstack/react-table';
+import { type Column } from '@tanstack/react-table';
 import { Check, CirclePlus } from 'lucide-react';
 
 interface DataGridColumnFilterProps<TData, TValue> {
