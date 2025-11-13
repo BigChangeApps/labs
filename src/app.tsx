@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "@/home";
 import TokensPage from "@/tokens";
 import AssetAttributesApp from "@/prototypes/asset-attributes/App";
+import AssetAttributesVariationApp from "@/prototypes/asset-attributes-variation/App";
 import PlaygroundApp from "@/playground/App";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { BrandSwitcher } from "@/components/BrandSwitcher";
@@ -31,6 +32,14 @@ function App() {
           element={
             <ProtectedRoute prototypeId="asset-attributes">
               <AssetAttributesApp />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/asset-attributes-variation/*"
+          element={
+            <ProtectedRoute prototypeId="asset-attributes-variation">
+              <AssetAttributesVariationApp />
             </ProtectedRoute>
           }
         />

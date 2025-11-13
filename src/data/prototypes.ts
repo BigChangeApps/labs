@@ -24,6 +24,17 @@ export const prototypes: PrototypeMetadata[] = [
     deviceType: "desktop",
     visibility: "public",
   },
+  {
+    id: "asset-attributes-variation",
+    title: "Asset Attributes Management (Variation)",
+    description:
+      "Category-based attribute configuration with drag-and-drop reordering, system vs custom attributes, and manufacturer management.",
+    thumbnail: "/thumbnails/asset-attributes.png",
+    path: "/asset-attributes-variation",
+    createdAt: "2025-01-15",
+    deviceType: "desktop",
+    visibility: "public",
+  },
   // Add more prototypes here as they are created
 ];
 
