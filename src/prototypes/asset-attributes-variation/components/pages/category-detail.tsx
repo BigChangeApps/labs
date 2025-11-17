@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, MoreVertical, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/registry/ui/dropdown-menu";
 import {
   DndContext,
   closestCenter,
@@ -93,8 +99,9 @@ function SortableAttributeCard({
   );
 }
 
-export function CategoryAttributesDetail() {
+export function CategoryDetail() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const navigate = useNavigate();
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(
     null
   );
@@ -107,8 +114,21 @@ export function CategoryAttributesDetail() {
     toggleAttribute,
     reorderAttributes,
     getInheritedAttributes,
+    deleteCategory,
   } = useAttributeStore();
   const [isInheritedExpanded, setIsInheritedExpanded] = useState(true);
+
+  // Check if a category is custom (user-created)
+  const isCustomCategory = (categoryId: string) => {
+    return categoryId.startsWith("category-");
+  };
+
+  const handleDeleteCategory = () => {
+    if (categoryId && isCustomCategory(categoryId)) {
+      deleteCategory(categoryId);
+      navigate("/asset-attributes-variation/categories");
+    }
+  };
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -131,7 +151,7 @@ export function CategoryAttributesDetail() {
     return (
       <div className="w-full">
         <Link
-          to="/asset-attributes-variation/attributes"
+          to="/asset-attributes-variation/categories"
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
         >
           ← Back to categories
@@ -268,7 +288,7 @@ export function CategoryAttributesDetail() {
       <div className="space-y-4 sm:space-y-6">
         {/* Back Button */}
         <Link
-          to="/asset-attributes-variation/attributes"
+          to="/asset-attributes-variation/categories"
           className="text-sm text-muted-foreground hover:text-foreground inline-block"
         >
           ← Back to categories
@@ -280,14 +300,38 @@ export function CategoryAttributesDetail() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               {category.name}
             </h1>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsCreateDrawerOpen(true)}
-              className="shrink-0"
-            >
-              Add attributes
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsCreateDrawerOpen(true)}
+                className="shrink-0"
+              >
+                Add attributes
+              </Button>
+              {categoryId && isCustomCategory(categoryId) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={handleDeleteCategory}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
           {parentCategory && (
             <p className="text-base text-muted-foreground">
@@ -417,3 +461,4 @@ export function CategoryAttributesDetail() {
     </div>
   );
 }
+

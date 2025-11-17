@@ -3,8 +3,8 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/registry/ui/tooltip";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
-import { CategoryAttributes } from "./components/pages/category-attributes";
-import { CategoryAttributesDetail } from "./components/pages/category-attributes-detail";
+import { Categories } from "./components/pages/categories";
+import { CategoryDetail } from "./components/pages/category-detail";
 import { Manufacturers } from "./components/pages/manufacturers";
 import { GlobalAttributes } from "./components/pages/global-attributes";
 import { Layout } from "./components/layout";
@@ -34,11 +34,11 @@ function AssetAttributesVariationApp() {
         <div className="flex-1 overflow-hidden pt-[61px]">
           <Routes>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="attributes" replace state={location.state} />} />
-              <Route path="attributes" element={<CategoryAttributes />} />
+              <Route index element={<Navigate to="global-attributes" replace state={location.state} />} />
+              <Route path="categories" element={<Categories />} />
               <Route
                 path="category/:categoryId"
-                element={<CategoryAttributesDetail />}
+                element={<CategoryDetail />}
               />
               <Route path="global-attributes" element={<GlobalAttributes />} />
               <Route path="manufacturers" element={<Manufacturers />} />

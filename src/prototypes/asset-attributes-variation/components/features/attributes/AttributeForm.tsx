@@ -1,7 +1,7 @@
 import React, { useEffect, useImperativeHandle, useState, useRef } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AttributeType, Attribute, GlobalAttribute } from "../../../types";
+import type { AttributeType, Attribute, GlobalAttribute, GlobalAttributeSection } from "../../../types";
 import { attributeTypeConfigs } from "../../../lib/utils";
 import { attributeFormSchema } from "../../../lib/validation";
 import {
@@ -37,7 +37,7 @@ export interface AttributeFormData {
   units: string;
   isPreferred: boolean;
   isEnabled: boolean;
-  section?: "asset-info" | "status" | "contact" | "dates" | "warranty" | "custom";
+  section?: GlobalAttributeSection;
 }
 
 interface AttributeFormProps {
@@ -110,7 +110,7 @@ export const AttributeForm = React.forwardRef<
       units: initialData?.units || "",
       isPreferred: initialData?.isPreferred || false,
       isEnabled: initialData?.isEnabled ?? true,
-      section: initialData?.section || "custom",
+      section: initialData?.section || "your-attributes",
     },
   });
 
@@ -130,7 +130,7 @@ export const AttributeForm = React.forwardRef<
         units: initialData.units || "",
         isPreferred: initialData.isPreferred || false,
         isEnabled: initialData.isEnabled ?? true,
-        section: initialData.section || "custom",
+        section: initialData.section || "your-attributes",
       });
     }
   }, [initialData, form]);
@@ -155,7 +155,7 @@ export const AttributeForm = React.forwardRef<
       units: typeConfig.supportsUnits && data.units ? data.units.trim() : "",
       isPreferred: context === "category" ? data.isPreferred : false,
       isEnabled: context === "global" ? data.isEnabled : true,
-      section: context === "global" ? data.section : undefined,
+      section: context === "global" ? (data.section || "your-attributes") : undefined,
     };
 
     onSubmit(formData);
@@ -209,6 +209,7 @@ export const AttributeForm = React.forwardRef<
             </FormItem>
           )}
         />
+
 
         <FormField
           control={form.control}

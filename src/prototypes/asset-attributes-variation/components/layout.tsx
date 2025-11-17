@@ -42,7 +42,7 @@ export function Layout() {
         Global Attributes
       </NavLink>
       <NavLink
-        to="/asset-attributes-variation/attributes"
+        to="/asset-attributes-variation/categories"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {

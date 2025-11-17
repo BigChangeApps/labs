@@ -75,8 +75,6 @@ export function AttributeCard({
         } ${
           isClickable ? "hover:bg-muted/50 cursor-pointer" : ""
         } ${
-          variant === "custom" ? "bg-muted/30" : ""
-        } ${
           isInherited ? "opacity-90" : ""
         }`}
         onClick={handleCardClick}

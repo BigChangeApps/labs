@@ -46,7 +46,8 @@ export type GlobalAttributeSection =
   | "contact"
   | "dates"
   | "warranty"
-  | "custom";
+  | "custom"
+  | "your-attributes";
 
 export interface GlobalAttribute {
   id: string;

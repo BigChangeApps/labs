@@ -2,29 +2,14 @@ import { useState } from "react";
 import {
   Plus,
   Edit,
-  Trash2,
   Search,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/registry/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/registry/ui/dialog";
+import { Card, CardContent } from "@/registry/ui/card";
+import { Separator } from "@/registry/ui/separator";
 import { useAttributeStore } from "../../lib/store";
 import { toast } from "sonner";
 import type { Manufacturer, Model } from "../../types";
@@ -32,17 +17,13 @@ import { CreateManufacturerDrawer } from "../features/manufacturers/create-manuf
 import { EditManufacturerDrawer } from "../features/manufacturers/edit-manufacturer-drawer";
 
 export function Manufacturers() {
-  const { manufacturers, addManufacturer, deleteManufacturer, addModel } =
+  const { manufacturers, addManufacturer, addModel } =
     useAttributeStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editDrawerManufacturerId, setEditDrawerManufacturerId] = useState<
-    string | null
-  >(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [manufacturerToDelete, setManufacturerToDelete] = useState<
     string | null
   >(null);
 
@@ -89,25 +70,6 @@ export function Manufacturers() {
     setIsDrawerOpen(false);
   };
 
-  const handleDeleteManufacturer = (manufacturerId: string) => {
-    const manufacturer = manufacturers.find(
-      (m: Manufacturer) => m.id === manufacturerId
-    );
-    if (!manufacturer) return;
-
-    setManufacturerToDelete(manufacturerId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!manufacturerToDelete) return;
-
-    deleteManufacturer(manufacturerToDelete);
-    toast.success("Manufacturer deleted");
-    setDeleteDialogOpen(false);
-    setManufacturerToDelete(null);
-  };
-
   return (
     <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
@@ -129,134 +91,109 @@ export function Manufacturers() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search manufacturers or models..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        {/* Content */}
+        <div className="flex flex-col gap-10">
+          {/* Manufacturers Section */}
+          <div className="space-y-3 sm:space-y-4">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search manufacturers or models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
-        <div className="border rounded-lg overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px] sm:w-[50px]"></TableHead>
-                <TableHead>Manufacturer</TableHead>
-                <TableHead className="hidden sm:table-cell">Models</TableHead>
-                <TableHead className="text-right w-[80px] sm:w-auto">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredManufacturers.map((manufacturer: Manufacturer) => (
-                <>
-                  <TableRow
-                    key={manufacturer.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => toggleRow(manufacturer.id)}
-                  >
-                    <TableCell className="p-2 sm:p-4">
-                      <div className="h-6 w-6 flex items-center justify-center">
-                        {expandedRows.has(manufacturer.id) ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
+            {/* Manufacturers List */}
+            <Card>
+              <CardContent className="p-0">
+                {filteredManufacturers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground text-sm">
+                      {searchQuery
+                        ? "No manufacturers found"
+                        : "No manufacturers yet. Add one to get started."}
+                    </p>
+                  </div>
+                ) : (
+                  filteredManufacturers.map((manufacturer: Manufacturer, manufacturerIndex: number) => {
+                    const isExpanded = expandedRows.has(manufacturer.id);
+                    const hasModels = manufacturer.models.length > 0;
+
+                    const isLast = manufacturerIndex === filteredManufacturers.length - 1;
+                    const shouldShowHeaderBorder = isExpanded;
+
+                    return (
+                      <div key={manufacturer.id}>
+                        {/* Manufacturer Header */}
+                        <div className={`px-3 sm:px-4 py-3 bg-muted/30 ${shouldShowHeaderBorder ? 'border-b' : ''}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <button
+                                onClick={() => toggleRow(manufacturer.id)}
+                                className="flex items-center justify-center h-6 w-6 shrink-0 hover:bg-muted/50 rounded"
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </button>
+                              <div className="text-sm font-bold text-muted-foreground tracking-wide truncate">
+                                {manufacturer.name}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditDrawerManufacturerId(manufacturer.id);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Models - Shown when expanded */}
+                        {isExpanded && (
+                          <div>
+                            {hasModels ? (
+                              manufacturer.models.map((model: Model, modelIndex: number) => (
+                                <div key={model.id}>
+                                  <div className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 pl-[44px] sm:pl-[48px] transition-colors hover:bg-muted/50 rounded-lg">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm text-hw-text truncate font-normal">
+                                        {model.name}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {modelIndex < manufacturer.models.length - 1 && <Separator />}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="py-3 px-3 sm:px-4 pl-[44px] sm:pl-[48px] text-muted-foreground text-sm">
+                                No models yet
+                              </div>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="p-2 sm:p-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{manufacturer.name}</span>
-                        {/* Show model count on mobile (inline) */}
-                        <span className="text-xs text-muted-foreground sm:hidden">
-                          {manufacturer.models.length} model
-                          {manufacturer.models.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    </TableCell>
-                    {/* Hide models column on mobile */}
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="text-muted-foreground">
-                        {manufacturer.models.length} model
-                        {manufacturer.models.length !== 1 ? "s" : ""}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right p-2 sm:p-4">
-                      <div className="flex justify-end gap-0.5 sm:gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditDrawerManufacturerId(manufacturer.id);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteManufacturer(manufacturer.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
 
-                  {expandedRows.has(manufacturer.id) && (
-                    <>
-                      {manufacturer.models.map((model: Model) => (
-                        <TableRow key={model.id} className="bg-muted/30">
-                          <TableCell className="p-2 sm:p-4"></TableCell>
-                          <TableCell
-                            className="pl-6 sm:pl-12 p-2 sm:p-4"
-                            colSpan={3}
-                          >
-                            <span className="text-sm">{model.name}</span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {manufacturer.models.length === 0 && (
-                        <TableRow className="bg-muted/30">
-                          <TableCell className="p-2 sm:p-4"></TableCell>
-                          <TableCell
-                            className="pl-6 sm:pl-12 text-muted-foreground text-sm p-2 sm:p-4"
-                            colSpan={3}
-                          >
-                            No models yet
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </>
-                  )}
-                </>
-              ))}
-
-              {filteredManufacturers.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center py-12 text-muted-foreground"
-                  >
-                    {searchQuery
-                      ? "No manufacturers found"
-                      : "No manufacturers yet. Add one to get started."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                        {/* Separator between manufacturers */}
+                        {!isLast && <Separator />}
+                      </div>
+                    );
+                  })
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -273,39 +210,6 @@ export function Manufacturers() {
           if (!open) setEditDrawerManufacturerId(null);
         }}
       />
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Delete{" "}
-              {manufacturerToDelete
-                ? manufacturers.find((m) => m.id === manufacturerToDelete)?.name
-                : ""}
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this manufacturer? This will remove
-              the manufacturer and all associated models. This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-                setManufacturerToDelete(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

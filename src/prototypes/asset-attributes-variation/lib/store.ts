@@ -509,7 +509,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     const newGlobalAttribute: GlobalAttribute = {
       ...attribute,
       id: newId,
-      section: section || attribute.section || "custom", // Use provided section or attribute's section, fallback to custom
+      section: section || attribute.section || "your-attributes", // Use provided section or attribute's section, default to your-attributes
     };
 
     set((state) => {

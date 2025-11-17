@@ -6,10 +6,11 @@ import { Input } from "@/registry/ui/input";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
 import { Button } from "@/registry/ui/button";
+import { Badge } from "@/registry/ui/badge";
 import { CategoryAddDialog } from "../features/attributes/CategoryAddDialog";
 import type { Category } from "../../types";
 
-export function CategoryAttributes() {
+export function Categories() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,6 +18,11 @@ export function CategoryAttributes() {
   const [selectedParentId, setSelectedParentId] = useState<string | undefined>(
     undefined
   );
+
+  // Check if a category is custom (user-created)
+  const isCustomCategory = (categoryId: string) => {
+    return categoryId.startsWith("category-");
+  };
 
   // Organize categories into parent-child structure
   const categoryTree = useMemo(() => {
@@ -94,6 +100,8 @@ export function CategoryAttributes() {
   };
 
   const renderCategoryItem = (category: Category, isChild: boolean = false) => {
+    const isCustom = isCustomCategory(category.id);
+    
     return (
       <div
         key={category.id}
@@ -103,14 +111,19 @@ export function CategoryAttributes() {
         onClick={() => handleCategorySelect(category.id)}
       >
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center gap-2">
           <div className={`text-sm text-hw-text truncate ${isChild ? "font-normal" : "font-medium"}`}>
             {category.name}
           </div>
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          {isCustom && (
+            <Badge variant="secondary" className="text-xs shrink-0">
+              Custom
+            </Badge>
+          )}
           {/* Chevron */}
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -123,7 +136,7 @@ export function CategoryAttributes() {
     <div className="w-full">
       <div className="flex flex-col gap-8">
         {/* Header */}
-        <div className="space-y-1">
+        <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Categories
@@ -138,6 +151,9 @@ export function CategoryAttributes() {
               Add Category
             </Button>
           </div>
+          <p className="text-base text-muted-foreground">
+            Add new categories whenever you need them, and customise each one with its own attributes. That way you only capture the information that's relevant to those assets.
+          </p>
         </div>
 
         {/* Content */}
@@ -180,23 +196,33 @@ export function CategoryAttributes() {
                       </div>
 
                       {/* "All [Category name]" as first item */}
-                      <div
-                        className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg pl-6 sm:pl-8"
-                        onClick={() => handleCategorySelect(parent.id)}
-                      >
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-hw-text truncate font-normal">
-                            All {parent.name}
-                          </div>
-                        </div>
+                      {(() => {
+                        const isCustom = isCustomCategory(parent.id);
+                        return (
+                          <div
+                            className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg pl-6 sm:pl-8"
+                            onClick={() => handleCategorySelect(parent.id)}
+                          >
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <div className="text-sm text-hw-text truncate font-normal">
+                                All {parent.name}
+                              </div>
+                            </div>
 
-                        {/* Right side actions */}
-                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                          {/* Chevron */}
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
+                            {/* Right side actions */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {isCustom && (
+                                <Badge variant="secondary" className="text-xs shrink-0">
+                                  Custom
+                                </Badge>
+                              )}
+                              {/* Chevron */}
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Children Categories - Always shown when they exist */}
                       {hasChildren && (
@@ -232,3 +258,4 @@ export function CategoryAttributes() {
     </div>
   );
 }
+

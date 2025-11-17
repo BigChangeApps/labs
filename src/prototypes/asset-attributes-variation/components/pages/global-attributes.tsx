@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
 import {
@@ -25,6 +25,7 @@ const sectionLabels: Record<GlobalAttributeSection, string> = {
   dates: "Dates & Lifecycle",
   warranty: "Warranty",
   custom: "Custom",
+  "your-attributes": "Your attributes",
 };
 
 export function GlobalAttributes() {
@@ -68,13 +69,8 @@ export function GlobalAttributes() {
     "contact",
     "dates",
     "warranty",
+    "your-attributes",
   ];
-
-  // Handle opening create drawer for a specific section
-  const handleAddAttribute = (section: GlobalAttributeSection) => {
-    setCreateDrawerSection(section);
-    setCreateDrawerOpen(true);
-  };
 
   // Handle opening detail drawer
   const handleViewDetails = (attributeId: string) => {
@@ -124,9 +120,20 @@ export function GlobalAttributes() {
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Global Attributes
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Global Attributes
+            </h1>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setCreateDrawerOpen(true)}
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              Add attribute
+            </Button>
+          </div>
           <p className="text-sm sm:text-base text-muted-foreground">
             Manage universal fields that appear on every asset
           </p>
@@ -151,19 +158,11 @@ export function GlobalAttributes() {
 
             return (
               <div key={section} className="space-y-3 sm:space-y-4">
-                {/* Section Header with Add CTA */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Section Header */}
+                <div>
                   <h2 className="font-bold text-base">
                     {sectionLabels[section]}
                   </h2>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleAddAttribute(section)}
-                    className="shrink-0"
-                  >
-                    Add attribute
-                  </Button>
                 </div>
 
                 {/* Attributes List */}

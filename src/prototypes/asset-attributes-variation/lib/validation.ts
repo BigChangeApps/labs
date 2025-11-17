@@ -10,7 +10,7 @@ const globalAttributeSectionSchema = z.enum([
   "contact",
   "dates",
   "warranty",
-  "custom",
+  "your-attributes",
 ]);
 
 // Attribute form schema for category and global attributes
@@ -40,7 +40,7 @@ export const attributeFormSchema = z.object({
 
   isEnabled: z.boolean().default(true),
 
-  section: globalAttributeSectionSchema.default("custom"),
+  section: globalAttributeSectionSchema.default("your-attributes"),
 })
   .refine(
     (data) => {
@@ -69,7 +69,20 @@ export const manufacturerFormSchema = z.object({
     .default([""]),
 });
 
+// Category form schema
+export const categoryFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Category name is required")
+    .max(100, "Name must be 100 characters or less"),
+
+  parentId: z
+    .string()
+    .min(1, "Asset category group is required"),
+});
+
 // Type inference helpers
 export type AttributeFormValues = z.infer<typeof attributeFormSchema>;
 export type ManufacturerFormValues = z.infer<typeof manufacturerFormSchema>;
+export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 

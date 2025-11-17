@@ -72,7 +72,7 @@ export function AttributeAddDrawer({
   const description =
     context === "category"
       ? "Create a new attribute for this category"
-      : "Add a new custom attribute to the Custom Attributes section.";
+      : "Add a new custom attribute to your global attributes.";
 
   const formId = "attribute-add-form";
 
