@@ -2,7 +2,7 @@ import type {
   Attribute,
   Category,
   Manufacturer,
-  CoreAttribute,
+  GlobalAttribute,
 } from "../types";
 
 // Pre-defined category-specific attributes (can be toggled on/off but not edited)
@@ -1289,13 +1289,23 @@ export const categories: Category[] = [
     systemAttributes: [],
     customAttributes: [],
   },
+
+  // Other (for custom categories)
+  {
+    id: "other",
+    name: "Other",
+    parentId: undefined,
+    children: [],
+    systemAttributes: [],
+    customAttributes: [],
+  },
 ];
 
-// Core attributes that apply to all assets
-export const coreAttributes: CoreAttribute[] = [
+// Global attributes that apply to all assets
+export const globalAttributes: GlobalAttribute[] = [
   // Asset Information
   {
-    id: "core-asset-id",
+    id: "global-asset-id",
     label: "Asset ID",
     type: "text",
     section: "asset-info",
@@ -1305,7 +1315,7 @@ export const coreAttributes: CoreAttribute[] = [
     detailedDescription: "This is an internal asset ID set by us. It allows you to search and find your asset easily.",
   },
   {
-    id: "core-customer-reference",
+    id: "global-customer-reference",
     label: "Reference",
     type: "text",
     section: "asset-info",
@@ -1313,7 +1323,7 @@ export const coreAttributes: CoreAttribute[] = [
     isRequired: false,
   },
   {
-    id: "core-barcode",
+    id: "global-barcode",
     label: "Barcode",
     type: "text",
     section: "asset-info",
@@ -1322,7 +1332,7 @@ export const coreAttributes: CoreAttribute[] = [
     detailedDescription: "A unique identifier that can be scanned to quickly access asset information.",
   },
   {
-    id: "core-category",
+    id: "global-category",
     label: "Category",
     type: "dropdown",
     section: "asset-info",
@@ -1332,7 +1342,7 @@ export const coreAttributes: CoreAttribute[] = [
     detailedDescription: "We provide you with access to a robust category structure to help you get the most out of the system. Categories group assets by type, helping organize and filter your asset inventory. If you have any suggestions for improvements, please let us know.",
   },
   {
-    id: "core-manufacturer",
+    id: "global-manufacturer",
     label: "Manufacturer",
     type: "dropdown",
     section: "asset-info",
@@ -1341,7 +1351,7 @@ export const coreAttributes: CoreAttribute[] = [
     detailedDescription: "This attribute displays manufacturers from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
-    id: "core-model",
+    id: "global-model",
     label: "Model",
     type: "dropdown",
     section: "asset-info",
@@ -1350,7 +1360,7 @@ export const coreAttributes: CoreAttribute[] = [
     detailedDescription: "This attribute displays models from your manufacturers list. Options are managed in the Manufacturers & Models section, not as predefined dropdown values.",
   },
   {
-    id: "core-manufacturer-serial",
+    id: "global-manufacturer-serial",
     label: "Manufacturer serial number",
     type: "text",
     section: "asset-info",
@@ -1358,7 +1368,7 @@ export const coreAttributes: CoreAttribute[] = [
     isRequired: false,
   },
   {
-    id: "core-date-manufacture",
+    id: "global-date-manufacture",
     label: "Date of manufacture",
     type: "date",
     section: "asset-info",
@@ -1366,7 +1376,7 @@ export const coreAttributes: CoreAttribute[] = [
     isRequired: false,
   },
   {
-    id: "core-date-installation",
+    id: "global-date-installation",
     label: "Date of installation",
     type: "date",
     section: "asset-info",
@@ -1374,7 +1384,7 @@ export const coreAttributes: CoreAttribute[] = [
     isRequired: false,
   },
   {
-    id: "core-date-last-service",
+    id: "global-date-last-service",
     label: "Date of last service",
     type: "date",
     section: "asset-info",
@@ -1385,7 +1395,7 @@ export const coreAttributes: CoreAttribute[] = [
 
   // End of Life
   {
-    id: "core-end-of-life",
+    id: "global-end-of-life",
     label: "End of life date",
     type: "date",
     section: "dates",
@@ -1395,7 +1405,7 @@ export const coreAttributes: CoreAttribute[] = [
 
   // Warranty
   {
-    id: "core-warranty-expiry",
+    id: "global-warranty-expiry",
     label: "Warranty expiry date",
     type: "date",
     section: "warranty",
@@ -1405,7 +1415,7 @@ export const coreAttributes: CoreAttribute[] = [
 
   // Status
   {
-    id: "core-status",
+    id: "global-status",
     label: "Status",
     type: "dropdown",
     section: "status",
@@ -1416,7 +1426,7 @@ export const coreAttributes: CoreAttribute[] = [
 
   // Contact & Location
   {
-    id: "core-contact",
+    id: "global-contact",
     label: "Site",
     type: "search",
     section: "contact",
@@ -1425,7 +1435,7 @@ export const coreAttributes: CoreAttribute[] = [
     description: "The site where this asset is located",
   },
   {
-    id: "core-location",
+    id: "global-location",
     label: "Location",
     type: "text",
     section: "contact",
@@ -1437,7 +1447,7 @@ export const coreAttributes: CoreAttribute[] = [
 
   // Condition
   {
-    id: "core-condition",
+    id: "global-condition",
     label: "Condition",
     type: "dropdown",
     section: "status",

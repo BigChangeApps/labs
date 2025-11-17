@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
-import { Alert, AlertDescription } from "@/registry/ui/alert";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -106,7 +106,9 @@ export function CategoryAttributesDetail() {
     customCategoryAttributes,
     toggleAttribute,
     reorderAttributes,
+    getInheritedAttributes,
   } = useAttributeStore();
+  const [isInheritedExpanded, setIsInheritedExpanded] = useState(true);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -132,12 +134,18 @@ export function CategoryAttributesDetail() {
           to="/asset-attributes-variation/attributes"
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
         >
-          ← Back to attributes
+          ← Back to categories
         </Link>
         <p className="text-muted-foreground">Category not found</p>
       </div>
     );
   }
+
+  const isChildCategory = !!category.parentId;
+  const inheritedAttributes = isChildCategory ? getInheritedAttributes(categoryId) : [];
+  const parentCategory = category.parentId
+    ? categories.find((c: Category) => c.id === category.parentId)
+    : null;
 
   // Type for attributes with display metadata
   type AttributeWithSource = {
@@ -148,6 +156,9 @@ export function CategoryAttributesDetail() {
     source: "system" | "custom";
     isDeletable: boolean;
     isToggleable: boolean;
+    isInherited?: boolean;
+    parentCategoryId?: string;
+    parentCategoryName?: string;
   };
 
   // Build all attributes array (both system and custom)
@@ -260,36 +271,15 @@ export function CategoryAttributesDetail() {
           to="/asset-attributes-variation/attributes"
           className="text-sm text-muted-foreground hover:text-foreground inline-block"
         >
-          ← Back to attributes
+          ← Back to categories
         </Link>
 
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {category.name}
-          </h1>
-        </div>
-
-        {/* Core Attributes Inheritance Alert */}
-        <Alert className="bg-muted/50 border-muted">
-          <AlertDescription className="text-sm text-muted-foreground">
-            This category will inherit all core attributes and settings. <br></br>To edit attributes that apply to all
-            assets, see{" "}
-            <Link
-              to="/asset-attributes-variation/core-attributes"
-              className="text-primary underline hover:text-primary/80"
-            >
-              core attributes
-            </Link>
-            .
-          </AlertDescription>
-        </Alert>
-
-        {/* Attributes Section - Unified display of all attributes */}
-        <div className="space-y-3 sm:space-y-4">
-          {/* Section Header with Add CTA */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 className="font-bold text-base">Attributes</h2>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              {category.name}
+            </h1>
             <Button
               variant="secondary"
               size="sm"
@@ -299,7 +289,60 @@ export function CategoryAttributesDetail() {
               Add attributes
             </Button>
           </div>
+          {parentCategory && (
+            <p className="text-base text-muted-foreground">
+              Part of {parentCategory.name}
+            </p>
+          )}
+        </div>
 
+        {/* Inherited Attributes Section */}
+        {isChildCategory && inheritedAttributes.length > 0 && (
+          <div className="space-y-3 sm:space-y-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto font-bold text-base hover:bg-transparent"
+              onClick={() => setIsInheritedExpanded(!isInheritedExpanded)}
+            >
+              <span>Inherited Attributes</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-normal text-muted-foreground">
+                  {inheritedAttributes.length} attribute{inheritedAttributes.length !== 1 ? "s" : ""}
+                </span>
+                {isInheritedExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </div>
+            </Button>
+            {isInheritedExpanded && (
+              <div className="pt-3">
+                <div className="rounded-lg border bg-card divide-y">
+                  {inheritedAttributes.map((item) => (
+                    <AttributeCard
+                      key={item.attributeId}
+                      attribute={item.attribute}
+                      variant={item.source === "custom" ? "custom" : "predefined"}
+                      isEnabled={item.isEnabled}
+                      onClick={() => {
+                        setSelectedAttributeId(item.attributeId);
+                        setIsDetailDrawerOpen(true);
+                      }}
+                      showSeparator={false}
+                      isDraggable={false}
+                      isInherited={true}
+                      inheritedFrom={item.parentCategoryName}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Attributes Section - Unified display of all attributes */}
+        <div className="space-y-3 sm:space-y-4">
           {/* Conditional rendering based on attributes */}
           {allAttributes.length === 0 ? (
             <div className="rounded-lg border bg-card">
@@ -317,6 +360,24 @@ export function CategoryAttributesDetail() {
 
       {/* Attribute Detail Drawer - Show View or Edit based on attribute type */}
       {selectedAttributeId && (() => {
+        // Check if it's an inherited attribute
+        const inheritedItem = inheritedAttributes.find(
+          (item) => item.attributeId === selectedAttributeId
+        );
+        
+        if (inheritedItem) {
+          // Inherited attributes are always view-only
+          return (
+            <AttributeViewDrawer
+              attributeId={selectedAttributeId}
+              open={isDetailDrawerOpen}
+              onOpenChange={setIsDetailDrawerOpen}
+              context="category"
+              categoryId={inheritedItem.parentCategoryId}
+            />
+          );
+        }
+
         // Find the attribute in our combined list to determine its source
         const attributeItem = allAttributes.find(
           (item) => item.attributeId === selectedAttributeId

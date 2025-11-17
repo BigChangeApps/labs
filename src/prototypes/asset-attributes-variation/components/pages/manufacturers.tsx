@@ -113,31 +113,31 @@ export function Manufacturers() {
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Manufacturers
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage manufacturers and their models for your assets.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Manufacturers
+            </h1>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsDrawerOpen(true)}
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              Add Manufacturer
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search manufacturers or models..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Button
-            onClick={() => setIsDrawerOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Manufacturer
-          </Button>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search manufacturers or models..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
         <div className="border rounded-lg overflow-x-auto">

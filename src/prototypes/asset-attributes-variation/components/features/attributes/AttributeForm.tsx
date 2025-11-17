@@ -1,7 +1,7 @@
 import React, { useEffect, useImperativeHandle, useState, useRef } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AttributeType, Attribute, CoreAttribute } from "../../../types";
+import type { AttributeType, Attribute, GlobalAttribute } from "../../../types";
 import { attributeTypeConfigs } from "../../../lib/utils";
 import { attributeFormSchema } from "../../../lib/validation";
 import {
@@ -27,7 +27,7 @@ import { X, Plus, CornerDownLeft } from "lucide-react";
 import { AttributePreferredField } from "./fields/AttributePreferredField";
 
 export type AttributeFormMode = "add" | "edit";
-export type AttributeFormContext = "category" | "core";
+export type AttributeFormContext = "category" | "global";
 
 export interface AttributeFormData {
   label: string;
@@ -154,8 +154,8 @@ export const AttributeForm = React.forwardRef<
         : [],
       units: typeConfig.supportsUnits && data.units ? data.units.trim() : "",
       isPreferred: context === "category" ? data.isPreferred : false,
-      isEnabled: context === "core" ? data.isEnabled : true,
-      section: context === "core" ? data.section : undefined,
+      isEnabled: context === "global" ? data.isEnabled : true,
+      section: context === "global" ? data.section : undefined,
     };
 
     onSubmit(formData);
@@ -418,12 +418,12 @@ export const AttributeForm = React.forwardRef<
   );
 });
 
-// Export helper to convert form data to Attribute or CoreAttribute
+// Export helper to convert form data to Attribute or GlobalAttribute
 export function formDataToAttribute(
   formData: AttributeFormData
-): Omit<Attribute, "id"> | Omit<CoreAttribute, "id"> {
+): Omit<Attribute, "id"> | Omit<GlobalAttribute, "id"> {
   if (formData.section !== undefined) {
-    // Core attribute
+    // Global attribute
     return {
       label: formData.label,
       type: formData.type,
@@ -436,7 +436,7 @@ export function formDataToAttribute(
           ? formData.dropdownOptions
           : undefined,
       units: formData.units || undefined,
-    } as Omit<CoreAttribute, "id">;
+    } as Omit<GlobalAttribute, "id">;
   } else {
     // Category attribute
     return {
@@ -454,22 +454,22 @@ export function formDataToAttribute(
   }
 }
 
-// Export helper to convert Attribute or CoreAttribute to form data
+// Export helper to convert Attribute or GlobalAttribute to form data
 export function attributeToFormData(
-  attribute: Attribute | CoreAttribute,
+  attribute: Attribute | GlobalAttribute,
   context: AttributeFormContext
 ): AttributeFormData {
-  if (context === "core") {
-    const coreAttr = attribute as CoreAttribute;
+  if (context === "global") {
+    const globalAttr = attribute as GlobalAttribute;
     return {
-      label: coreAttr.label,
-      type: coreAttr.type as AttributeType,
-      description: coreAttr.description || "",
-      dropdownOptions: coreAttr.dropdownOptions || [""],
-      units: coreAttr.units || "",
+      label: globalAttr.label,
+      type: globalAttr.type as AttributeType,
+      description: globalAttr.description || "",
+      dropdownOptions: globalAttr.dropdownOptions || [""],
+      units: globalAttr.units || "",
       isPreferred: false,
-      isEnabled: coreAttr.isEnabled,
-      section: coreAttr.section,
+      isEnabled: globalAttr.isEnabled,
+      section: globalAttr.section,
     };
   } else {
     const catAttr = attribute as Attribute;

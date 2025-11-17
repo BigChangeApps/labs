@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
 import {
@@ -12,14 +11,14 @@ import {
   DialogTitle,
 } from "@/registry/ui/dialog";
 import { useAttributeStore } from "../../lib/store";
-import type { CoreAttribute, CoreAttributeSection } from "../../types";
+import type { GlobalAttribute, GlobalAttributeSection } from "../../types";
 import { AttributeViewDrawer } from "../features/attributes/AttributeViewDrawer";
 import { AttributeEditDrawer } from "../features/attributes/AttributeEditDrawer";
 import { AttributeAddDrawer } from "../features/attributes/AttributeAddDrawer";
 import { AttributeCard, type AttributeCardVariant } from "../features/attributes/AttributeCard";
 import { toast } from "sonner";
 
-const sectionLabels: Record<CoreAttributeSection, string> = {
+const sectionLabels: Record<GlobalAttributeSection, string> = {
   "asset-info": "Asset Information",
   status: "Status & Condition",
   contact: "Contact & Location",
@@ -28,15 +27,15 @@ const sectionLabels: Record<CoreAttributeSection, string> = {
   custom: "Custom",
 };
 
-export function CoreAttributes() {
-  const { coreAttributes, toggleCoreAttribute, deleteCoreAttribute } = useAttributeStore();
+export function GlobalAttributes() {
+  const { globalAttributes, toggleGlobalAttribute, deleteGlobalAttribute } = useAttributeStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
-  const [createDrawerSection, setCreateDrawerSection] = useState<CoreAttributeSection | null>(null);
+  const [createDrawerSection, setCreateDrawerSection] = useState<GlobalAttributeSection | null>(null);
   const [selectedAttributeId, setSelectedAttributeId] = useState<string | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [attributeToDelete, setAttributeToDelete] = useState<CoreAttribute | null>(null);
+  const [attributeToDelete, setAttributeToDelete] = useState<GlobalAttribute | null>(null);
   const [deletingAttributeIds, setDeletingAttributeIds] = useState<Set<string>>(new Set());
 
   // Hide fundamental system attributes (Category and Asset ID) and Contact & Location section
@@ -45,13 +44,13 @@ export function CoreAttributes() {
   // Filter attributes based on search (include all attributes, required and optional)
   // Also include items being deleted so they can animate out
   const filteredAttributes = (searchQuery
-    ? coreAttributes.filter(
+    ? globalAttributes.filter(
         (attr) =>
           deletingAttributeIds.has(attr.id) ||
           attr.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           attr.description?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : coreAttributes
+    : globalAttributes
   ).filter((attr) => !hiddenAttributes.includes(attr.label));
 
   // Group attributes by section
@@ -61,9 +60,9 @@ export function CoreAttributes() {
     }
     acc[attr.section].push(attr);
     return acc;
-  }, {} as Record<CoreAttributeSection, CoreAttribute[]>);
+  }, {} as Record<GlobalAttributeSection, GlobalAttribute[]>);
 
-  const sections: CoreAttributeSection[] = [
+  const sections: GlobalAttributeSection[] = [
     "asset-info",
     "status",
     "contact",
@@ -72,7 +71,7 @@ export function CoreAttributes() {
   ];
 
   // Handle opening create drawer for a specific section
-  const handleAddAttribute = (section: CoreAttributeSection) => {
+  const handleAddAttribute = (section: GlobalAttributeSection) => {
     setCreateDrawerSection(section);
     setCreateDrawerOpen(true);
   };
@@ -84,12 +83,12 @@ export function CoreAttributes() {
   };
 
   // Determine variant based on attribute properties
-  const getAttributeVariant = (attribute: CoreAttribute): AttributeCardVariant => {
+  const getAttributeVariant = (attribute: GlobalAttribute): AttributeCardVariant => {
     if (attribute.isRequired) {
       return "system";
     }
     // Check if it's a custom attribute (created by user)
-    if (attribute.id.startsWith("core-custom-")) {
+    if (attribute.id.startsWith("global-custom-")) {
       return "custom";
     }
     return "predefined";
@@ -110,7 +109,7 @@ export function CoreAttributes() {
     
     // Wait for animation to complete, then remove from store and deleting set
     setTimeout(() => {
-      deleteCoreAttribute(attributeId);
+      deleteGlobalAttribute(attributeId);
       setDeletingAttributeIds((prev) => {
         const next = new Set(prev);
         next.delete(attributeId);
@@ -123,18 +122,10 @@ export function CoreAttributes() {
   return (
     <div className="w-full">
       <div className="space-y-4 sm:space-y-6">
-        {/* Back Button */}
-        <Link
-          to="/asset-attributes-variation/attributes"
-          className="text-sm text-muted-foreground hover:text-foreground inline-block"
-        >
-          ← Back to attributes
-        </Link>
-
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Core Attributes
+            Global Attributes
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Manage universal fields that appear on every asset
@@ -189,7 +180,7 @@ export function CoreAttributes() {
                         isEnabled={attribute.isEnabled}
                         onToggle={
                           variant !== "system"
-                            ? () => toggleCoreAttribute(attribute.id)
+                            ? () => toggleGlobalAttribute(attribute.id)
                             : undefined
                         }
                         onClick={() => handleViewDetails(attribute.id)}
@@ -205,20 +196,20 @@ export function CoreAttributes() {
         </div>
       </div>
 
-      {/* Create Core Attribute Drawer */}
+      {/* Create Global Attribute Drawer */}
       <AttributeAddDrawer
         open={createDrawerOpen}
         onOpenChange={(open) => {
           setCreateDrawerOpen(open);
           if (!open) setCreateDrawerSection(null);
         }}
-        context="core"
+        context="global"
         section={createDrawerSection}
       />
 
-      {/* Core Attribute Detail Drawer - Show View or Edit based on attribute type */}
+      {/* Global Attribute Detail Drawer - Show View or Edit based on attribute type */}
       {selectedAttributeId && (() => {
-        const attribute = coreAttributes.find((a: CoreAttribute) => a.id === selectedAttributeId);
+        const attribute = globalAttributes.find((a: GlobalAttribute) => a.id === selectedAttributeId);
         // Don't render drawer if attribute was deleted
         if (!attribute) return null;
         const variant = getAttributeVariant(attribute);
@@ -235,7 +226,7 @@ export function CoreAttributes() {
                   setSelectedAttributeId(null);
                 }
               }}
-              context="core"
+              context="global"
             />
           );
         } else {
@@ -249,7 +240,7 @@ export function CoreAttributes() {
                   setSelectedAttributeId(null);
                 }
               }}
-              context="core"
+              context="global"
             />
           );
         }
@@ -285,3 +276,6 @@ export function CoreAttributes() {
     </div>
   );
 }
+
+
+

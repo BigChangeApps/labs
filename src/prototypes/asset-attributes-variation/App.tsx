@@ -6,7 +6,7 @@ import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { CategoryAttributes } from "./components/pages/category-attributes";
 import { CategoryAttributesDetail } from "./components/pages/category-attributes-detail";
 import { Manufacturers } from "./components/pages/manufacturers";
-import { CoreAttributes } from "./components/pages/core-attributes";
+import { GlobalAttributes } from "./components/pages/global-attributes";
 import { Layout } from "./components/layout";
 
 function AssetAttributesVariationApp() {
@@ -40,7 +40,7 @@ function AssetAttributesVariationApp() {
                 path="category/:categoryId"
                 element={<CategoryAttributesDetail />}
               />
-              <Route path="core-attributes" element={<CoreAttributes />} />
+              <Route path="global-attributes" element={<GlobalAttributes />} />
               <Route path="manufacturers" element={<Manufacturers />} />
             </Route>
           </Routes>

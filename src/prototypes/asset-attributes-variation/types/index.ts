@@ -40,7 +40,7 @@ export interface Manufacturer {
   usedByCategories: string[];
 }
 
-export type CoreAttributeSection =
+export type GlobalAttributeSection =
   | "asset-info"
   | "status"
   | "contact"
@@ -48,11 +48,11 @@ export type CoreAttributeSection =
   | "warranty"
   | "custom";
 
-export interface CoreAttribute {
+export interface GlobalAttribute {
   id: string;
   label: string;
   type: AttributeType | "search";
-  section: CoreAttributeSection;
+  section: GlobalAttributeSection;
   isEnabled: boolean;
   isRequired: boolean;
   description?: string;

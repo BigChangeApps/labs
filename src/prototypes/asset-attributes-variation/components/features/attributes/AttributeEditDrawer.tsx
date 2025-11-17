@@ -23,7 +23,7 @@ import {
   type AttributeFormContext,
 } from "./AttributeForm";
 import { useAttributeStore } from "../../../lib/store";
-import type { Attribute, CoreAttribute } from "../../../types";
+import type { Attribute, GlobalAttribute } from "../../../types";
 import { toast } from "sonner";
 
 interface AttributeEditDrawerProps {
@@ -44,11 +44,11 @@ export function AttributeEditDrawer({
   const {
     predefinedCategoryAttributes,
     customCategoryAttributes,
-    coreAttributes,
+    globalAttributes,
     editAttribute,
-    editCoreAttribute,
+    editGlobalAttribute,
     deleteAttribute,
-    deleteCoreAttribute,
+    deleteGlobalAttribute,
     currentCategoryId,
   } = useAttributeStore();
 
@@ -77,15 +77,15 @@ export function AttributeEditDrawer({
           })()
         : null
       : attributeId
-        ? (coreAttributes.find((a: CoreAttribute) => a.id === attributeId) as
-            | CoreAttribute
+        ? (globalAttributes.find((a: GlobalAttribute) => a.id === attributeId) as
+            | GlobalAttribute
             | undefined)
         : null;
 
   const isSystemAttribute =
     context === "category"
       ? (attribute as Attribute)?.isSystem ?? false
-      : (attribute as CoreAttribute)?.isRequired ?? false;
+      : (attribute as GlobalAttribute)?.isRequired ?? false;
 
   // Convert attribute to form data
   const initialData =
@@ -113,8 +113,8 @@ export function AttributeEditDrawer({
       editAttribute(attributeId, catId, updates);
       toast.success(`Updated "${formData.label.trim()}"`);
     } else {
-      const updates = formDataToAttribute(formData) as Partial<CoreAttribute>;
-      editCoreAttribute(attributeId, updates);
+      const updates = formDataToAttribute(formData) as Partial<GlobalAttribute>;
+      editGlobalAttribute(attributeId, updates);
       toast.success(`Updated "${formData.label.trim()}"`);
     }
 
@@ -143,7 +143,7 @@ export function AttributeEditDrawer({
         deleteAttribute(attributeId, catId);
         toast.success(`Deleted "${attributeLabel}"`);
       } else {
-        deleteCoreAttribute(attributeId);
+        deleteGlobalAttribute(attributeId);
         toast.success(`Deleted "${attributeLabel}"`);
       }
       setIsDeleting(false);

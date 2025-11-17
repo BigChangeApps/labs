@@ -22,26 +22,44 @@ export function Layout() {
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       <NavLink
-        to="/asset-attributes-variation/attributes"
+        to="/asset-attributes-variation/global-attributes"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
-          // Check if we're on attributes, category detail, or core attributes routes
           const pathname = location.pathname;
-          const isAttributesRoute =
+          const isGlobalAttributesRoute =
             isActive ||
-            pathname.startsWith("/asset-attributes-variation/category/") ||
-            pathname === "/asset-attributes-variation/core-attributes" ||
-            pathname === "/asset-attributes-variation/core-attributes/";
+            pathname === "/asset-attributes-variation/global-attributes" ||
+            pathname === "/asset-attributes-variation/global-attributes/";
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
-            isAttributesRoute
+            isGlobalAttributesRoute
               ? "bg-hw-surface-subtle text-hw-text font-bold"
               : "text-hw-text hover:bg-accent font-normal"
           }`;
         }}
       >
-        Attributes
+        Global Attributes
+      </NavLink>
+      <NavLink
+        to="/asset-attributes-variation/attributes"
+        state={location.state}
+        onClick={onClick}
+        className={({ isActive }) => {
+          // Check if we're on categories or category detail routes
+          const pathname = location.pathname;
+          const isCategoriesRoute =
+            isActive ||
+            pathname.startsWith("/asset-attributes-variation/category/");
+          
+          return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            isCategoriesRoute
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
+          }`;
+        }}
+      >
+        Categories
       </NavLink>
       <NavLink
         to="/asset-attributes-variation/manufacturers"

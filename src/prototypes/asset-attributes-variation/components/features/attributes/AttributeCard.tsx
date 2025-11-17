@@ -8,11 +8,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/registry/ui/tooltip";
-import { GripVertical, BadgeCheck, Check } from "lucide-react";
-import type { Attribute, CoreAttribute } from "../../../types";
+import { GripVertical, BadgeCheck, Check, ArrowDown } from "lucide-react";
+import type { Attribute, GlobalAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
 
-type AttributeCardData = Attribute | CoreAttribute;
+type AttributeCardData = Attribute | GlobalAttribute;
 
 export type AttributeCardVariant = "system" | "predefined" | "custom";
 
@@ -26,6 +26,8 @@ export interface AttributeCardProps {
   showSeparator?: boolean;
   isDraggable?: boolean;
   dragHandleProps?: Record<string, unknown>;
+  isInherited?: boolean;
+  inheritedFrom?: string;
 }
 
 export function AttributeCard({
@@ -38,14 +40,16 @@ export function AttributeCard({
   showSeparator = true,
   isDraggable = false,
   dragHandleProps,
+  isInherited = false,
+  inheritedFrom,
 }: AttributeCardProps) {
   const IconComponent = getAttributeIcon(attribute.type);
 
   // All variants can be clicked to open side panel
   const isClickable = !!onClick;
 
-  // Determine if toggle should be shown (system attributes don't have toggles)
-  const showToggle = variant !== "system" && !!onToggle;
+  // Determine if toggle should be shown (system attributes and inherited attributes don't have toggles)
+  const showToggle = variant !== "system" && !!onToggle && !isInherited;
 
   // Handle card click
   const handleCardClick = (e: MouseEvent) => {
@@ -72,6 +76,8 @@ export function AttributeCard({
           isClickable ? "hover:bg-muted/50 cursor-pointer" : ""
         } ${
           variant === "custom" ? "bg-muted/30" : ""
+        } ${
+          isInherited ? "opacity-90" : ""
         }`}
         onClick={handleCardClick}
       >
@@ -97,6 +103,16 @@ export function AttributeCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="font-medium text-sm">{attribute.label}</span>
+              {isInherited && inheritedFrom && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-normal flex items-center gap-1"
+                  data-badge
+                >
+                  <ArrowDown className="h-3 w-3" />
+                  Inherited from {inheritedFrom}
+                </Badge>
+              )}
             </div>
             {attribute.description && (
               <p className="text-sm text-muted-foreground mt-1">

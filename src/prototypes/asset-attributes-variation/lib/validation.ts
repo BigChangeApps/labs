@@ -3,8 +3,8 @@ import { z } from "zod";
 // Base schema for attribute types
 const attributeTypeSchema = z.enum(["text", "number", "dropdown", "date", "boolean"]);
 
-// Base schema for core attribute sections
-const coreAttributeSectionSchema = z.enum([
+// Base schema for global attribute sections
+const globalAttributeSectionSchema = z.enum([
   "asset-info",
   "status",
   "contact",
@@ -13,7 +13,7 @@ const coreAttributeSectionSchema = z.enum([
   "custom",
 ]);
 
-// Attribute form schema for category and core attributes
+// Attribute form schema for category and global attributes
 export const attributeFormSchema = z.object({
   label: z
     .string()
@@ -40,7 +40,7 @@ export const attributeFormSchema = z.object({
 
   isEnabled: z.boolean().default(true),
 
-  section: coreAttributeSectionSchema.default("custom"),
+  section: globalAttributeSectionSchema.default("custom"),
 })
   .refine(
     (data) => {

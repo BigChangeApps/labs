@@ -14,7 +14,7 @@ import {
   type AttributeFormContext,
 } from "./AttributeForm";
 import { useAttributeStore } from "../../../lib/store";
-import type { CoreAttributeSection } from "../../../types";
+import type { GlobalAttributeSection } from "../../../types";
 import { toast } from "sonner";
 
 interface AttributeAddDrawerProps {
@@ -22,7 +22,7 @@ interface AttributeAddDrawerProps {
   onOpenChange: (open: boolean) => void;
   context: AttributeFormContext;
   categoryId?: string; // Required when context is "category"
-  section?: CoreAttributeSection | null; // Optional section for core attributes
+  section?: GlobalAttributeSection | null; // Optional section for global attributes
 }
 
 export function AttributeAddDrawer({
@@ -32,7 +32,7 @@ export function AttributeAddDrawer({
   categoryId,
   section,
 }: AttributeAddDrawerProps) {
-  const { addAttribute, addCoreAttribute, categories } = useAttributeStore();
+  const { addAttribute, addGlobalAttribute, categories } = useAttributeStore();
   const formRef = useRef<{ submit: () => void }>(null);
 
   const currentCategory = categories.find((c) => c.id === categoryId);
@@ -52,10 +52,10 @@ export function AttributeAddDrawer({
       const categoryName = currentCategory?.name || "category";
       toast.success(`Added to Library and applied to ${categoryName}`);
     } else {
-      const coreAttributeData = formDataToAttribute(formData) as Parameters<
-        typeof addCoreAttribute
+      const globalAttributeData = formDataToAttribute(formData) as Parameters<
+        typeof addGlobalAttribute
       >[0];
-      addCoreAttribute(coreAttributeData, section || undefined);
+      addGlobalAttribute(globalAttributeData, section || undefined);
 
       toast.success(`Added "${formData.label.trim()}"`);
     }

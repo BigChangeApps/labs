@@ -15,7 +15,7 @@ import {
 } from "./AttributeForm";
 import { AttributeViewContent } from "./AttributeViewContent";
 import { useAttributeStore } from "../../../lib/store";
-import type { Attribute, CoreAttribute } from "../../../types";
+import type { Attribute, GlobalAttribute } from "../../../types";
 import { toast } from "sonner";
 
 interface AttributeViewDrawerProps {
@@ -36,7 +36,7 @@ export function AttributeViewDrawer({
   const {
     predefinedCategoryAttributes,
     customCategoryAttributes,
-    coreAttributes,
+    globalAttributes,
     togglePreferred,
   } = useAttributeStore();
 
@@ -58,15 +58,15 @@ export function AttributeViewDrawer({
           })()
         : null
       : attributeId
-        ? (coreAttributes.find((a: CoreAttribute) => a.id === attributeId) as
-            | CoreAttribute
+        ? (globalAttributes.find((a: GlobalAttribute) => a.id === attributeId) as
+            | GlobalAttribute
             | undefined)
         : null;
 
   const isSystemAttribute =
     context === "category"
       ? (attribute as Attribute)?.isSystem ?? false
-      : (attribute as CoreAttribute)?.isRequired ?? false;
+      : (attribute as GlobalAttribute)?.isRequired ?? false;
 
   // Update local state when attribute changes
   useEffect(() => {
@@ -97,8 +97,8 @@ export function AttributeViewDrawer({
 
   const title = attribute.label;
   const description =
-    context === "core" && (attribute as CoreAttribute).detailedDescription
-      ? (attribute as CoreAttribute).detailedDescription
+    context === "global" && (attribute as GlobalAttribute).detailedDescription
+      ? (attribute as GlobalAttribute).detailedDescription
       : attribute.description || "This is a system attribute.";
 
   // Update form data with current toggle states
@@ -125,7 +125,7 @@ export function AttributeViewDrawer({
         />
 
         <div className="space-y-4">
-          {context === "core" && (
+          {context === "global" && (
             <Alert className="bg-muted/50 border-muted">
               <div className="space-y-3">
                 <AlertDescription className="text-sm text-muted-foreground">

@@ -1,45 +1,121 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Settings, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, Plus } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
 import { Input } from "@/registry/ui/input";
-import { Button } from "@/registry/ui/button";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
-import type { Category, CategoryAttributeConfig } from "../../types";
+import { Button } from "@/registry/ui/button";
+import { CategoryAddDialog } from "../features/attributes/CategoryAddDialog";
+import type { Category } from "../../types";
 
 export function CategoryAttributes() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Filter categories based on search query
-  const filteredCategories = searchQuery
-    ? categories.filter((c: { name: string }) =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : categories;
-
-  // Get categories for display - always alphabetical
-  const displayCategories = filteredCategories.sort(
-    (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedParentId, setSelectedParentId] = useState<string | undefined>(
+    undefined
   );
 
-  // Helper function to calculate enabled attribute count for a category
-  const getEnabledAttributeCount = (category: Category) => {
-    const systemCount =
-      category.systemAttributes?.filter((a: CategoryAttributeConfig) => a.isEnabled).length || 0;
-    const customCount =
-      category.customAttributes?.filter((a: CategoryAttributeConfig) => a.isEnabled).length || 0;
-    return systemCount + customCount;
-  };
+  // Organize categories into parent-child structure
+  const categoryTree = useMemo(() => {
+    const parentCategories = categories.filter((c: Category) => !c.parentId);
+    const childMap = new Map<string, Category[]>();
+    
+    // Build child map
+    categories.forEach((cat: Category) => {
+      if (cat.parentId) {
+        if (!childMap.has(cat.parentId)) {
+          childMap.set(cat.parentId, []);
+        }
+        childMap.get(cat.parentId)!.push(cat);
+      }
+    });
+
+    // Sort children alphabetically
+    childMap.forEach((children) => {
+      children.sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    // Sort parents alphabetically, but put "Other" at the end
+    return parentCategories.sort((a, b) => {
+      if (a.id === "other") return 1;
+      if (b.id === "other") return -1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [categories]);
+
+  // Filter categories based on search query
+  const { filteredTree, filteredChildrenMap } = useMemo(() => {
+    if (!searchQuery) {
+      return { filteredTree: categoryTree, filteredChildrenMap: new Map<string, Category[]>() };
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filteredParents: Category[] = [];
+    const filteredChildrenMap = new Map<string, Category[]>();
+
+    categoryTree.forEach((parent: Category) => {
+      const matchesParent = parent.name.toLowerCase().includes(query);
+      const matchingChildren: Category[] = [];
+
+      // Check children
+      const children = categories.filter(
+        (c: Category) => c.parentId === parent.id
+      );
+      children.forEach((child: Category) => {
+        if (child.name.toLowerCase().includes(query)) {
+          matchingChildren.push(child);
+        }
+      });
+
+      // Include parent if it matches or has matching children
+      if (matchesParent || matchingChildren.length > 0) {
+        filteredParents.push(parent);
+        if (matchingChildren.length > 0) {
+          filteredChildrenMap.set(parent.id, matchingChildren);
+        }
+      }
+    });
+
+    return { filteredTree: filteredParents, filteredChildrenMap };
+  }, [categoryTree, searchQuery, categories]);
+
 
   const handleCategorySelect = (categoryId: string) => {
     navigate(`/asset-attributes-variation/category/${categoryId}`);
   };
 
-  const handleAllCategoriesSelect = () => {
-    navigate("/asset-attributes-variation/core-attributes");
+  const handleAddCategory = (e: React.MouseEvent, parentId?: string) => {
+    e.stopPropagation();
+    setSelectedParentId(parentId);
+    setIsAddDialogOpen(true);
+  };
+
+  const renderCategoryItem = (category: Category, isChild: boolean = false) => {
+    return (
+      <div
+        key={category.id}
+        className={`flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg ${
+          isChild ? "pl-6 sm:pl-8" : ""
+        }`}
+        onClick={() => handleCategorySelect(category.id)}
+      >
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className={`text-sm text-hw-text truncate ${isChild ? "font-normal" : "font-medium"}`}>
+            {category.name}
+          </div>
+        </div>
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          {/* Chevron */}
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </div>
+    );
   };
 
   // Categories list view
@@ -48,53 +124,26 @@ export function CategoryAttributes() {
       <div className="flex flex-col gap-8">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Attributes
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Categories
+            </h1>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(e) => handleAddCategory(e)}
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              Add Category
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex flex-col gap-10">
-          {/* Core Attributes Card */}
-          <Card>
-            <CardContent className="p-2 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-4">
-                {/* Icon */}
-                <div className="bg-muted rounded-lg p-2">
-                  <Settings className="h-5 w-5 text-hw-text" />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="font-medium text-sm">Manage core attributes</div>
-                  <div className="text-sm text-muted-foreground">
-                    Manage the attributes that apply to all your assets
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAllCategoriesSelect}
-                >
-                  Manage
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Category Attributes Section */}
           <div className="space-y-3 sm:space-y-4">
-          {/* Section Header */}
-          <div className="space-y-2 pb-2">
-            <h2 className="font-medium text-lg">Category attributes</h2>
-            <p className="text-sm text-muted-foreground ">
-            Different asset categories may need their own data fields. Use category attributes to 
-            define and manage the information that’s unique to each type, helping you keep your assets organised.
-            </p>
-          </div>
-
           {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -106,49 +155,80 @@ export function CategoryAttributes() {
             />
           </div>
 
-          {/* Categories List */}
+          {/* Categories Tree */}
           <Card>
             <CardContent className="p-0">
-              {displayCategories.map((category, index) => {
-                const enabledCount = getEnabledAttributeCount(category);
+              {filteredTree.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">No categories found</p>
+                </div>
+              ) : (
+                filteredTree.map((parent: Category, parentIndex: number) => {
+                  // Use filtered children if searching, otherwise use all children
+                  const children = searchQuery && filteredChildrenMap.has(parent.id)
+                    ? filteredChildrenMap.get(parent.id)!
+                    : categories.filter((c: Category) => c.parentId === parent.id);
+                  const hasChildren = children.length > 0;
 
-                return (
-                  <div key={category.id}>
-                    <div
-                      className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer"
-                      onClick={() => handleCategorySelect(category.id)}
-                    >
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-hw-text truncate">
-                          {category.name}
+                  return (
+                    <div key={parent.id}>
+                      {/* Parent Category as Heading */}
+                      <div className="px-3 sm:px-4 py-3 border-b bg-muted/30">
+                        <div className="text-sm font-bold text-muted-foreground tracking-wide">
+                          {parent.name}
                         </div>
                       </div>
 
-                      {/* Right side actions */}
-                      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                        {/* Attribute Count */}
-                        {enabledCount > 0 && (
-                          <div className="px-2 py-1 bg-muted text-xs font-medium text-hw-text rounded-full">
-                            {enabledCount}
+                      {/* "All [Category name]" as first item */}
+                      <div
+                        className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg pl-6 sm:pl-8"
+                        onClick={() => handleCategorySelect(parent.id)}
+                      >
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-hw-text truncate font-normal">
+                            All {parent.name}
                           </div>
-                        )}
+                        </div>
 
-                        {/* Actions */}
-                        <div className="p-2">
+                        {/* Right side actions */}
+                        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                          {/* Chevron */}
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </div>
+
+                      {/* Children Categories - Always shown when they exist */}
+                      {hasChildren && (
+                        <div>
+                          {children.map((child: Category, childIndex: number) => (
+                            <div key={child.id}>
+                              {childIndex === 0 && <Separator />}
+                              {renderCategoryItem(child, true)}
+                              {childIndex < children.length - 1 && <Separator />}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Separator between parent groups */}
+                      {parentIndex < filteredTree.length - 1 && <Separator />}
                     </div>
-                    {index < displayCategories.length - 1 && <Separator />}
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </CardContent>
           </Card>
           </div>
         </div>
       </div>
+
+      {/* Add Category Dialog */}
+      <CategoryAddDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        parentId={selectedParentId}
+      />
     </div>
   );
 }

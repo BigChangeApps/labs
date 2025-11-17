@@ -4,14 +4,14 @@ import type {
   Category,
   Manufacturer,
   CategoryAttributeConfig,
-  CoreAttribute,
-  CoreAttributeSection,
+  GlobalAttribute,
+  GlobalAttributeSection,
 } from "../types";
 import {
   predefinedCategoryAttributes as initialPredefinedCategoryAttributes,
   categories as initialCategories,
   manufacturers as initialManufacturers,
-  coreAttributes as initialCoreAttributes,
+  globalAttributes as initialGlobalAttributes,
 } from "./mock-data";
 
 interface AttributeStore {
@@ -23,12 +23,24 @@ interface AttributeStore {
   customCategoryAttributes: Record<string, Attribute[]>; // User-created category-specific attributes
   categories: Category[];
   manufacturers: Manufacturer[];
-  coreAttributes: CoreAttribute[];
+  globalAttributes: GlobalAttribute[];
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
   setSelectedCategoryView: (categoryId: string | null) => void;
   setCurrentSettingsTab: (tab: "categories" | "library") => void;
+
+  // Helper functions
+  getCategoryPath: (categoryId: string) => Category[];
+  getInheritedAttributes: (categoryId: string) => Array<{
+    attributeId: string;
+    isEnabled: boolean;
+    order: number;
+    attribute: Attribute;
+    source: "system" | "custom";
+    parentCategoryId: string;
+    parentCategoryName: string;
+  }>;
 
   // Attribute actions
   toggleAttribute: (
@@ -57,11 +69,16 @@ interface AttributeStore {
   editModel: (manufacturerId: string, modelId: string, name: string) => void;
   deleteModel: (manufacturerId: string, modelId: string) => void;
 
-  // Core attribute actions
-  toggleCoreAttribute: (attributeId: string) => void;
-  addCoreAttribute: (attribute: Omit<CoreAttribute, "id">, section?: CoreAttributeSection) => string;
-  editCoreAttribute: (attributeId: string, updates: Partial<CoreAttribute>) => void;
-  deleteCoreAttribute: (attributeId: string) => void;
+  // Global attribute actions
+  toggleGlobalAttribute: (attributeId: string) => void;
+  addGlobalAttribute: (attribute: Omit<GlobalAttribute, "id">, section?: GlobalAttributeSection) => string;
+  editGlobalAttribute: (attributeId: string, updates: Partial<GlobalAttribute>) => void;
+  deleteGlobalAttribute: (attributeId: string) => void;
+
+  // Category actions
+  addCategory: (name: string, parentId?: string) => string;
+  editCategory: (categoryId: string, name: string) => void;
+  deleteCategory: (categoryId: string) => void;
 }
 
 export const useAttributeStore = create<AttributeStore>((set) => ({
@@ -73,7 +90,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   customCategoryAttributes: {}, // Start empty - users create these
   categories: initialCategories,
   manufacturers: initialManufacturers,
-  coreAttributes: initialCoreAttributes,
+  globalAttributes: initialGlobalAttributes,
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -110,6 +127,76 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     }
 
     return path;
+  },
+
+  // Get inherited attributes from all parent categories
+  getInheritedAttributes: (categoryId: string) => {
+    const state = useAttributeStore.getState();
+    const category = state.categories.find((c: Category) => c.id === categoryId);
+    if (!category || !category.parentId) {
+      return [];
+    }
+
+    const inheritedAttributes: Array<{
+      attributeId: string;
+      isEnabled: boolean;
+      order: number;
+      attribute: Attribute;
+      source: "system" | "custom";
+      parentCategoryId: string;
+      parentCategoryName: string;
+    }> = [];
+
+    // Walk up the parent chain to collect all inherited attributes
+    let currentParentId: string | undefined = category.parentId;
+    while (currentParentId) {
+      const parentCategory = state.categories.find(
+        (c: Category) => c.id === currentParentId
+      );
+      if (!parentCategory) break;
+
+      // Collect system attributes from parent
+      parentCategory.systemAttributes.forEach((config: CategoryAttributeConfig) => {
+        const predefinedAttrs = state.predefinedCategoryAttributes[currentParentId!] || [];
+        const attribute = predefinedAttrs.find(
+          (a: Attribute) => a.id === config.attributeId
+        );
+        if (attribute && config.isEnabled) {
+          inheritedAttributes.push({
+            ...config,
+            attribute,
+            source: "system",
+            parentCategoryId: currentParentId!,
+            parentCategoryName: parentCategory.name,
+          });
+        }
+      });
+
+      // Collect custom attributes from parent
+      parentCategory.customAttributes.forEach((config: CategoryAttributeConfig) => {
+        const customAttrs = state.customCategoryAttributes[currentParentId!] || [];
+        const attribute = customAttrs.find(
+          (a: Attribute) => a.id === config.attributeId
+        );
+        if (attribute && config.isEnabled) {
+          inheritedAttributes.push({
+            ...config,
+            attribute,
+            source: "custom",
+            parentCategoryId: currentParentId!,
+            parentCategoryName: parentCategory.name,
+          });
+        }
+      });
+
+      // Move to next parent level
+      currentParentId = parentCategory.parentId;
+    }
+
+    // Sort by order
+    inheritedAttributes.sort((a, b) => a.order - b.order);
+
+    return inheritedAttributes;
   },
 
   // Toggle attribute on/off for a category
@@ -404,52 +491,125 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     }));
   },
 
-  // Toggle core attribute on/off
-  toggleCoreAttribute: (attributeId) => {
+  // Toggle global attribute on/off
+  toggleGlobalAttribute: (attributeId) => {
     set((state) => {
-      const coreAttributes = state.coreAttributes.map((attr) =>
+      const globalAttributes = state.globalAttributes.map((attr) =>
         attr.id === attributeId && !attr.isRequired
           ? { ...attr, isEnabled: !attr.isEnabled }
           : attr
       );
 
-      return { coreAttributes };
+      return { globalAttributes };
     });
   },
 
-  addCoreAttribute: (attribute, section) => {
-    const newId = `core-custom-${Date.now()}`;
-    const newCoreAttribute: CoreAttribute = {
+  addGlobalAttribute: (attribute, section) => {
+    const newId = `global-custom-${Date.now()}`;
+    const newGlobalAttribute: GlobalAttribute = {
       ...attribute,
       id: newId,
       section: section || attribute.section || "custom", // Use provided section or attribute's section, fallback to custom
     };
 
     set((state) => {
-      const coreAttributes = [...state.coreAttributes, newCoreAttribute];
-      return { coreAttributes };
+      const globalAttributes = [...state.globalAttributes, newGlobalAttribute];
+      return { globalAttributes };
     });
 
     return newId;
   },
 
-  editCoreAttribute: (attributeId, updates) => {
+  editGlobalAttribute: (attributeId, updates) => {
     set((state) => {
-      const coreAttributes = state.coreAttributes.map((attr) =>
+      const globalAttributes = state.globalAttributes.map((attr) =>
         attr.id === attributeId ? { ...attr, ...updates } : attr
       );
 
-      return { coreAttributes };
+      return { globalAttributes };
     });
   },
 
-  deleteCoreAttribute: (attributeId) => {
+  deleteGlobalAttribute: (attributeId) => {
     set((state) => {
-      const coreAttributes = state.coreAttributes.filter(
+      const globalAttributes = state.globalAttributes.filter(
         (attr) => attr.id !== attributeId
       );
 
-      return { coreAttributes };
+      return { globalAttributes };
+    });
+  },
+
+  // Add new category
+  addCategory: (name, parentId) => {
+    const newId = `category-${Date.now()}`;
+    set((state) => {
+      const newCategory: Category = {
+        id: newId,
+        name,
+        parentId,
+        children: [],
+        systemAttributes: [],
+        customAttributes: [],
+      };
+
+      // Update parent's children array if parent exists
+      const updatedCategories = state.categories.map((cat) => {
+        if (cat.id === parentId) {
+          return {
+            ...cat,
+            children: [...(cat.children || []), newId],
+          };
+        }
+        return cat;
+      });
+
+      return {
+        categories: [...updatedCategories, newCategory],
+      };
+    });
+
+    return newId;
+  },
+
+  // Edit category name
+  editCategory: (categoryId, name) => {
+    set((state) => {
+      const categories = state.categories.map((cat) =>
+        cat.id === categoryId ? { ...cat, name } : cat
+      );
+
+      return { categories };
+    });
+  },
+
+  // Delete category
+  deleteCategory: (categoryId) => {
+    set((state) => {
+      const category = state.categories.find((c) => c.id === categoryId);
+      if (!category) return {};
+
+      // Remove from parent's children array
+      const updatedCategories = state.categories
+        .map((cat) => {
+          if (cat.id === category.parentId) {
+            return {
+              ...cat,
+              children: (cat.children || []).filter((id) => id !== categoryId),
+            };
+          }
+          return cat;
+        })
+        .filter((cat) => cat.id !== categoryId); // Remove the category itself
+
+      // Also remove any custom attributes associated with this category
+      const customCategoryAttributes = { ...state.customCategoryAttributes };
+      delete customCategoryAttributes[categoryId];
+
+      return {
+        categories: updatedCategories,
+        customCategoryAttributes,
+      };
     });
   },
 }));
