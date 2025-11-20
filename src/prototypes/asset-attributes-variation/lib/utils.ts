@@ -118,3 +118,21 @@ export const attributeTypes: { value: AttributeType; label: string }[] =
     label: config.label,
   }));
 
+/**
+ * Format an ISO date string to "DD MMMM YYYY" format (e.g., "30 June 2025")
+ */
+export function formatDateLong(dateString: string | undefined | null): string {
+  if (!dateString) return "";
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+

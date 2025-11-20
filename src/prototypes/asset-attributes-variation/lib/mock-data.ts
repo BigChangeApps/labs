@@ -1361,7 +1361,7 @@ export const globalAttributes: GlobalAttribute[] = [
   },
   {
     id: "global-manufacturer-serial",
-    label: "Manufacturer serial number",
+    label: "Serial number",
     type: "text",
     section: "asset-info",
     isEnabled: true,
@@ -1494,6 +1494,16 @@ export const manufacturers: Manufacturer[] = [
       { id: "colorvu", name: "ColorVu" },
     ],
     usedByCategories: ["cctv-camera", "nvr"],
+  },
+  {
+    id: "ubiquiti",
+    name: "Ubiquiti",
+    models: [
+      { id: "doorbell-lite", name: "Doorbell Lite" },
+      { id: "g4-doorbell", name: "G4 Doorbell" },
+      { id: "g6-entry", name: "G6 Entry" },
+    ],
+    usedByCategories: ["cctv-camera"],
   },
   {
     id: "honeywell",

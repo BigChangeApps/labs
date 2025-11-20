@@ -3,14 +3,18 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/registry/ui/tooltip";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
+import { CategoryAddButtonToggle } from "@/components/CategoryAddButtonToggle";
 import { Categories } from "./components/pages/categories";
 import { CategoryDetail } from "./components/pages/category-detail";
 import { Manufacturers } from "./components/pages/manufacturers";
 import { GlobalAttributes } from "./components/pages/global-attributes";
+import { CreateAsset } from "./components/pages/create-asset";
+import { EditAsset } from "./components/pages/edit-asset";
 import { Layout } from "./components/layout";
 
 function AssetAttributesVariationApp() {
   const location = useLocation();
+  const showInternal = import.meta.env.VITE_SHOW_INTERNAL !== "false";
 
   // Set page title
   useEffect(() => {
@@ -31,6 +35,7 @@ function AssetAttributesVariationApp() {
     <TooltipProvider>
       <div className="h-screen bg-background flex flex-col overflow-hidden">
         <PrototypeBanner deviceType="desktop" />
+        {showInternal && <CategoryAddButtonToggle />}
         <div className="flex-1 overflow-hidden pt-[61px]">
           <Routes>
             <Route element={<Layout />}>
@@ -42,6 +47,9 @@ function AssetAttributesVariationApp() {
               />
               <Route path="global-attributes" element={<GlobalAttributes />} />
               <Route path="manufacturers" element={<Manufacturers />} />
+              <Route path="create-asset" element={<CreateAsset />} />
+              <Route path="create-asset/:categoryId" element={<CreateAsset />} />
+              <Route path="edit-asset/:assetId" element={<EditAsset />} />
             </Route>
           </Routes>
         </div>

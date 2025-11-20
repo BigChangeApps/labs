@@ -75,6 +75,44 @@ export function Layout() {
       >
         Manufacturers
       </NavLink>
+      <NavLink
+        to="/asset-attributes-variation/create-asset"
+        state={location.state}
+        onClick={onClick}
+        className={({ isActive }) => {
+          const pathname = location.pathname;
+          const isCreateAssetRoute =
+            isActive ||
+            pathname.startsWith("/asset-attributes-variation/create-asset");
+          
+          return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            isCreateAssetRoute
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
+          }`;
+        }}
+      >
+        Create Asset
+      </NavLink>
+      <NavLink
+        to="/asset-attributes-variation/edit-asset/0001"
+        state={location.state}
+        onClick={onClick}
+        className={({ isActive }) => {
+          const pathname = location.pathname;
+          const isEditAssetRoute =
+            isActive ||
+            pathname.startsWith("/asset-attributes-variation/edit-asset/");
+          
+          return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            isEditAssetRoute
+              ? "bg-hw-surface-subtle text-hw-text font-bold"
+              : "text-hw-text hover:bg-accent font-normal"
+          }`;
+        }}
+      >
+        Edit Asset
+      </NavLink>
     </nav>
   );
 
@@ -122,7 +160,12 @@ export function Layout() {
         {/* Page Content - Centered */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="flex justify-center">
-            <div className="w-full max-w-[700px] px-3 sm:px-6 py-4 sm:py-8">
+            <div className={`w-full px-3 sm:px-6 py-4 sm:py-8 ${
+              location.pathname.includes("create-asset") ||
+              location.pathname.includes("edit-asset")
+                ? "max-w-[1050px]"
+                : "max-w-[700px]"
+            }`}>
               <Outlet />
             </div>
           </div>

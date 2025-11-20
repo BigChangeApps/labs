@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ChevronRight, Plus } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
+import { useCategoryAddButton } from "../../lib/use-category-add-button";
 import { Input } from "@/registry/ui/input";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
@@ -13,6 +14,7 @@ import type { Category } from "../../types";
 export function Categories() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();
+  const showAddButton = useCategoryAddButton();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState<string | undefined>(
@@ -141,15 +143,17 @@ export function Categories() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Categories
             </h1>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => handleAddCategory(e)}
-              className="shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-              Add Category
-            </Button>
+            {showAddButton && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => handleAddCategory(e)}
+                className="shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Add Category
+              </Button>
+            )}
           </div>
           <p className="text-base text-muted-foreground">
             Add new categories whenever you need them, and customise each one with its own attributes. That way you only capture the information that's relevant to those assets.
@@ -188,6 +192,9 @@ export function Categories() {
 
                   return (
                     <div key={parent.id}>
+                      {/* Divider between groups */}
+                      {parentIndex > 0 && <Separator />}
+                      
                       {/* Parent Category as Heading */}
                       <div className="px-3 sm:px-4 py-3 border-b bg-muted/30">
                         <div className="text-sm font-bold text-muted-foreground tracking-wide">
@@ -237,8 +244,6 @@ export function Categories() {
                         </div>
                       )}
 
-                      {/* Separator between parent groups */}
-                      {parentIndex < filteredTree.length - 1 && <Separator />}
                     </div>
                   );
                 })
