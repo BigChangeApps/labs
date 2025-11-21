@@ -63,8 +63,14 @@ export function Combobox({
 
   // Check if options are grouped
   const isGrouped = options.length > 0 && "options" in options[0];
-  const groups = isGrouped ? (options as ComboboxGroup[]) : [];
-  const flatOptions = !isGrouped ? (options as ComboboxOption[]) : [];
+  const groups = React.useMemo(
+    () => (isGrouped ? (options as ComboboxGroup[]) : []),
+    [isGrouped, options]
+  );
+  const flatOptions = React.useMemo(
+    () => (!isGrouped ? (options as ComboboxOption[]) : []),
+    [isGrouped, options]
+  );
 
   // Find selected option
   const selectedOption = React.useMemo(() => {

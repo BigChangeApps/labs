@@ -4,25 +4,18 @@ import TokensPage from "@/tokens";
 import AssetAttributesV1App from "@/prototypes/asset-attributes/v1/App";
 import AssetAttributesV2App from "@/prototypes/asset-attributes/v2/App";
 import PlaygroundApp from "@/playground/App";
-import { DarkModeToggle } from "@/components/DarkModeToggle";
-import { BrandSwitcher } from "@/components/BrandSwitcher";
 import { DevBar } from "@/components/DevBar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { PublicLanding } from "@/components/PublicLanding";
 
 function App() {
   const showInternal = import.meta.env.VITE_SHOW_INTERNAL !== "false";
 
   return (
     <BrowserRouter>
-      {showInternal && (
-        <>
-          <DarkModeToggle />
-          <BrandSwitcher />
-        </>
-      )}
-      <DevBar />
+      {showInternal && <DevBar />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={showInternal ? <Home /> : <PublicLanding />} />
         {showInternal && <Route path="/tokens" element={<TokensPage />} />}
         {/* Component playground (internal only) */}
         {showInternal && (

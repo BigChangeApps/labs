@@ -420,6 +420,7 @@ export const AttributeForm = React.forwardRef<
 });
 
 // Export helper to convert form data to Attribute or GlobalAttribute
+// eslint-disable-next-line react-refresh/only-export-components
 export function formDataToAttribute(
   formData: AttributeFormData
 ): Omit<Attribute, "id"> | Omit<GlobalAttribute, "id"> {
@@ -456,6 +457,7 @@ export function formDataToAttribute(
 }
 
 // Export helper to convert Attribute or GlobalAttribute to form data
+// eslint-disable-next-line react-refresh/only-export-components
 export function attributeToFormData(
   attribute: Attribute | GlobalAttribute,
   context: AttributeFormContext

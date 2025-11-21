@@ -419,6 +419,7 @@ export const AttributeForm = React.forwardRef<
 });
 
 // Export helper to convert form data to Attribute or CoreAttribute
+// eslint-disable-next-line react-refresh/only-export-components
 export function formDataToAttribute(
   formData: AttributeFormData
 ): Omit<Attribute, "id"> | Omit<CoreAttribute, "id"> {
@@ -455,6 +456,7 @@ export function formDataToAttribute(
 }
 
 // Export helper to convert Attribute or CoreAttribute to form data
+// eslint-disable-next-line react-refresh/only-export-components
 export function attributeToFormData(
   attribute: Attribute | CoreAttribute,
   context: AttributeFormContext
