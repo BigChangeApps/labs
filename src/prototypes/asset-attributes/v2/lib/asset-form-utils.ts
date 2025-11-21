@@ -1,6 +1,5 @@
 import type {
   Attribute,
-  Category,
   GlobalAttribute,
   CategoryAttributeConfig,
 } from "../types";
@@ -87,7 +86,7 @@ export function organizeAttributesForForm(
     };
 
     switch (attr.section) {
-      case "asset-info":
+      case "asset-info": {
         // Filter out Category, Manufacturer, Model, Serial number, Date of manufacture, Asset ID
         // Date of installation and Date of last service go to Installation section
         // These go to specific sections or are set after creation
@@ -101,16 +100,17 @@ export function organizeAttributesForForm(
           "global-date-installation",
           "global-date-last-service",
         ];
-        
+
         // Only exclude global-category if includeCategoryField is false
         if (!includeCategoryField) {
           excludedIds.push("global-category");
         }
-        
+
         if (!excludedIds.includes(attr.id)) {
           result.assetInfo.push(formAttr);
         }
         break;
+      }
       case "contact":
         // Site and Location go to location section
         if (["global-contact", "global-location"].includes(attr.id)) {
@@ -245,7 +245,7 @@ export function organizeAttributesForForm(
   }
 
   // Get category-specific attributes (system + custom) - only if category exists
-  if (categoryId) {
+  if (categoryId && category) {
     const predefinedAttrs = store.predefinedCategoryAttributes[categoryId] || [];
     const customAttrs = store.customCategoryAttributes[categoryId] || [];
 
@@ -315,12 +315,14 @@ export function organizeAttributesForForm(
       const systemOrder = new Map<string, number>();
       const customOrder = new Map<string, number>();
 
-      category.systemAttributes.forEach((config) => {
-        systemOrder.set(config.attributeId, config.order);
-      });
-      category.customAttributes.forEach((config) => {
-        customOrder.set(config.attributeId, config.order);
-      });
+      if (category) {
+        category.systemAttributes.forEach((config) => {
+          systemOrder.set(config.attributeId, config.order);
+        });
+        category.customAttributes.forEach((config) => {
+          customOrder.set(config.attributeId, config.order);
+        });
+      }
 
       return attrs.sort((a, b) => {
         const aOrder = systemOrder.get(a.id) ?? customOrder.get(a.id) ?? 999;

@@ -57,7 +57,7 @@ export function createAssetFormSchema(attributes: FormAttribute[]) {
         );
       } else {
         // String fields use min(1)
-        schemaFields[fieldName] = fieldSchema.min(1, `${attr.label} is required`);
+        schemaFields[fieldName] = (fieldSchema as z.ZodString).min(1, `${attr.label} is required`);
       }
     } else {
       // All other fields are optional - allow empty strings and undefined
@@ -73,8 +73,11 @@ export function createAssetFormSchema(attributes: FormAttribute[]) {
           (val) => {
             if (val === "" || val === null || val === undefined) return undefined;
             if (typeof val === "number") return val;
-            const num = parseFloat(val);
-            return isNaN(num) ? undefined : num;
+            if (typeof val === "string") {
+              const num = parseFloat(val);
+              return isNaN(num) ? undefined : num;
+            }
+            return undefined;
           },
           z.number().optional()
         );

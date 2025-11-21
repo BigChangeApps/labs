@@ -22,7 +22,7 @@ export function Layout() {
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       <NavLink
-        to="/asset-attributes/attributes"
+        to="/asset-attributes/v1/attributes"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
@@ -30,9 +30,9 @@ export function Layout() {
           const pathname = location.pathname;
           const isAttributesRoute =
             isActive ||
-            pathname.startsWith("/asset-attributes/category/") ||
-            pathname === "/asset-attributes/core-attributes" ||
-            pathname === "/asset-attributes/core-attributes/";
+            pathname.startsWith("/asset-attributes/v1/category/") ||
+            pathname === "/asset-attributes/v1/core-attributes" ||
+            pathname === "/asset-attributes/v1/core-attributes/";
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isAttributesRoute
@@ -44,7 +44,7 @@ export function Layout() {
         Attributes
       </NavLink>
       <NavLink
-        to="/asset-attributes/manufacturers"
+        to="/asset-attributes/v1/manufacturers"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) =>

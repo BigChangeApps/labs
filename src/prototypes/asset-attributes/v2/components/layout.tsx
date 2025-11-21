@@ -22,15 +22,15 @@ export function Layout() {
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       <NavLink
-        to="/asset-attributes-variation/global-attributes"
+        to="/asset-attributes/v2/global-attributes"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
           const pathname = location.pathname;
           const isGlobalAttributesRoute =
             isActive ||
-            pathname === "/asset-attributes-variation/global-attributes" ||
-            pathname === "/asset-attributes-variation/global-attributes/";
+            pathname === "/asset-attributes/v2/global-attributes" ||
+            pathname === "/asset-attributes/v2/global-attributes/";
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isGlobalAttributesRoute
@@ -42,7 +42,7 @@ export function Layout() {
         Global Attributes
       </NavLink>
       <NavLink
-        to="/asset-attributes-variation/categories"
+        to="/asset-attributes/v2/categories"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
@@ -50,7 +50,7 @@ export function Layout() {
           const pathname = location.pathname;
           const isCategoriesRoute =
             isActive ||
-            pathname.startsWith("/asset-attributes-variation/category/");
+            pathname.startsWith("/asset-attributes/v2/category/");
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isCategoriesRoute
@@ -62,7 +62,7 @@ export function Layout() {
         Categories
       </NavLink>
       <NavLink
-        to="/asset-attributes-variation/manufacturers"
+        to="/asset-attributes/v2/manufacturers"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) =>
@@ -76,14 +76,14 @@ export function Layout() {
         Manufacturers
       </NavLink>
       <NavLink
-        to="/asset-attributes-variation/create-asset"
+        to="/asset-attributes/v2/create-asset"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
           const pathname = location.pathname;
           const isCreateAssetRoute =
             isActive ||
-            pathname.startsWith("/asset-attributes-variation/create-asset");
+            pathname.startsWith("/asset-attributes/v2/create-asset");
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isCreateAssetRoute
@@ -95,14 +95,14 @@ export function Layout() {
         Create Asset
       </NavLink>
       <NavLink
-        to="/asset-attributes-variation/edit-asset/0001"
+        to="/asset-attributes/v2/edit-asset/0001"
         state={location.state}
         onClick={onClick}
         className={({ isActive }) => {
           const pathname = location.pathname;
           const isEditAssetRoute =
             isActive ||
-            pathname.startsWith("/asset-attributes-variation/edit-asset/");
+            pathname.startsWith("/asset-attributes/v2/edit-asset/");
           
           return `px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isEditAssetRoute

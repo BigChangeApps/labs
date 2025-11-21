@@ -27,10 +27,6 @@ export function CategorySelection({
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Check if a category is custom (user-created)
-  const isCustomCategory = (categoryId: string) => {
-    return categoryId.startsWith("category-");
-  };
 
   // Organize categories into parent-child structure
   const categoryTree = useMemo(() => {
@@ -107,7 +103,6 @@ export function CategorySelection({
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   const renderCategoryItem = (category: Category, isChild: boolean = false) => {
-    const isCustom = isCustomCategory(category.id);
     const isSelected = category.id === selectedCategoryId;
 
     return (

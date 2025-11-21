@@ -14,24 +14,24 @@ export interface PrototypeMetadata {
 
 export const prototypes: PrototypeMetadata[] = [
   {
-    id: "asset-attributes",
-    title: "Asset Attributes Management",
+    id: "asset-attributes-v1",
+    title: "Asset Attributes Management v1",
     description:
       "Category-based attribute configuration with drag-and-drop reordering, system vs custom attributes, and manufacturer management.",
-    thumbnail: "/thumbnails/asset-attributes.png",
-    path: "/asset-attributes",
+    thumbnail: "/thumbnails/asset-attributes-v1.png",
+    path: "/asset-attributes/v1",
     createdAt: "2025-01-15",
     deviceType: "desktop",
     visibility: "public",
   },
   {
-    id: "asset-attributes-variation",
-    title: "Asset Attributes Management (Variation)",
+    id: "asset-attributes-v2",
+    title: "Asset Attributes Management v2",
     description:
-      "Category-based attribute configuration with drag-and-drop reordering, system vs custom attributes, and manufacturer management.",
-    thumbnail: "/thumbnails/asset-attributes.png",
-    path: "/asset-attributes-variation",
-    createdAt: "2025-01-15",
+      "Enhanced version with global attributes, category hierarchy, attribute inheritance, and full asset creation/editing workflows.",
+    thumbnail: "/thumbnails/asset-attributes-v2.png",
+    path: "/asset-attributes/v2",
+    createdAt: "2025-01-16",
     deviceType: "desktop",
     visibility: "public",
   },

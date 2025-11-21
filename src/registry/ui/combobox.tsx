@@ -54,7 +54,6 @@ export function Combobox({
   searchPlaceholder = "Search...",
   emptyText = "No option found.",
   disabled = false,
-  className,
   triggerClassName,
   contentClassName,
   useInput = false,
