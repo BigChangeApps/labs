@@ -125,7 +125,7 @@ export function CoreAttributes() {
       <div className="space-y-4 sm:space-y-6">
         {/* Back Button */}
         <Link
-          to="/asset-attributes/attributes"
+          to="/asset-attributes/v1/attributes"
           className="text-sm text-muted-foreground hover:text-foreground inline-block"
         >
           ← Back to attributes

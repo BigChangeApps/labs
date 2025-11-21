@@ -129,7 +129,7 @@ export function CategoryAttributesDetail() {
     return (
       <div className="w-full">
         <Link
-          to="/asset-attributes/attributes"
+          to="/asset-attributes/v1/attributes"
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
         >
           ← Back to attributes
@@ -257,7 +257,7 @@ export function CategoryAttributesDetail() {
       <div className="space-y-4 sm:space-y-6">
         {/* Back Button */}
         <Link
-          to="/asset-attributes/attributes"
+          to="/asset-attributes/v1/attributes"
           className="text-sm text-muted-foreground hover:text-foreground inline-block"
         >
           ← Back to attributes
@@ -276,7 +276,7 @@ export function CategoryAttributesDetail() {
             This category will inherit all core attributes and settings. <br></br>To edit attributes that apply to all
             assets, see{" "}
             <Link
-              to="/asset-attributes/core-attributes"
+              to="/asset-attributes/v1/core-attributes"
               className="text-primary underline hover:text-primary/80"
             >
               core attributes

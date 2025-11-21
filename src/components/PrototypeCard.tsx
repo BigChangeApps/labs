@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/registry/ui/card";
-import type { PrototypeMetadata } from "../data/prototypes";
+import { getLatestVersion, type PrototypeMetadata } from "../data/prototypes";
 
 interface PrototypeCardProps {
   prototype: PrototypeMetadata;
@@ -13,11 +13,12 @@ interface PrototypeCardProps {
 
 export function PrototypeCard({ prototype }: PrototypeCardProps) {
   const navigate = useNavigate();
+  const latestVersion = getLatestVersion(prototype);
 
   return (
     <Card
       className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-border/50 bg-card/50 backdrop-blur-sm"
-      onClick={() => navigate(prototype.path, { state: { fromHome: true } })}
+      onClick={() => navigate(latestVersion.path, { state: { fromHome: true } })}
     >
       <CardHeader className="space-y-4">
         <div className="aspect-video w-full rounded-md bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden">
