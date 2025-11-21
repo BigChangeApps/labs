@@ -58,7 +58,7 @@ export function SiteWorkspaceHeader({ siteId }: SiteWorkspaceHeaderProps) {
     
     if (returnTo === 'asset-list') {
       // Return to asset list page
-      navigate(basePath);
+      navigate(`${basePath}/assets`);
     } else {
       // Default: go to sites tab
       navigate(`${basePath}/sites`);

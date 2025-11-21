@@ -45,8 +45,11 @@ function AssetAttributesVariationApp() {
         <PrototypeBanner deviceType="desktop" />
         <div className={`flex-1 overflow-hidden ${showBanner ? "pt-[61px]" : "pt-0"}`}>
           <Routes>
-            {/* Asset List - Landing page */}
-            <Route index element={<AssetList />} />
+            {/* Default landing page - redirect to Sites */}
+            <Route index element={<Navigate to="sites" replace />} />
+            
+            {/* Asset List - accessible but not default */}
+            <Route path="assets" element={<AssetList />} />
             <Route path="create-asset" element={<CreateAsset />} />
             <Route path="create-asset/:categoryId" element={<CreateAsset />} />
             <Route path="edit-asset/:assetId" element={<EditAsset />} />

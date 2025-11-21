@@ -4,14 +4,13 @@ import { Button } from "@/registry/ui/button";
 import { cn } from "@/registry/lib/utils";
 import { useMemo } from "react";
 
-type WorkspaceTab = "assets" | "sites" | "agreements" | "schedule";
+type WorkspaceTab = "sites" | "agreements" | "schedule";
 
 interface WorkspaceHeaderProps {
   workspaceTitle?: string;
 }
 
 const tabs: { id: WorkspaceTab; label: string; path: string }[] = [
-  { id: "assets", label: "Assets", path: "" },
   { id: "sites", label: "Sites", path: "sites" },
   { id: "agreements", label: "Agreements", path: "agreements" },
   { id: "schedule", label: "Schedule", path: "schedule" },
@@ -28,11 +27,8 @@ export function WorkspaceHeader({ workspaceTitle = "Assets" }: WorkspaceHeaderPr
     if (pathname.includes("/sites") && !pathname.includes("/settings")) return "sites";
     if (pathname.includes("/agreements") && !pathname.includes("/settings")) return "agreements";
     if (pathname.includes("/schedule") && !pathname.includes("/settings")) return "schedule";
-    // Default to assets for index route, create-asset, edit-asset, and other asset-related routes
-    // (but not settings routes)
-    if (!pathname.includes("/settings")) return "assets";
-    // If we're in settings, default to assets tab (settings is accessible from any tab)
-    return "assets";
+    // Default to sites for asset routes (index, create-asset, edit-asset) or settings
+    return "sites";
   }, [location.pathname]);
 
   const handleTabClick = (path: string) => {
@@ -40,14 +36,8 @@ export function WorkspaceHeader({ workspaceTitle = "Assets" }: WorkspaceHeaderPr
     const pathname = location.pathname;
     // Extract the base path (/asset-attributes/v2)
     const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
-    
-    if (path === "") {
-      // Navigate to index route (assets)
-      navigate(basePath);
-    } else {
-      // Navigate to the tab path
-      navigate(`${basePath}/${path}`);
-    }
+    // Navigate to the tab path
+    navigate(`${basePath}/${path}`);
   };
 
   const handleSettingsClick = () => {

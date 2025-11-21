@@ -243,7 +243,7 @@ export function CreateAsset() {
     } else if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate(basePath);
+      navigate(`${basePath}/assets`);
     }
   };
 

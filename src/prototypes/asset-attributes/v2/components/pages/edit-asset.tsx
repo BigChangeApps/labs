@@ -269,7 +269,7 @@ export function EditAsset() {
     
     if (returnTo === 'asset-list') {
       // Return to asset list page with success banner
-      navigate(basePath, { state: bannerState });
+      navigate(`${basePath}/assets`, { state: bannerState });
     } else if (returnTo === 'site-assets' && location.state?.siteId) {
       // Return to site assets page with success banner
       const siteId = location.state.siteId as string;
@@ -282,7 +282,7 @@ export function EditAsset() {
       } else if (window.history.length > 1) {
         navigate(-1);
       } else {
-        navigate(basePath, { state: bannerState });
+        navigate(`${basePath}/assets`, { state: bannerState });
       }
     }
   };
@@ -295,7 +295,7 @@ export function EditAsset() {
     
     if (returnTo === 'asset-list') {
       // Return to asset list page
-      navigate(basePath);
+      navigate(`${basePath}/assets`);
     } else if (returnTo === 'site-assets' && location.state?.siteId) {
       // Return to site assets page
       const siteId = location.state.siteId as string;
@@ -309,7 +309,7 @@ export function EditAsset() {
       if (siteId) {
         navigate(`${basePath}/site/${siteId}/assets`);
       } else {
-        navigate(basePath);
+        navigate(`${basePath}/assets`);
       }
     }
   };
@@ -326,7 +326,7 @@ export function EditAsset() {
       
       if (returnTo === 'asset-list') {
         // Return to asset list page
-        navigate(basePath);
+        navigate(`${basePath}/assets`);
       } else if (returnTo === 'site-assets' && location.state?.siteId) {
         // Return to site assets page
         const siteId = location.state.siteId as string;
@@ -367,7 +367,7 @@ export function EditAsset() {
       if (siteId) {
         navigate(`${basePath}/site/${siteId}/assets`);
       } else {
-        navigate(basePath);
+        navigate(`${basePath}/assets`);
       }
     }
   };
