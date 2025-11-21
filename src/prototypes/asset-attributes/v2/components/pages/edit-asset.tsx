@@ -657,7 +657,8 @@ export function EditAsset() {
                 onKeyDown={(e) => {
                   // Prevent Enter key from submitting the form unless it's on a submit button or textarea
                   if (e.key === "Enter" && e.target instanceof HTMLElement) {
-                    const isSubmitButton = e.target.type === "submit" || e.target.closest('button[type="submit"]');
+                    const target = e.target as HTMLElement & { type?: string };
+                    const isSubmitButton = target.type === "submit" || e.target.closest('button[type="submit"]');
                     const isTextarea = e.target.tagName === "TEXTAREA";
                     if (!isSubmitButton && !isTextarea) {
                       e.preventDefault();

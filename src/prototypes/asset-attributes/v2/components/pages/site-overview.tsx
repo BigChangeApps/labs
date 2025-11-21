@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { SiteWorkspaceHeader } from "../SiteWorkspaceHeader";
-import { getSiteName, mockSites } from "../../lib/mock-asset-list-data";
+import { mockSites } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
 import { Card, CardContent } from "@/registry/ui/card";
 import { useMemo } from "react";
@@ -9,12 +9,16 @@ export function SiteOverview() {
   const { siteId } = useParams<{ siteId: string }>();
   const assets = useAttributeStore((state) => state.assets);
   
-  if (!siteId) return null;
+  const site = useMemo(() => {
+    return siteId ? mockSites.find((s) => s.id === siteId) : undefined;
+  }, [siteId]);
 
-  const site = mockSites.find((s) => s.id === siteId);
   const assetCount = useMemo(() => {
+    if (!siteId) return 0;
     return assets.filter((asset) => asset.siteId === siteId).length;
   }, [assets, siteId]);
+
+  if (!siteId) return null;
 
   return (
     <div className="w-full min-h-screen bg-background">

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,7 @@ import {
 } from "@/registry/ui/dialog";
 import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
 import { CollapsibleSection } from "../features/asset-form/CollapsibleSection";
-import { MOCK_SITE, type AssetListItem } from "../../lib/mock-asset-list-data";
+import { type AssetListItem } from "../../lib/mock-asset-list-data";
 
 const SESSION_STORAGE_KEY = "asset-attributes-v2-create-asset-form-data";
 
@@ -80,7 +80,7 @@ export function CreateAsset() {
   }, [allAttributes]);
 
   // Load saved form data from sessionStorage
-  const loadSavedFormData = (): Record<string, unknown> => {
+  const loadSavedFormData = useCallback((): Record<string, unknown> => {
     try {
       const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (saved) {
@@ -94,10 +94,10 @@ export function CreateAsset() {
       console.error("Error loading saved form data:", error);
     }
     return {};
-  };
+  }, [urlCategoryId, selectedCategoryId]);
 
   // Initialize form with saved data or defaults
-  const savedFormData = useMemo(() => loadSavedFormData(), [urlCategoryId, selectedCategoryId]);
+  const savedFormData = useMemo(() => loadSavedFormData(), [loadSavedFormData]);
   const form = useForm({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Dynamic schema type
@@ -140,7 +140,7 @@ export function CreateAsset() {
       return;
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const subscription = form.watch((value) => {
       // Debounce saves to avoid too frequent writes
       clearTimeout(timeoutId);
@@ -365,7 +365,8 @@ export function CreateAsset() {
                 onKeyDown={(e) => {
                   // Prevent Enter key from submitting the form unless it's on a submit button or textarea
                   if (e.key === "Enter" && e.target instanceof HTMLElement) {
-                    const isSubmitButton = e.target.type === "submit" || e.target.closest('button[type="submit"]');
+                    const target = e.target as HTMLElement & { type?: string };
+                    const isSubmitButton = target.type === "submit" || e.target.closest('button[type="submit"]');
                     const isTextarea = e.target.tagName === "TEXTAREA";
                     if (!isSubmitButton && !isTextarea) {
                       e.preventDefault();

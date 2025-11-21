@@ -27,21 +27,9 @@ export function SiteAssets() {
   const [bannerAssetReference, setBannerAssetReference] = useState<string | null>(null);
   const assets = useAttributeStore((state) => state.assets);
 
-  // Check for success banner in location state
-  useEffect(() => {
-    if (location.state?.showSuccessBanner) {
-      setShowSuccessBanner(true);
-      setBannerAssetId(location.state.assetId || null);
-      setBannerAssetReference(location.state.assetReference || null);
-      // Clear the state so it doesn't show again on refresh
-      window.history.replaceState({ ...location.state, showSuccessBanner: false }, '');
-    }
-  }, [location.state]);
-
-  if (!siteId) return null;
-
   // Filter assets for this specific site
   const filteredAssets = useMemo(() => {
+    if (!siteId) return [];
     let filtered = assets.filter((asset) => asset.siteId === siteId);
 
     // Filter by search query
@@ -65,6 +53,19 @@ export function SiteAssets() {
 
     return filtered;
   }, [siteId, searchQuery, assets]);
+
+  // Check for success banner in location state
+  useEffect(() => {
+    if (location.state?.showSuccessBanner) {
+      setShowSuccessBanner(true);
+      setBannerAssetId(location.state.assetId || null);
+      setBannerAssetReference(location.state.assetReference || null);
+      // Clear the state so it doesn't show again on refresh
+      window.history.replaceState({ ...location.state, showSuccessBanner: false }, '');
+    }
+  }, [location.state]);
+
+  if (!siteId) return null;
 
   const handleAssetClick = (assetId: string) => {
     const pathname = window.location.pathname;
