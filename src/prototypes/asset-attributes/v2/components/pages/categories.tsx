@@ -92,7 +92,7 @@ export function Categories() {
 
 
   const handleCategorySelect = (categoryId: string) => {
-    navigate(`/asset-attributes/v2/category/${categoryId}`);
+    navigate(`../category/${categoryId}`);
   };
 
   const handleAddCategory = (e: React.MouseEvent, parentId?: string) => {

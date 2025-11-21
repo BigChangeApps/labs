@@ -9,7 +9,8 @@ import { Manufacturers } from "./components/pages/manufacturers";
 import { GlobalAttributes } from "./components/pages/global-attributes";
 import { CreateAsset } from "./components/pages/create-asset";
 import { EditAsset } from "./components/pages/edit-asset";
-import { Layout } from "./components/layout";
+import { AssetList } from "./components/pages/asset-list";
+import { SettingsLayout } from "./components/settings-layout";
 
 function AssetAttributesVariationApp() {
   const location = useLocation();
@@ -35,18 +36,19 @@ function AssetAttributesVariationApp() {
         <PrototypeBanner deviceType="desktop" />
         <div className="flex-1 overflow-hidden pt-[61px]">
           <Routes>
-            <Route element={<Layout />}>
+            {/* Asset List - Landing page */}
+            <Route index element={<AssetList />} />
+            <Route path="create-asset" element={<CreateAsset />} />
+            <Route path="create-asset/:categoryId" element={<CreateAsset />} />
+            <Route path="edit-asset/:assetId" element={<EditAsset />} />
+
+            {/* Settings - Full screen experience with sidebar */}
+            <Route path="settings" element={<SettingsLayout />}>
               <Route index element={<Navigate to="global-attributes" replace state={location.state} />} />
-              <Route path="categories" element={<Categories />} />
-              <Route
-                path="category/:categoryId"
-                element={<CategoryDetail />}
-              />
               <Route path="global-attributes" element={<GlobalAttributes />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="category/:categoryId" element={<CategoryDetail />} />
               <Route path="manufacturers" element={<Manufacturers />} />
-              <Route path="create-asset" element={<CreateAsset />} />
-              <Route path="create-asset/:categoryId" element={<CreateAsset />} />
-              <Route path="edit-asset/:assetId" element={<EditAsset />} />
             </Route>
           </Routes>
         </div>

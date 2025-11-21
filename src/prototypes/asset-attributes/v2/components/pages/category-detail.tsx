@@ -126,7 +126,7 @@ export function CategoryDetail() {
   const handleDeleteCategory = () => {
     if (categoryId && isCustomCategory(categoryId)) {
       deleteCategory(categoryId);
-      navigate("/asset-attributes/v2/categories");
+      navigate("../categories");
     }
   };
 
@@ -151,7 +151,7 @@ export function CategoryDetail() {
     return (
       <div className="w-full">
         <Link
-          to="/asset-attributes/v2/categories"
+          to="../categories"
           className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block"
         >
           ← Back to categories
@@ -288,7 +288,7 @@ export function CategoryDetail() {
       <div className="space-y-4 sm:space-y-6">
         {/* Back Button */}
         <Link
-          to="/asset-attributes/v2/categories"
+          to="../categories"
           className="text-sm text-muted-foreground hover:text-foreground inline-block"
         >
           ← Back to categories

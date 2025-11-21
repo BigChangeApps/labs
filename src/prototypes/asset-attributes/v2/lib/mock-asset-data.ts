@@ -2,9 +2,12 @@
  * Mock asset data for testing the edit asset page
  */
 
+import { mockAssetList, type AssetListItem } from "./mock-asset-list-data";
+
 export interface MockAsset {
   id: string;
   categoryId: string;
+  photos?: string[]; // Array of image URLs (main + thumbnails)
   createdBy?: {
     name: string;
     avatar?: string;
@@ -16,40 +19,245 @@ export interface MockAsset {
 }
 
 /**
+ * Normalize a string to a lowercase slug format (e.g., "Ubiquiti" → "ubiquiti", "ecoTEC Plus" → "ecotec-plus")
+ */
+function normalizeToSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Get category-specific attributes based on category ID
+ */
+function getCategorySpecificAttributes(categoryId: string): Record<string, unknown> {
+  const attributes: Record<string, unknown> = {};
+
+  switch (categoryId) {
+    case "cctv-camera":
+      attributes["resolution"] = "1080p";
+      attributes["night-vision-range"] = "10";
+      attributes["ptz-capability"] = false;
+      break;
+    case "boiler":
+      attributes["flue-type"] = "Balanced Flue";
+      attributes["gas-pressure"] = 20;
+      attributes["capacity"] = 30;
+      break;
+    case "generator":
+      attributes["rated-power"] = 50;
+      attributes["fuel-type"] = "Diesel";
+      attributes["phase"] = "Three Phase";
+      break;
+    case "ev-charger":
+      attributes["charging-power"] = 7.4;
+      attributes["connector-type"] = "Type 2";
+      attributes["phase"] = "Single Phase";
+      break;
+    // fire-alarm-panel has no predefined attributes, so no category-specific attributes
+    default:
+      break;
+  }
+
+  return attributes;
+}
+
+/**
+ * Simple deterministic random number generator using seed
+ * Returns a value between 0 and 1
+ */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+/**
+ * Get product images based on manufacturer and model
+ * Returns an array of image URLs (main image + thumbnails)
+ * Randomly determines if images exist and how many (0-5 images)
+ * Uses Picsum Photos with specific seeds for consistent, realistic product images
+ */
+function getProductImages(
+  manufacturer: string,
+  model: string,
+  categoryId: string,
+  assetId: string
+): string[] {
+  const normalizedManufacturer = normalizeToSlug(manufacturer);
+  const normalizedModel = normalizeToSlug(model);
+
+  // Create a deterministic seed from assetId for consistent randomness
+  const assetSeed = parseInt(assetId.replace(/\D/g, "")) || 0;
+  
+  // 75% chance of having images (deterministic based on assetId)
+  const hasImages = seededRandom(assetSeed * 7) < 0.75;
+  
+  if (!hasImages) {
+    return [];
+  }
+
+  // Determine base image seed based on manufacturer/model
+  let baseImageSeed: number;
+
+  if (normalizedManufacturer === "ubiquiti" && normalizedModel === "doorbell-lite") {
+    // Ubiquiti Doorbell Lite - CCTV Camera (use existing image service for main image)
+    const productId = "cc3293dc-3fe5-48a6-87c1-ea1ea940f33c";
+    const baseImageUrl = (width: number) =>
+      `https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2F${productId}%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=${width}`;
+    
+    // Randomly determine number of images (1-5) for this asset
+    const numImages = Math.floor(seededRandom(assetSeed * 11) * 5) + 1;
+    const images = [baseImageUrl(800)]; // Always have main image from existing service
+    
+    // Add thumbnails using Picsum Photos with different seeds to ensure they're different
+    const thumbnailBaseSeed = 1000; // Base seed for thumbnails
+    for (let i = 1; i < numImages; i++) {
+      // Use different seeds for each thumbnail to ensure they're different
+      const thumbnailSeed = thumbnailBaseSeed + (i * 100) + assetSeed;
+      const thumbnailUrl = `https://picsum.photos/seed/${thumbnailSeed}/400/300`;
+      images.push(thumbnailUrl);
+    }
+    
+    return images;
+  } else if (normalizedManufacturer === "vaillant" && normalizedModel === "ecotec-plus") {
+    // Vaillant ecoTEC Plus - Boiler
+    // TODO: Replace with actual product image URLs when available
+    // Example structure (uncomment and update with real URLs):
+    // const productId = "vaillant-ecotec-plus-001";
+    // const baseImageUrl = (width: number) =>
+    //   `https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2F${productId}%2Fmain.png&q=75&w=${width}`;
+    // const numImages = Math.floor(seededRandom(assetSeed * 11) * 5) + 1;
+    // const images = [baseImageUrl(800)];
+    // for (let i = 1; i < numImages; i++) {
+    //   images.push(baseImageUrl(400)); // or use different image URLs for thumbnails
+    // }
+    // return images;
+    baseImageSeed = 101;
+  } else if (normalizedManufacturer === "honeywell" && normalizedModel === "galaxy") {
+    // Honeywell Galaxy - Fire Alarm Panel
+    baseImageSeed = 102;
+  } else if (normalizedManufacturer === "grundfos" && normalizedModel === "ups-series") {
+    // Grundfos UPS Series - Generator
+    baseImageSeed = 103;
+  } else if (normalizedManufacturer === "ubiquiti" && normalizedModel === "g4-doorbell") {
+    // Ubiquiti G4 Doorbell - EV Charger
+    baseImageSeed = 104;
+  } else {
+    // Fallback based on category
+    const categorySeeds: Record<string, number> = {
+      boiler: 201,
+      "fire-alarm-panel": 202,
+      generator: 203,
+      "ev-charger": 204,
+      "cctv-camera": 205,
+    };
+    baseImageSeed = categorySeeds[categoryId] || 300;
+  }
+
+  // Randomly determine number of images (1-5) for this asset
+  const numImages = Math.floor(seededRandom(assetSeed * 13) * 5) + 1;
+
+  // Use Picsum Photos with seed for consistent images
+  // Format: https://picsum.photos/seed/{seed}/{width}/{height}
+  // Note: In production, replace these with actual product image URLs from your CDN
+  const getImage = (seed: number, width: number, height: number) =>
+    `https://picsum.photos/seed/${seed}/${width}/${height}`;
+
+  const images: string[] = [];
+  
+  // Always add main image
+  images.push(getImage(baseImageSeed, 800, 600));
+  
+  // Add thumbnails (each with a different seed to make them different)
+  // Each thumbnail uses a significantly different seed to ensure visual variety
+  for (let i = 1; i < numImages; i++) {
+    // Use different seeds for each thumbnail to ensure they're different
+    // Multiply by large number to ensure seeds are far apart for visual variety
+    const thumbnailSeed = baseImageSeed + (i * 1000) + assetSeed;
+    images.push(getImage(thumbnailSeed, 400, 300));
+  }
+
+  return images;
+}
+
+/**
  * Generate mock asset data based on asset ID
  * In a real app, this would fetch from an API
  */
 export function getMockAsset(assetId: string): MockAsset | null {
-  // Return a consistent mock asset for testing - Ubiquiti Doorbell Lite CCTV camera
-  return {
-    id: assetId,
-    categoryId: "cctv-camera",
+  // Find the asset in the mock asset list
+  const assetListItem = mockAssetList.find((asset) => asset.id === assetId);
+
+  if (!assetListItem) {
+    return null;
+  }
+
+  // Normalize manufacturer and model to lowercase slugs
+  const normalizedManufacturer = normalizeToSlug(assetListItem.manufacturer);
+  const normalizedModel = normalizeToSlug(assetListItem.model);
+
+  // Calculate dates (use lastService for installation date, warrantyExpiry for end of life)
+  const installationDate = assetListItem.lastService
+    ? new Date(assetListItem.lastService)
+    : null;
+  const manufactureDate = installationDate
+    ? new Date(installationDate.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 days before installation
+    : null;
+  const endOfLifeDate = assetListItem.warrantyExpiry
+    ? new Date(
+        new Date(assetListItem.warrantyExpiry).getTime() +
+          4 * 365 * 24 * 60 * 60 * 1000
+      ) // 4 years after warranty expiry
+    : null;
+
+  // Get product images based on manufacturer and model
+  const photos = getProductImages(
+    assetListItem.manufacturer,
+    assetListItem.model,
+    assetListItem.categoryId,
+    assetListItem.id
+  );
+
+  // Build the base mock asset
+  const mockAsset: MockAsset = {
+    id: assetListItem.id,
+    categoryId: assetListItem.categoryId,
+    photos,
     createdBy: {
       name: "Adam Kendrew",
       initials: "AK",
     },
     createdAt: "2025-06-30T10:00:00Z",
     updatedAt: "2025-07-16T14:30:00Z",
-    "global-asset-id": assetId,
-    "global-customer-reference": "REF-001",
-    "global-barcode": "BC-12345",
-    "global-category": "cctv-camera",
-    "global-manufacturer": "ubiquiti",
-    "global-model": "doorbell-lite",
-    "global-manufacturer-serial": "SN-123456789",
-    "global-date-manufacture": "2023-06-15",
-    "global-date-installation": "2023-07-10",
-    "global-date-last-service": "2024-12-05",
-    "global-end-of-life": "2030-06-15",
-    "global-warranty-expiry": "2026-06-15",
-    "global-status": "Active",
+    "global-asset-id": assetListItem.id,
+    "global-customer-reference": assetListItem.reference,
+    "global-barcode": `BC-${assetListItem.id.padStart(5, "0")}`,
+    "global-category": assetListItem.categoryId,
+    "global-manufacturer": normalizedManufacturer,
+    "global-model": normalizedModel,
+    "global-manufacturer-serial": `SN-${assetListItem.id.padStart(9, "0")}`,
+    "global-date-manufacture": manufactureDate
+      ? manufactureDate.toISOString().split("T")[0]
+      : "2023-06-15",
+    "global-date-installation": installationDate
+      ? installationDate.toISOString().split("T")[0]
+      : "2023-07-10",
+    "global-date-last-service": assetListItem.lastService || "2024-12-05",
+    "global-end-of-life": endOfLifeDate
+      ? endOfLifeDate.toISOString().split("T")[0]
+      : "2030-06-15",
+    "global-warranty-expiry": assetListItem.warrantyExpiry || "2026-06-15",
+    "global-status": assetListItem.status,
     "global-contact": "site-1",
-    "global-location": "Front Entrance - Main Door",
-    "global-condition": "Good",
-    // Category-specific attributes for CCTV camera
-    "resolution": "1080p",
-    "night-vision-range": "10",
-    "ptz-capability": false,
+    "global-location": assetListItem.location,
+    "global-condition": assetListItem.condition,
   };
+
+  // Add category-specific attributes
+  const categoryAttributes = getCategorySpecificAttributes(assetListItem.categoryId);
+  Object.assign(mockAsset, categoryAttributes);
+
+  return mockAsset;
 }
 

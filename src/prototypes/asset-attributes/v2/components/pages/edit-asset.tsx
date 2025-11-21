@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, ArrowLeft } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
 import { organizeAttributesForForm } from "../../lib/asset-form-utils";
 import { createAssetFormSchema } from "../../lib/asset-form-validation";
@@ -39,33 +39,31 @@ import {
 import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
 import { CollapsibleSection } from "../features/asset-form/CollapsibleSection";
 import { SiteSearchableSelect } from "../features/asset-form/SiteSearchableSelect";
+import { MOCK_SITE } from "../../lib/mock-asset-list-data";
 import type { Category } from "../../types";
 
 export function EditAsset() {
   const { assetId } = useParams<{ assetId: string }>();
+  const navigate = useNavigate();
   const { categories } = useAttributeStore();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [originalCategoryId, setOriginalCategoryId] = useState<string | null>(null);
-  // Always show photos for edit mode
-  const photos = [
-    // Main image - Ubiquiti Doorbell Lite product
-    "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fcc3293dc-3fe5-48a6-87c1-ea1ea940f33c%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=800",
-    // 4 thumbnails to sit below main image
-    "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fcc3293dc-3fe5-48a6-87c1-ea1ea940f33c%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=400",
-    "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fcc3293dc-3fe5-48a6-87c1-ea1ea940f33c%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=400",
-    "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fcc3293dc-3fe5-48a6-87c1-ea1ea940f33c%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=400",
-    "https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fcc3293dc-3fe5-48a6-87c1-ea1ea940f33c%2Fd0ccc0e4-64a3-4d4a-85f6-341cd76310ea.png&q=75&w=400",
-  ];
   const [showCategoryChangeDialog, setShowCategoryChangeDialog] = useState(false);
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [showSiteEditDialog, setShowSiteEditDialog] = useState(false);
+  const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
 
   // Load mock asset data
   const mockAsset = useMemo(() => {
     if (!assetId) return null;
     return getMockAsset(assetId);
   }, [assetId]);
+
+  // Get photos from mock asset, default to empty array
+  const photos = useMemo(() => {
+    return mockAsset?.photos || [];
+  }, [mockAsset]);
 
   // Initialize category from mock asset
   useEffect(() => {
@@ -201,6 +199,34 @@ export function EditAsset() {
     // No category change check needed - dialog handles it before category changes
     console.log("Form data:", data);
     // In a real app, this would send data to an API
+    // Navigate back to asset list after successful save
+    navigate("/asset-attributes/v2");
+  };
+
+  // Handle back button click - always go back to asset list
+  const handleBackClick = () => {
+    navigate("/asset-attributes/v2");
+  };
+
+  // Handle close button click
+  const handleCloseClick = () => {
+    // Check if form has unsaved changes
+    if (form.formState.isDirty) {
+      setShowUnsavedChangesDialog(true);
+    } else {
+      navigate("/asset-attributes/v2");
+    }
+  };
+
+  // Confirm close with unsaved changes
+  const handleConfirmClose = () => {
+    setShowUnsavedChangesDialog(false);
+    navigate("/asset-attributes/v2");
+  };
+
+  // Cancel close
+  const handleCancelClose = () => {
+    setShowUnsavedChangesDialog(false);
   };
 
   // Handle category selection from popover
@@ -319,52 +345,118 @@ export function EditAsset() {
   }
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col gap-8">
-        {/* Header - spans full width */}
-        <div className="flex items-center justify-between gap-4 w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {selectedCategory?.name || "Asset"}
-          </h1>
-          <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
-            <PopoverTrigger asChild>
+    <div className="w-full min-h-screen bg-background">
+      {/* Navigation Header - matches asset-list width, fixed to top */}
+      <div className="sticky top-0 z-50 w-full bg-muted/50 border-b border-border">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-4">
               <Button
                 type="button"
-                variant="secondary"
-                size="sm"
+                variant="ghost"
+                size="icon"
+                onClick={handleBackClick}
+                className="shrink-0"
               >
-                Change category
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="end">
-              <Command>
-                <CommandInput placeholder="Search categories..." />
-                <CommandList>
-                  <CommandEmpty>No category found.</CommandEmpty>
-                  {categoryGroups.map((group, index) => (
-                    <div key={group.parent.id}>
-                      {index > 0 && <CommandSeparator />}
-                      <CommandGroup heading={group.parent.name}>
-                        {group.children.map((child: Category) => (
-                          <CommandItem
-                            key={child.id}
-                            value={child.name}
-                            onSelect={() => handleCategorySelect(child.id)}
-                          >
-                            {child.name}
-                            {selectedCategoryId === child.id && (
-                              <Check className="ml-auto h-4 w-4" />
-                            )}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </div>
-                  ))}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+              <h1 className="text-base sm:text-lg font-bold tracking-tight">
+                Asset {assetId}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCloseClick}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Content - narrower width */}
+      <div className="max-w-[1050px] mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col gap-8">
+
+          {/* Header */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-start gap-4 w-full">
+              {/* Title and Actions */}
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-4 w-full">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    {selectedCategory?.name || "Asset"} at {selectedSiteData?.name || MOCK_SITE.name}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Change category
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder="Search categories..." />
+                          <CommandList>
+                            <CommandEmpty>No category found.</CommandEmpty>
+                            {categoryGroups.map((group, index) => (
+                              <div key={group.parent.id}>
+                                {index > 0 && <CommandSeparator />}
+                                <CommandGroup heading={group.parent.name}>
+                                  {group.children.map((child: Category) => (
+                                    <CommandItem
+                                      key={child.id}
+                                      value={child.name}
+                                      onSelect={() => handleCategorySelect(child.id)}
+                                    >
+                                      {child.name}
+                                      {selectedCategoryId === child.id && (
+                                        <Check className="ml-auto h-4 w-4" />
+                                      )}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </div>
+                            ))}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowSiteEditDialog(true)}
+                    >
+                      Change site
+                    </Button>
+                  </div>
+                </div>
+                {/* Site Address */}
+                {selectedSiteData?.address && (
+                  <p className="text-sm text-muted-foreground" style={{ textWrap: 'balance' }}>
+                    {selectedSiteData.address}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
         {/* Category Change Confirmation Dialog */}
         <Dialog open={showCategoryChangeDialog} onOpenChange={setShowCategoryChangeDialog}>
@@ -381,6 +473,26 @@ export function EditAsset() {
               </Button>
               <Button variant="default" onClick={handleConfirmCategoryChange}>
                 Change Category
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Unsaved Changes Confirmation Dialog */}
+        <Dialog open={showUnsavedChangesDialog} onOpenChange={setShowUnsavedChangesDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Unsaved changes</DialogTitle>
+              <DialogDescription>
+                You have unsaved changes. Are you sure you want to cancel without saving?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCancelClose}>
+                Keep editing
+              </Button>
+              <Button variant="default" onClick={handleConfirmClose}>
+                Cancel without saving
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -566,7 +678,7 @@ export function EditAsset() {
                       {photos.slice(1).map((photo, index) => (
                         <div
                           key={index + 1}
-                          className="h-[60px] flex-1 rounded-lg overflow-hidden border border-border bg-muted/50 flex items-center justify-center"
+                          className="h-[60px] w-[calc((100%-40px)/5)] rounded-lg overflow-hidden border border-border bg-muted/50 flex items-center justify-center shrink-0"
                         >
                           <img
                             src={photo}
@@ -579,7 +691,7 @@ export function EditAsset() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-[60px] flex-1 rounded-lg border border-border p-0 flex items-center justify-center hover:bg-muted"
+                        className="h-[60px] w-[calc((100%-40px)/5)] rounded-lg border border-border p-0 flex items-center justify-center hover:bg-muted shrink-0"
                       >
                         <Plus className="h-5 w-5 text-muted-foreground" />
                       </Button>
@@ -691,8 +803,10 @@ export function EditAsset() {
             )}
           </div>
         </div>
+        </div>
       </div>
     </div>
   );
 }
+
 
