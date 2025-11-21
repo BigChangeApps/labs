@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -21,17 +21,22 @@ import {
 } from "@/registry/ui/dialog";
 import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
 import { CollapsibleSection } from "../features/asset-form/CollapsibleSection";
-import { MOCK_SITE } from "../../lib/mock-asset-list-data";
+import { MOCK_SITE, type AssetListItem } from "../../lib/mock-asset-list-data";
+
+const SESSION_STORAGE_KEY = "asset-attributes-v2-create-asset-form-data";
 
 export function CreateAsset() {
   const { categoryId: urlCategoryId } = useParams<{ categoryId?: string }>();
   const navigate = useNavigate();
-  const { categories } = useAttributeStore();
+  const location = useLocation();
+  const { categories, manufacturers, addAsset } = useAttributeStore();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     urlCategoryId || null
   );
   const [photos] = useState<string[]>([]); // Default to no photos for create
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+  const isInitialMount = useRef(true);
+  const isRestoringFromStorage = useRef(false);
 
   // Get selected category (for display purposes)
   const selectedCategory = useMemo(() => {
@@ -74,13 +79,32 @@ export function CreateAsset() {
     return createAssetFormSchema(allAttributes);
   }, [allAttributes]);
 
-  // Initialize form
+  // Load saved form data from sessionStorage
+  const loadSavedFormData = (): Record<string, unknown> => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Only restore if the category matches (if category was saved)
+        if (!parsed["global-category"] || parsed["global-category"] === urlCategoryId || parsed["global-category"] === selectedCategoryId) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error("Error loading saved form data:", error);
+    }
+    return {};
+  };
+
+  // Initialize form with saved data or defaults
+  const savedFormData = useMemo(() => loadSavedFormData(), [urlCategoryId, selectedCategoryId]);
   const form = useForm({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Dynamic schema type
     resolver: zodResolver(formSchema),
     defaultValues: {
-      "global-category": urlCategoryId || "",
+      "global-category": urlCategoryId || savedFormData["global-category"] || "",
+      ...savedFormData,
     },
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -97,21 +121,145 @@ export function CreateAsset() {
       form.reset({
         "global-category": categoryValue,
       });
+      // Clear saved form data when category changes
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
     }
   }, [watchedCategory, selectedCategoryId, form]);
+
+  // Save form data to sessionStorage whenever it changes (debounced)
+  useEffect(() => {
+    // Skip saving on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Skip saving when restoring from storage
+    if (isRestoringFromStorage.current) {
+      isRestoringFromStorage.current = false;
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout;
+    const subscription = form.watch((value) => {
+      // Debounce saves to avoid too frequent writes
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        try {
+          // Only save if form has been touched (user has interacted with it)
+          if (form.formState.isDirty) {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(value));
+          }
+        } catch (error) {
+          console.error("Error saving form data to sessionStorage:", error);
+        }
+      }, 500); // 500ms debounce
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [form]);
+
+  // Restore form data from sessionStorage on mount (only once)
+  useEffect(() => {
+    if (Object.keys(savedFormData).length > 0) {
+      // Only restore if we have saved data and it's not just the category
+      const hasOtherData = Object.keys(savedFormData).some(
+        (key) => key !== "global-category" && savedFormData[key] !== "" && savedFormData[key] != null
+      );
+      if (hasOtherData) {
+        isRestoringFromStorage.current = true;
+        // Use setTimeout to ensure form is fully initialized
+        setTimeout(() => {
+          form.reset(savedFormData);
+        }, 0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   // Handle form submission
   const onSubmit = (data: Record<string, unknown>) => {
     console.log("Form data:", data);
+    
+    // Get category info
+    const categoryId = (data["global-category"] as string) || selectedCategoryId || "";
+    const category = categories.find((c) => c.id === categoryId);
+    const categoryName = category?.name || "Unknown";
+    
+    // Get manufacturer and model info
+    const manufacturerId = data["global-manufacturer"] as string | undefined;
+    const manufacturer = manufacturerId
+      ? manufacturers.find((m) => m.id === manufacturerId)
+      : null;
+    const manufacturerName = manufacturer?.name || "";
+    
+    const modelId = data["global-model"] as string | undefined;
+    const model = manufacturer && modelId
+      ? manufacturer.models.find((m) => m.id === modelId)
+      : null;
+    const modelName = model?.name || "";
+    
+    // Generate a new asset ID (increment from highest existing ID)
+    const store = useAttributeStore.getState();
+    const existingIds = store.assets.map((a) => parseInt(a.id) || 0);
+    const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+    const newAssetId = String(maxId + 1).padStart(4, "0");
+    
+    // Create the asset list item
+    const newAsset: AssetListItem = {
+      id: newAssetId,
+      name: (data["global-name"] as string) || "Unnamed Asset",
+      reference: (data["global-customer-reference"] as string) || `REF-${newAssetId}`,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      status: "Active",
+      condition: (data["global-condition"] as string) || "Good",
+      location: (data["global-location"] as string) || "",
+      manufacturer: manufacturerName,
+      model: modelName,
+      lastService: data["global-date-last-service"] as string | undefined,
+      warrantyExpiry: data["global-warranty-expiry"] as string | undefined,
+      siteId: data["global-contact"] as string | undefined,
+    };
+    
+    // Add asset to store
+    addAsset(newAsset);
+    
     toast.success("Asset created successfully!");
+    // Clear saved form data on successful submission
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
     // In a real app, this would send data to an API
-    // Navigate back to asset list after successful save
-    navigate("/asset-attributes/v2");
+    // Navigate back - try to go back in history, or to asset list if no history
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    
+    // Check if we have a siteId in the form data to navigate back to site assets
+    const siteId = data["global-contact"] as string | undefined;
+    if (siteId) {
+      navigate(`${basePath}/site/${siteId}/assets`);
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(basePath);
+    }
   };
 
-  // Handle back button click - always go back to asset list
+  // Handle back button click - go back in history, or to asset list if no history
   const handleBackClick = () => {
-    navigate("/asset-attributes/v2");
+    // Check if we came from a site page by looking at the referrer or location state
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    
+    // Try to go back in browser history first
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      // Fallback to asset list if no history
+      navigate(basePath);
+    }
   };
 
   // Handle cancel button click
@@ -120,14 +268,27 @@ export function CreateAsset() {
     if (form.formState.isDirty) {
       setShowUnsavedChangesDialog(true);
     } else {
-      navigate("/asset-attributes/v2");
+      const pathname = location.pathname;
+      const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate(basePath);
+      }
     }
   };
 
   // Confirm cancel with unsaved changes
   const handleConfirmCancel = () => {
     setShowUnsavedChangesDialog(false);
-    navigate("/asset-attributes/v2");
+    // Keep the form data in sessionStorage when canceling (user might come back)
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(basePath);
+    }
   };
 
   // Cancel cancel (keep editing)
@@ -136,9 +297,9 @@ export function CreateAsset() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background">
+    <div className="w-full h-full bg-background overflow-y-auto pb-10">
       {/* Navigation Header - matches asset-list width, fixed to top */}
-      <div className="sticky top-0 z-50 w-full bg-muted/50 border-b border-border">
+      <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-4">
@@ -198,7 +359,20 @@ export function CreateAsset() {
           {/* Left Column - Form (3/5 width) */}
           <div className="lg:col-span-3">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+              <form 
+                onSubmit={form.handleSubmit(onSubmit)} 
+                className="space-y-0"
+                onKeyDown={(e) => {
+                  // Prevent Enter key from submitting the form unless it's on a submit button or textarea
+                  if (e.key === "Enter" && e.target instanceof HTMLElement) {
+                    const isSubmitButton = e.target.type === "submit" || e.target.closest('button[type="submit"]');
+                    const isTextarea = e.target.tagName === "TEXTAREA";
+                    if (!isSubmitButton && !isTextarea) {
+                      e.preventDefault();
+                    }
+                  }
+                }}
+              >
                 <Card className="w-full">
                   <CardContent className="p-5">
                     {/* Asset Info Section */}

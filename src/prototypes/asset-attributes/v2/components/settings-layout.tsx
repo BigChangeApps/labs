@@ -15,6 +15,9 @@ export function SettingsLayout() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Only show banner when VITE_SHOW_INTERNAL is "false" (production/customer-facing mode)
+  const showBanner = import.meta.env.VITE_SHOW_INTERNAL === "false";
+
   const handleBack = () => {
     navigate("..");
   };
@@ -81,7 +84,7 @@ export function SettingsLayout() {
   return (
     <div className="h-full bg-background flex">
       {/* Navigation Header - matches other pages, fixed to top, spans full width above sidebar */}
-      <div className="fixed top-[60px] left-0 right-0 z-50 w-full bg-muted/50 border-b border-border">
+      <div className={`fixed ${showBanner ? "top-[60px]" : "top-0"} left-0 right-0 z-50 w-full bg-muted/50 border-b border-border`}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-4">
@@ -102,7 +105,7 @@ export function SettingsLayout() {
       </div>
 
       {/* Fixed Left Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-[240px] md:fixed md:top-[108px] md:bottom-0 md:left-0 md:bg-background">
+      <aside className={`hidden md:flex md:flex-col md:w-[240px] md:fixed ${showBanner ? "md:top-[108px]" : "md:top-[48px]"} md:bottom-0 md:left-0 md:bg-background`}>
         <div className="flex flex-col h-full p-6 pt-8 border-r border-border">
           <div className="mb-6">
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -114,7 +117,7 @@ export function SettingsLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 md:ml-[240px] h-full flex flex-col overflow-hidden md:pt-[72px]">
+      <div className={`flex-1 md:ml-[240px] h-full flex flex-col overflow-hidden ${showBanner ? "md:pt-[72px]" : "md:pt-[48px]"}`}>
 
         {/* Mobile Menu Button */}
         <div className="md:hidden border-b bg-background shrink-0">

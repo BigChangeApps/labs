@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Search, Plus, X } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
@@ -13,11 +13,12 @@ import {
   TableRow,
 } from "@/registry/ui/table";
 import { Badge } from "@/registry/ui/badge";
-import { WorkspaceHeader } from "../WorkspaceHeader";
-import { getSiteName, type AssetListItem } from "../../lib/mock-asset-list-data";
+import { SiteWorkspaceHeader } from "../SiteWorkspaceHeader";
+import { type AssetListItem } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
 
-export function AssetList() {
+export function SiteAssets() {
+  const { siteId } = useParams<{ siteId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,9 +38,11 @@ export function AssetList() {
     }
   }, [location.state]);
 
-  // Filter assets based on search query
+  if (!siteId) return null;
+
+  // Filter assets for this specific site
   const filteredAssets = useMemo(() => {
-    let filtered = assets;
+    let filtered = assets.filter((asset) => asset.siteId === siteId);
 
     // Filter by search query
     if (searchQuery) {
@@ -53,7 +56,6 @@ export function AssetList() {
           asset.categoryName,
           asset.location,
           asset.condition,
-          getSiteName(asset.siteId || ""),
         ]
           .join(" ")
           .toLowerCase()
@@ -62,25 +64,23 @@ export function AssetList() {
     }
 
     return filtered;
-  }, [searchQuery, assets]);
+  }, [siteId, searchQuery, assets]);
 
   const handleAssetClick = (assetId: string) => {
-    navigate(`edit-asset/${assetId}`, { state: { returnTo: 'asset-list' } });
+    const pathname = window.location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    navigate(`${basePath}/edit-asset/${assetId}`, { state: { returnTo: 'site-assets', siteId } });
   };
 
   const handleCreateAsset = () => {
-    navigate("create-asset");
-  };
-
-  const handleSiteClick = (siteId: string) => {
     const pathname = window.location.pathname;
     const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
-    navigate(`${basePath}/site/${siteId}/assets`, { state: { returnTo: 'asset-list' } });
+    navigate(`${basePath}/create-asset`);
   };
 
   return (
     <div className="w-full min-h-screen bg-background">
-      <WorkspaceHeader workspaceTitle="Asset Management" />
+      <SiteWorkspaceHeader siteId={siteId} />
 
       {/* Success Banner */}
       {showSuccessBanner && (
@@ -144,7 +144,6 @@ export function AssetList() {
                       <TableRow>
                         <TableHead className="w-[100px]">ID</TableHead>
                         <TableHead className="min-w-[200px]">Reference</TableHead>
-                        <TableHead className="min-w-[150px]">Site</TableHead>
                         <TableHead className="min-w-[150px]">Manufacturer</TableHead>
                         <TableHead className="min-w-[120px]">Model</TableHead>
                         <TableHead className="min-w-[150px]">Category</TableHead>
@@ -164,17 +163,6 @@ export function AssetList() {
                           </TableCell>
                           <TableCell className="font-medium">
                             {asset.reference}
-                          </TableCell>
-                          <TableCell 
-                            className="text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (asset.siteId) {
-                                handleSiteClick(asset.siteId);
-                              }
-                            }}
-                          >
-                            {getSiteName(asset.siteId || "")}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {asset.manufacturer}
@@ -217,3 +205,4 @@ export function AssetList() {
     </div>
   );
 }
+

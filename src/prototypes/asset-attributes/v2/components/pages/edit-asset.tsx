@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Check, ArrowLeft } from "lucide-react";
@@ -39,13 +39,14 @@ import {
 import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
 import { CollapsibleSection } from "../features/asset-form/CollapsibleSection";
 import { SiteSearchableSelect } from "../features/asset-form/SiteSearchableSelect";
-import { MOCK_SITE } from "../../lib/mock-asset-list-data";
+import { MOCK_SITE, type AssetListItem } from "../../lib/mock-asset-list-data";
 import type { Category } from "../../types";
 
 export function EditAsset() {
   const { assetId } = useParams<{ assetId: string }>();
   const navigate = useNavigate();
-  const { categories } = useAttributeStore();
+  const location = useLocation();
+  const { categories, manufacturers, updateAsset, assets } = useAttributeStore();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [originalCategoryId, setOriginalCategoryId] = useState<string | null>(null);
   const [showCategoryChangeDialog, setShowCategoryChangeDialog] = useState(false);
@@ -54,11 +55,18 @@ export function EditAsset() {
   const [showSiteEditDialog, setShowSiteEditDialog] = useState(false);
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
 
-  // Load mock asset data
+  // Get the asset from store
+  const storeAsset = useMemo(() => {
+    if (!assetId) return null;
+    return assets.find((a) => a.id === assetId) || null;
+  }, [assetId, assets]);
+
+  // Load mock asset data - use store asset if available, otherwise fall back to mock data
   const mockAsset = useMemo(() => {
     if (!assetId) return null;
-    return getMockAsset(assetId);
-  }, [assetId]);
+    // Pass the store asset and manufacturers to getMockAsset so it uses the correct siteId and resolves IDs
+    return getMockAsset(assetId, storeAsset || undefined, manufacturers);
+  }, [assetId, storeAsset, manufacturers]);
 
   // Get photos from mock asset, default to empty array
   const photos = useMemo(() => {
@@ -194,18 +202,116 @@ export function EditAsset() {
     }
   }, [watchedCategory, selectedCategoryId]);
 
-  // Handle form submission
-  const onSubmit = (data: Record<string, unknown>) => {
-    // No category change check needed - dialog handles it before category changes
-    console.log("Form data:", data);
-    // In a real app, this would send data to an API
-    // Navigate back to asset list after successful save
-    navigate("/asset-attributes/v2");
+  // Get siteId from form data, store asset, or mock asset
+  const getSiteId = (): string | undefined => {
+    const formSiteId = form.watch("global-contact") as string | undefined;
+    const storeSiteId = storeAsset?.siteId;
+    const mockSiteId = mockAsset?.["global-contact"] as string | undefined;
+    return formSiteId || storeSiteId || mockSiteId;
   };
 
-  // Handle back button click - always go back to asset list
+  // Handle form submission
+  const onSubmit = (data: Record<string, unknown>) => {
+    if (!assetId) return;
+    
+    // No category change check needed - dialog handles it before category changes
+    console.log("Form data:", data);
+    
+    // Get category info
+    const categoryId = (data["global-category"] as string) || selectedCategoryId || "";
+    const category = categories.find((c) => c.id === categoryId);
+    const categoryName = category?.name || "Unknown";
+    
+    // Get manufacturer and model info
+    const manufacturerId = data["global-manufacturer"] as string | undefined;
+    const manufacturer = manufacturerId
+      ? manufacturers.find((m) => m.id === manufacturerId)
+      : null;
+    const manufacturerName = manufacturer?.name || "";
+    
+    const modelId = data["global-model"] as string | undefined;
+    const model = manufacturer && modelId
+      ? manufacturer.models.find((m) => m.id === modelId)
+      : null;
+    const modelName = model?.name || "";
+    
+    // Prepare updates for the asset
+    const updates: Partial<AssetListItem> = {
+      name: (data["global-name"] as string) || "Unnamed Asset",
+      reference: (data["global-customer-reference"] as string) || "",
+      categoryId: categoryId,
+      categoryName: categoryName,
+      condition: (data["global-condition"] as string) || "Good",
+      location: (data["global-location"] as string) || "",
+      manufacturer: manufacturerName,
+      model: modelName,
+      lastService: data["global-date-last-service"] as string | undefined,
+      warrantyExpiry: data["global-warranty-expiry"] as string | undefined,
+      siteId: data["global-contact"] as string | undefined,
+    };
+    
+    // Update asset in store
+    updateAsset(assetId, updates);
+    
+    // Get the updated reference for the banner
+    const updatedReference = updates.reference || "";
+    
+    // Navigate back based on where the user came from
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    const returnTo = location.state?.returnTo as string | undefined;
+    
+    const bannerState = {
+      showSuccessBanner: true,
+      assetId: assetId,
+      assetReference: updatedReference,
+    };
+    
+    if (returnTo === 'asset-list') {
+      // Return to asset list page with success banner
+      navigate(basePath, { state: bannerState });
+    } else if (returnTo === 'site-assets' && location.state?.siteId) {
+      // Return to site assets page with success banner
+      const siteId = location.state.siteId as string;
+      navigate(`${basePath}/site/${siteId}/assets`, { state: bannerState });
+    } else {
+      // Fallback: check if we have a siteId to navigate back to site assets
+      const siteId = (data["global-contact"] as string | undefined) || getSiteId();
+      if (siteId) {
+        navigate(`${basePath}/site/${siteId}/assets`, { state: bannerState });
+      } else if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate(basePath, { state: bannerState });
+      }
+    }
+  };
+
+  // Handle back button click - go back in history, or to asset list if no history
   const handleBackClick = () => {
-    navigate("/asset-attributes/v2");
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    const returnTo = location.state?.returnTo as string | undefined;
+    
+    if (returnTo === 'asset-list') {
+      // Return to asset list page
+      navigate(basePath);
+    } else if (returnTo === 'site-assets' && location.state?.siteId) {
+      // Return to site assets page
+      const siteId = location.state.siteId as string;
+      navigate(`${basePath}/site/${siteId}/assets`);
+    } else if (window.history.length > 1) {
+      // Try to go back in browser history
+      navigate(-1);
+    } else {
+      // Fallback: check if we have a siteId and navigate to site assets
+      const siteId = getSiteId();
+      if (siteId) {
+        navigate(`${basePath}/site/${siteId}/assets`);
+      } else {
+        navigate(basePath);
+      }
+    }
   };
 
   // Handle close button click
@@ -214,14 +320,56 @@ export function EditAsset() {
     if (form.formState.isDirty) {
       setShowUnsavedChangesDialog(true);
     } else {
-      navigate("/asset-attributes/v2");
+      const pathname = location.pathname;
+      const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+      const returnTo = location.state?.returnTo as string | undefined;
+      
+      if (returnTo === 'asset-list') {
+        // Return to asset list page
+        navigate(basePath);
+      } else if (returnTo === 'site-assets' && location.state?.siteId) {
+        // Return to site assets page
+        const siteId = location.state.siteId as string;
+        navigate(`${basePath}/site/${siteId}/assets`);
+      } else if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        // Fallback: check if we have a siteId and navigate to site assets
+        const siteId = getSiteId();
+        if (siteId) {
+          navigate(`${basePath}/site/${siteId}/assets`);
+        } else {
+          navigate(basePath);
+        }
+      }
     }
   };
 
   // Confirm close with unsaved changes
   const handleConfirmClose = () => {
     setShowUnsavedChangesDialog(false);
-    navigate("/asset-attributes/v2");
+    const pathname = location.pathname;
+    const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
+    const returnTo = location.state?.returnTo as string | undefined;
+    
+    if (returnTo === 'asset-list') {
+      // Return to asset list page
+      navigate(basePath);
+    } else if (returnTo === 'site-assets' && location.state?.siteId) {
+      // Return to site assets page
+      const siteId = location.state.siteId as string;
+      navigate(`${basePath}/site/${siteId}/assets`);
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      // Fallback: check if we have a siteId and navigate to site assets
+      const siteId = getSiteId();
+      if (siteId) {
+        navigate(`${basePath}/site/${siteId}/assets`);
+      } else {
+        navigate(basePath);
+      }
+    }
   };
 
   // Cancel close
@@ -345,9 +493,9 @@ export function EditAsset() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background">
+    <div className="w-full h-full bg-background overflow-y-auto pb-10">
       {/* Navigation Header - matches asset-list width, fixed to top */}
-      <div className="sticky top-0 z-50 w-full bg-muted/50 border-b border-border">
+      <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-4">
@@ -503,7 +651,20 @@ export function EditAsset() {
           {/* Left Column - Form (3/5 width) */}
           <div className="lg:col-span-3">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+              <form 
+                onSubmit={form.handleSubmit(onSubmit)} 
+                className="space-y-0"
+                onKeyDown={(e) => {
+                  // Prevent Enter key from submitting the form unless it's on a submit button or textarea
+                  if (e.key === "Enter" && e.target instanceof HTMLElement) {
+                    const isSubmitButton = e.target.type === "submit" || e.target.closest('button[type="submit"]');
+                    const isTextarea = e.target.tagName === "TEXTAREA";
+                    if (!isSubmitButton && !isTextarea) {
+                      e.preventDefault();
+                    }
+                  }
+                }}
+              >
                 <Card className="w-full">
                   <CardContent className="p-5">
                     {/* Asset Info Section */}

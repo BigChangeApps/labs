@@ -185,44 +185,63 @@ function getProductImages(
  * Generate mock asset data based on asset ID
  * In a real app, this would fetch from an API
  */
-export function getMockAsset(assetId: string): MockAsset | null {
-  // Find the asset in the mock asset list
-  const assetListItem = mockAssetList.find((asset) => asset.id === assetId);
+export function getMockAsset(
+  assetId: string,
+  assetListItem?: AssetListItem,
+  manufacturers?: Array<{ id: string; name: string; models: Array<{ id: string; name: string }> }>
+): MockAsset | null {
+  // Use provided assetListItem or find the asset in the mock asset list
+  const item = assetListItem || mockAssetList.find((asset) => asset.id === assetId);
 
-  if (!assetListItem) {
+  if (!item) {
     return null;
   }
 
-  // Normalize manufacturer and model to lowercase slugs
-  const normalizedManufacturer = normalizeToSlug(assetListItem.manufacturer);
-  const normalizedModel = normalizeToSlug(assetListItem.model);
+  // Try to find manufacturer and model IDs from names if manufacturers are provided
+  let manufacturerId: string | undefined;
+  let modelId: string | undefined;
+  
+  if (manufacturers) {
+    const manufacturer = manufacturers.find((m) => m.name === item.manufacturer);
+    if (manufacturer) {
+      manufacturerId = manufacturer.id;
+      const model = manufacturer.models.find((m) => m.name === item.model);
+      if (model) {
+        modelId = model.id;
+      }
+    }
+  }
+  
+  // Fall back to normalized slugs if IDs not found
+  const normalizedManufacturer = manufacturerId || normalizeToSlug(item.manufacturer);
+  const normalizedModel = modelId || normalizeToSlug(item.model);
 
   // Calculate dates (use lastService for installation date, warrantyExpiry for end of life)
-  const installationDate = assetListItem.lastService
-    ? new Date(assetListItem.lastService)
+  const installationDate = item.lastService
+    ? new Date(item.lastService)
     : null;
   const manufactureDate = installationDate
     ? new Date(installationDate.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 days before installation
     : null;
-  const endOfLifeDate = assetListItem.warrantyExpiry
+  const endOfLifeDate = item.warrantyExpiry
     ? new Date(
-        new Date(assetListItem.warrantyExpiry).getTime() +
+        new Date(item.warrantyExpiry).getTime() +
           4 * 365 * 24 * 60 * 60 * 1000
       ) // 4 years after warranty expiry
     : null;
 
   // Get product images based on manufacturer and model
   const photos = getProductImages(
-    assetListItem.manufacturer,
-    assetListItem.model,
-    assetListItem.categoryId,
-    assetListItem.id
+    item.manufacturer,
+    item.model,
+    item.categoryId,
+    item.id
   );
 
   // Build the base mock asset
   const mockAsset: MockAsset = {
-    id: assetListItem.id,
-    categoryId: assetListItem.categoryId,
+    id: item.id,
+    categoryId: item.categoryId,
     photos,
     createdBy: {
       name: "Adam Kendrew",
@@ -230,32 +249,32 @@ export function getMockAsset(assetId: string): MockAsset | null {
     },
     createdAt: "2025-06-30T10:00:00Z",
     updatedAt: "2025-07-16T14:30:00Z",
-    "global-asset-id": assetListItem.id,
-    "global-customer-reference": assetListItem.reference,
-    "global-barcode": `BC-${assetListItem.id.padStart(5, "0")}`,
-    "global-category": assetListItem.categoryId,
+    "global-asset-id": item.id,
+    "global-customer-reference": item.reference,
+    "global-barcode": `BC-${item.id.padStart(5, "0")}`,
+    "global-category": item.categoryId,
     "global-manufacturer": normalizedManufacturer,
     "global-model": normalizedModel,
-    "global-manufacturer-serial": `SN-${assetListItem.id.padStart(9, "0")}`,
+    "global-manufacturer-serial": `SN-${item.id.padStart(9, "0")}`,
     "global-date-manufacture": manufactureDate
       ? manufactureDate.toISOString().split("T")[0]
       : "2023-06-15",
     "global-date-installation": installationDate
       ? installationDate.toISOString().split("T")[0]
       : "2023-07-10",
-    "global-date-last-service": assetListItem.lastService || "2024-12-05",
+    "global-date-last-service": item.lastService || "2024-12-05",
     "global-end-of-life": endOfLifeDate
       ? endOfLifeDate.toISOString().split("T")[0]
       : "2030-06-15",
-    "global-warranty-expiry": assetListItem.warrantyExpiry || "2026-06-15",
-    "global-status": assetListItem.status,
-    "global-contact": "site-1",
-    "global-location": assetListItem.location,
-    "global-condition": assetListItem.condition,
+    "global-warranty-expiry": item.warrantyExpiry || "2026-06-15",
+    "global-status": item.status,
+    "global-contact": item.siteId || "site-1", // Use the asset's siteId, fallback to site-1
+    "global-location": item.location,
+    "global-condition": item.condition,
   };
 
   // Add category-specific attributes
-  const categoryAttributes = getCategorySpecificAttributes(assetListItem.categoryId);
+  const categoryAttributes = getCategorySpecificAttributes(item.categoryId);
   Object.assign(mockAsset, categoryAttributes);
 
   return mockAsset;

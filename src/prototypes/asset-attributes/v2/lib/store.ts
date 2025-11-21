@@ -13,6 +13,7 @@ import {
   manufacturers as initialManufacturers,
   globalAttributes as initialGlobalAttributes,
 } from "./mock-data";
+import { mockAssetList as initialAssetList, type AssetListItem } from "./mock-asset-list-data";
 
 interface AttributeStore {
   // State
@@ -24,6 +25,7 @@ interface AttributeStore {
   categories: Category[];
   manufacturers: Manufacturer[];
   globalAttributes: GlobalAttribute[];
+  assets: AssetListItem[];
 
   // Navigation actions
   setCurrentCategory: (categoryId: string) => void;
@@ -79,6 +81,11 @@ interface AttributeStore {
   addCategory: (name: string, parentId?: string) => string;
   editCategory: (categoryId: string, name: string) => void;
   deleteCategory: (categoryId: string) => void;
+
+  // Asset actions
+  addAsset: (asset: AssetListItem) => void;
+  updateAsset: (assetId: string, updates: Partial<AssetListItem>) => void;
+  deleteAsset: (assetId: string) => void;
 }
 
 export const useAttributeStore = create<AttributeStore>((set) => ({
@@ -91,6 +98,7 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
   categories: initialCategories,
   manufacturers: initialManufacturers,
   globalAttributes: initialGlobalAttributes,
+  assets: initialAssetList,
 
   // Navigation actions
   setCurrentCategory: (categoryId) => {
@@ -611,6 +619,25 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
         customCategoryAttributes,
       };
     });
+  },
+
+  // Asset actions
+  addAsset: (asset) => {
+    set((state) => ({
+      assets: [...state.assets, asset],
+    }));
+  },
+  updateAsset: (assetId, updates) => {
+    set((state) => ({
+      assets: state.assets.map((asset) =>
+        asset.id === assetId ? { ...asset, ...updates } : asset
+      ),
+    }));
+  },
+  deleteAsset: (assetId) => {
+    set((state) => ({
+      assets: state.assets.filter((asset) => asset.id !== assetId),
+    }));
   },
 }));
 

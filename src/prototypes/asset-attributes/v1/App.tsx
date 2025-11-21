@@ -27,11 +27,14 @@ function AssetAttributesApp() {
     };
   }, []);
   
+  // Only show banner when VITE_SHOW_INTERNAL is "false" (production/customer-facing mode)
+  const showBanner = import.meta.env.VITE_SHOW_INTERNAL === "false";
+
   return (
     <TooltipProvider>
       <div className="h-screen bg-background flex flex-col overflow-hidden">
         <PrototypeBanner deviceType="desktop" />
-        <div className="flex-1 overflow-hidden pt-[61px]">
+        <div className={`flex-1 overflow-hidden ${showBanner ? "pt-[61px]" : "pt-0"}`}>
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Navigate to="attributes" replace state={location.state} />} />
