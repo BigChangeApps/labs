@@ -11,25 +11,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/registry/ui/popover"
-
-function formatDate(date: Date | undefined) {
-  if (!date) {
-    return ""
-  }
-
-  return date.toLocaleDateString("en-US", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  })
-}
-
-function isValidDate(date: Date | undefined) {
-  if (!date) {
-    return false
-  }
-  return !isNaN(date.getTime())
-}
+import {
+  applyDateMask,
+  parseDDMMYYYY,
+  formatDDMMYYYY,
+  formatDateToISO,
+  validateDateInput,
+  isValidDate,
+} from "../../../lib/date-utils"
 
 interface DatePickerProps {
   value?: string
@@ -37,94 +26,162 @@ interface DatePickerProps {
   placeholder?: string
 }
 
-export function DatePicker({ value, onChange, placeholder = "Select date" }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  placeholder = "DD/MM/YYYY"
+}: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const [date, setDate] = React.useState<Date | undefined>(undefined)
+  const [month, setMonth] = React.useState<Date | undefined>(undefined)
+  const [maskedValue, setMaskedValue] = React.useState("")
+  const [hasBlurred, setHasBlurred] = React.useState(false)
+  const [inputError, setInputError] = React.useState<string | null>(null)
+  const [inputMethod, setInputMethod] = React.useState<'calendar' | 'typing' | 'external'>('external')
 
-  // Parse the value string (YYYY-MM-DD) to a Date object
-  const dateFromValue = React.useMemo(() => {
-    if (!value) return undefined
-    const parsed = new Date(value)
-    return isValidDate(parsed) ? parsed : undefined
-  }, [value])
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const cursorPosRef = React.useRef<number>(0)
 
-  const [date, setDate] = React.useState<Date | undefined>(dateFromValue)
-  const [month, setMonth] = React.useState<Date | undefined>(dateFromValue)
-  const [displayValue, setDisplayValue] = React.useState(formatDate(dateFromValue))
-
-  // Update internal state when value prop changes
+  // Sync from form value to display (external changes)
   React.useEffect(() => {
-    if (dateFromValue) {
-      setDate(dateFromValue)
-      setMonth(dateFromValue)
-      setDisplayValue(formatDate(dateFromValue))
+    if (inputMethod === 'typing') return
+
+    if (!value) {
+      setMaskedValue('')
+      setDate(undefined)
+      setMonth(undefined)
+      return
     }
-  }, [dateFromValue])
+
+    const parsed = new Date(value)
+    if (isValidDate(parsed)) {
+      setDate(parsed)
+      setMonth(parsed)
+      setMaskedValue(formatDDMMYYYY(parsed))
+      setInputMethod('external')
+    }
+  }, [value, inputMethod])
+
+  // Restore cursor position after masking
+  React.useEffect(() => {
+    if (inputRef.current && inputMethod === 'typing') {
+      inputRef.current.setSelectionRange(cursorPosRef.current, cursorPosRef.current)
+    }
+  }, [maskedValue, inputMethod])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMethod('typing')
+
+    const inputValue = e.target.value
+    const cursorPos = e.target.selectionStart || 0
+
+    // Apply masking
+    const masked = applyDateMask(inputValue)
+    setMaskedValue(masked)
+
+    // Calculate new cursor position
+    const digitsBeforeCursor = inputValue.slice(0, cursorPos).replace(/\D/g, '').length
+    let newCursorPos = digitsBeforeCursor
+    if (digitsBeforeCursor > 2) newCursorPos++
+    if (digitsBeforeCursor > 4) newCursorPos++
+    cursorPosRef.current = newCursorPos
+
+    // Clear errors while typing
+    setInputError(null)
+  }
+
+  const handleBlur = () => {
+    setHasBlurred(true)
+    setInputMethod('external')
+
+    const error = validateDateInput(maskedValue)
+    setInputError(error)
+
+    if (!error && maskedValue) {
+      const parsed = parseDDMMYYYY(maskedValue)
+      if (parsed) {
+        setDate(parsed)
+        setMonth(parsed)
+        const isoDate = formatDateToISO(parsed)
+        onChange?.(isoDate)
+      }
+    } else if (!maskedValue) {
+      setDate(undefined)
+      setMonth(undefined)
+      onChange?.('')
+    }
+  }
+
+  const handleCalendarSelect = (selectedDate: Date | undefined) => {
+    if (!selectedDate) return
+
+    setInputMethod('calendar')
+    setDate(selectedDate)
+    setMonth(selectedDate)
+    setMaskedValue(formatDDMMYYYY(selectedDate))
+
+    const isoDate = formatDateToISO(selectedDate)
+    onChange?.(isoDate)
+
+    setOpen(false)
+    setInputError(null)
+    setHasBlurred(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setOpen(true)
+    }
+  }
 
   return (
-    <div className="relative flex gap-2">
-      <Input
-        value={displayValue}
-        placeholder={placeholder}
-        className="h-9 bg-background pr-10"
-        onChange={(e) => {
-          const inputValue = e.target.value
-          setDisplayValue(inputValue)
-
-          // Try to parse the input as a date
-          const parsed = new Date(inputValue)
-          if (isValidDate(parsed)) {
-            setDate(parsed)
-            setMonth(parsed)
-            // Convert to YYYY-MM-DD format for form
-            const isoDate = parsed.toISOString().split('T')[0]
-            onChange?.(isoDate)
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown") {
-            e.preventDefault()
-            setOpen(true)
-          }
-        }}
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2"
+    <div className="flex flex-col gap-1">
+      <div className="relative flex gap-2">
+        <Input
+          ref={inputRef}
+          value={maskedValue}
+          placeholder={placeholder}
+          className="h-9 bg-background pr-10"
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          aria-invalid={!!inputError}
+        />
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2"
+            >
+              <CalendarIcon className="size-3" />
+              <span className="sr-only">Select date</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto overflow-hidden p-0"
+            align="end"
+            alignOffset={-8}
+            sideOffset={10}
           >
-            <CalendarIcon className="size-3" />
-            <span className="sr-only">Select date</span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-auto overflow-hidden p-0"
-          align="end"
-          alignOffset={-8}
-          sideOffset={10}
-        >
-          <Calendar
-            mode="single"
-            selected={date}
-            captionLayout="dropdown"
-            month={month}
-            onMonthChange={setMonth}
-            onSelect={(selectedDate) => {
-              setDate(selectedDate)
-              setDisplayValue(formatDate(selectedDate))
-              setOpen(false)
-
-              // Convert to YYYY-MM-DD format for form
-              if (selectedDate) {
-                const isoDate = selectedDate.toISOString().split('T')[0]
-                onChange?.(isoDate)
-              }
-            }}
-          />
-        </PopoverContent>
-      </Popover>
+            <Calendar
+              mode="single"
+              selected={date}
+              captionLayout="dropdown"
+              month={month}
+              onMonthChange={setMonth}
+              onSelect={handleCalendarSelect}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      {hasBlurred && inputError && (
+        <p className="text-sm text-destructive">
+          {inputError}
+        </p>
+      )}
     </div>
   )
 }
