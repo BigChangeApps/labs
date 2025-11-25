@@ -36,7 +36,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/registry/ui/command";
-import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
+import { AttributeField } from "../features/asset-form/AttributeField";
 import {
   Accordion,
   AccordionContent,
@@ -687,10 +687,11 @@ export function EditAsset() {
                           </div>
                           <div className="flex flex-col gap-3">
                             {organizedAttributes.assetInfo.map((attr) => (
-                              <AttributeFieldRenderer
+                              <AttributeField
                                 key={attr.id}
                                 attribute={attr}
                                 fieldName={attr.id}
+                                siteOptions={siteOptions}
                               />
                             ))}
                           </div>
@@ -723,10 +724,11 @@ export function EditAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {organizedAttributes.manufacturer.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -750,10 +752,11 @@ export function EditAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {coreAttributes.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -777,10 +780,11 @@ export function EditAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {organizedAttributes.installation.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -803,10 +807,11 @@ export function EditAsset() {
                               <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                 <div className="flex flex-col gap-4 w-full">
                                   {organizedAttributes.warranty.map((attr) => (
-                                    <AttributeFieldRenderer
+                                    <AttributeField
                                       key={attr.id}
                                       attribute={attr}
                                       fieldName={attr.id}
+                                      siteOptions={siteOptions}
                                     />
                                   ))}
                                 </div>
@@ -829,10 +834,11 @@ export function EditAsset() {
                         </h2>
                         <div className="flex flex-col gap-4">
                           {categorySpecificAttributes.map((attr) => (
-                            <AttributeFieldRenderer
+                            <AttributeField
                               key={attr.id}
                               attribute={attr}
                               fieldName={attr.id}
+                              siteOptions={siteOptions}
                             />
                           ))}
                         </div>

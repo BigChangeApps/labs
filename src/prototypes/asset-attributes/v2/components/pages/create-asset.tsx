@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/registry/ui/dialog";
-import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
+import { AttributeField } from "../features/asset-form/AttributeField";
 import {
   Accordion,
   AccordionContent,
@@ -27,6 +27,7 @@ import {
   AccordionTrigger,
 } from "@/registry/ui/accordion";
 import { type AssetListItem } from "../../lib/mock-asset-list-data";
+import { ATTRIBUTE_IDS } from "../features/asset-form/attribute-constants";
 
 const SESSION_STORAGE_KEY = "asset-attributes-v2-create-asset-form-data";
 
@@ -67,6 +68,45 @@ export function CreateAsset() {
     );
   }, [organizedAttributes.attributes]);
 
+  // Site options for Site field (can be passed as props or use default in AttributeField)
+  const siteOptions = useMemo(() => [
+    {
+      id: "site-1",
+      name: "John Lewis & Partners",
+      address: "Victoria Gate, Harewood Street, Leeds, LS2 7AR",
+    },
+    {
+      id: "site-2",
+      name: "Manchester Store",
+      address: "123 High Street, Manchester, M1 1AA",
+    },
+    {
+      id: "site-3",
+      name: "Birmingham Bullring",
+      address: "Bullring Shopping Centre, Birmingham, B5 4BU",
+    },
+    {
+      id: "site-4",
+      name: "London Oxford Street",
+      address: "300 Oxford Street, London, W1C 1DX",
+    },
+    {
+      id: "site-5",
+      name: "Edinburgh Princes Street",
+      address: "48 Princes Street, Edinburgh, EH2 2YJ",
+    },
+    {
+      id: "site-6",
+      name: "Bristol Cribbs Causeway",
+      address: "Cribbs Causeway, Bristol, BS34 5DG",
+    },
+    {
+      id: "site-7",
+      name: "Liverpool One",
+      address: "Liverpool One Shopping Centre, Liverpool, L1 8JQ",
+    },
+  ], []);
+
   // Get all attributes for validation schema
   const allAttributes = useMemo(() => {
     return [
@@ -101,6 +141,9 @@ export function CreateAsset() {
     return {};
   }, [urlCategoryId, selectedCategoryId]);
 
+  // Get siteId from location state (if coming from site page)
+  const siteIdFromState = location.state?.siteId as string | undefined;
+
   // Initialize form with saved data or defaults
   const savedFormData = useMemo(() => loadSavedFormData(), [loadSavedFormData]);
   const form = useForm({
@@ -110,6 +153,8 @@ export function CreateAsset() {
     defaultValues: {
       "global-category": urlCategoryId || savedFormData["global-category"] || "",
       ...savedFormData,
+      // Pre-fill site if coming from site page (prioritize location state over saved data)
+      ...(siteIdFromState && { [ATTRIBUTE_IDS.CONTACT]: siteIdFromState }),
     },
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -172,7 +217,12 @@ export function CreateAsset() {
         isRestoringFromStorage.current = true;
         // Use setTimeout to ensure form is fully initialized
         setTimeout(() => {
-          form.reset(savedFormData);
+          // Preserve siteId from location state when restoring (prioritize location state)
+          const dataToRestore = {
+            ...savedFormData,
+            ...(siteIdFromState && { [ATTRIBUTE_IDS.CONTACT]: siteIdFromState }),
+          };
+          form.reset(dataToRestore);
         }, 0);
       }
     }
@@ -382,10 +432,11 @@ export function CreateAsset() {
                           <h2 className="font-bold text-base">Asset Info</h2>
                           <div className="flex flex-col gap-3">
                             {organizedAttributes.assetInfo.map((attr) => (
-                              <AttributeFieldRenderer
+                              <AttributeField
                                 key={attr.id}
                                 attribute={attr}
                                 fieldName={attr.id}
+                                siteOptions={siteOptions}
                               />
                             ))}
                           </div>
@@ -403,10 +454,11 @@ export function CreateAsset() {
                           <h2 className="font-bold text-base">Location</h2>
                           <div className="flex flex-col gap-4">
                             {organizedAttributes.location.map((attr) => (
-                              <AttributeFieldRenderer
+                              <AttributeField
                                 key={attr.id}
                                 attribute={attr}
                                 fieldName={attr.id}
+                                siteOptions={siteOptions}
                               />
                             ))}
                           </div>
@@ -438,10 +490,11 @@ export function CreateAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {organizedAttributes.manufacturer.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -465,10 +518,11 @@ export function CreateAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {coreAttributes.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -492,10 +546,11 @@ export function CreateAsset() {
                                 <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                   <div className="flex flex-col gap-4 w-full">
                                     {organizedAttributes.installation.map((attr) => (
-                                      <AttributeFieldRenderer
+                                      <AttributeField
                                         key={attr.id}
                                         attribute={attr}
                                         fieldName={attr.id}
+                                        siteOptions={siteOptions}
                                       />
                                     ))}
                                   </div>
@@ -518,10 +573,11 @@ export function CreateAsset() {
                               <AccordionContent className="!pt-4 !pb-0 overflow-visible">
                                 <div className="flex flex-col gap-4 w-full">
                                   {organizedAttributes.warranty.map((attr) => (
-                                    <AttributeFieldRenderer
+                                    <AttributeField
                                       key={attr.id}
                                       attribute={attr}
                                       fieldName={attr.id}
+                                      siteOptions={siteOptions}
                                     />
                                   ))}
                                 </div>
@@ -544,10 +600,11 @@ export function CreateAsset() {
                         </h2>
                         <div className="flex flex-col gap-4">
                           {categorySpecificAttributes.map((attr) => (
-                            <AttributeFieldRenderer
+                            <AttributeField
                               key={attr.id}
                               attribute={attr}
                               fieldName={attr.id}
+                              siteOptions={siteOptions}
                             />
                           ))}
                         </div>
