@@ -19,6 +19,6 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@highway": "http://localhost:3001/r/{name}.json"
+    "@highway": "https://registry.poc.bigchange.com/r/{name}.json"
   }
 }
