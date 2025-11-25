@@ -126,12 +126,21 @@ export function DatePicker({
     setOpen(false)
     setInputError(null)
     setHasBlurred(false)
+    
+    // Restore focus to input after calendar selection
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") {
       e.preventDefault()
       setOpen(true)
+    } else if (e.key === "Escape" && open) {
+      e.preventDefault()
+      setOpen(false)
+      inputRef.current?.focus()
     }
   }
 
@@ -165,6 +174,20 @@ export function DatePicker({
             align="end"
             alignOffset={-8}
             sideOffset={10}
+            onEscapeKeyDown={(e) => {
+              // Restore focus to input when closing with Escape
+              e.preventDefault()
+              setOpen(false)
+              inputRef.current?.focus()
+            }}
+            onInteractOutside={() => {
+              // When clicking outside, restore focus to input
+              if (inputRef.current) {
+                requestAnimationFrame(() => {
+                  inputRef.current?.focus()
+                })
+              }
+            }}
           >
             <Calendar
               mode="single"

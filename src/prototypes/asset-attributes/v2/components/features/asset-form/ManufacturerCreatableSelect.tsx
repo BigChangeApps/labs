@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { Check, ChevronDown, Plus } from "lucide-react";
 import { useAttributeStore } from "../../../lib/store";
 import {
@@ -32,6 +32,7 @@ export function ManufacturerCreatableSelect({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const { manufacturers, addManufacturer } = useAttributeStore();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Get manufacturer options
   const manufacturerOptions = useMemo(() => {
@@ -71,6 +72,16 @@ export function ManufacturerCreatableSelect({
     );
   }, [searchValue, searchMatchesExisting]);
 
+  // Restore focus to input when popover closes
+  useEffect(() => {
+    if (!open && inputRef.current) {
+      // Use requestAnimationFrame to ensure the popover has fully closed
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    }
+  }, [open]);
+
   const handleSelect = (selectedValue: string) => {
     // Check if this is a create action (value starts with "create:")
     if (selectedValue.startsWith("create:")) {
@@ -105,16 +116,23 @@ export function ManufacturerCreatableSelect({
           aria-expanded={open}
         >
           <Input
+            ref={inputRef}
             type="text"
             value={selectedManufacturer ? selectedManufacturer.name : ""}
             onChange={() => {
               // Input is read-only, clicking opens popover
             }}
-            onFocus={(e) => {
-              e.preventDefault();
-              (e.target as HTMLInputElement).blur();
-              if (!open && !disabled) {
-                setOpen(true);
+            onKeyDown={(e) => {
+              // Handle keyboard navigation - open on Enter, Space, or ArrowDown
+              if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+                e.preventDefault();
+                if (!open && !disabled) {
+                  setOpen(true);
+                }
+              } else if (e.key === "Escape" && open) {
+                e.preventDefault();
+                setOpen(false);
+                inputRef.current?.focus();
               }
             }}
             onClick={(e) => {
@@ -134,6 +152,10 @@ export function ManufacturerCreatableSelect({
             className="h-9 pr-8 cursor-pointer select-none"
             disabled={disabled}
             readOnly
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            aria-controls={open ? "manufacturer-select-listbox" : undefined}
+            role="combobox"
           />
           <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         </div>
@@ -141,14 +163,36 @@ export function ManufacturerCreatableSelect({
       <PopoverContent
         className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
+        onEscapeKeyDown={(e) => {
+          // Prevent default escape handling, we'll handle it in the input
+          e.preventDefault();
+          setOpen(false);
+          inputRef.current?.focus();
+        }}
+        onInteractOutside={() => {
+          // When clicking outside, restore focus to input
+          if (inputRef.current) {
+            requestAnimationFrame(() => {
+              inputRef.current?.focus();
+            });
+          }
+        }}
       >
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search manufacturers..."
             value={searchValue}
             onValueChange={setSearchValue}
+            onKeyDown={(e) => {
+              // Handle Escape key in search input
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setOpen(false);
+                inputRef.current?.focus();
+              }
+            }}
           />
-          <CommandList>
+          <CommandList id="manufacturer-select-listbox">
             {filteredManufacturers.length === 0 && !shouldShowCreate && (
               <CommandEmpty>No manufacturer found. Type to add a new one.</CommandEmpty>
             )}
