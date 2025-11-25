@@ -40,12 +40,14 @@ interface CategoryAddDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   parentId?: string;
+  initialName?: string;
 }
 
 export function CategoryAddDialog({
   open,
   onOpenChange,
   parentId: initialParentId,
+  initialName,
 }: CategoryAddDialogProps) {
   const { categories, addCategory } = useAttributeStore();
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -56,28 +58,31 @@ export function CategoryAddDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for Zod resolver compatibility
     resolver: zodResolver(categoryFormSchema) as any,
     defaultValues: {
-      name: "",
+      name: initialName || "",
       parentId: initialParentId || "",
     },
   });
 
-  // Update form when initialParentId changes
+  // Update form when initialParentId or initialName changes
   useEffect(() => {
     if (initialParentId) {
       form.setValue("parentId", initialParentId);
     }
-  }, [initialParentId, form]);
+    if (initialName !== undefined) {
+      form.setValue("name", initialName);
+    }
+  }, [initialParentId, initialName, form]);
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       form.reset({
-        name: "",
+        name: initialName || "",
         parentId: initialParentId || "",
       });
       setPopoverOpen(false);
     }
-  }, [open, initialParentId, form]);
+  }, [open, initialParentId, initialName, form]);
 
   // Get all parent categories (categories without a parent) and sort alphabetically
   const parentCategories = categories

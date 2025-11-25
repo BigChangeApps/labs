@@ -179,8 +179,26 @@ export function Categories() {
           <Card>
             <CardContent className="p-0">
               {filteredTree.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground text-sm">No categories found</p>
+                <div className="text-center py-8 px-4">
+                  {searchQuery ? (
+                    <div className="space-y-3">
+                      <p className="text-muted-foreground text-sm">
+                        No search found for '{searchQuery}'
+                      </p>
+                      <Button
+                        variant="link"
+                        onClick={() => {
+                          setSelectedParentId(undefined);
+                          setIsAddDialogOpen(true);
+                        }}
+                        className="text-primary"
+                      >
+                        Create category
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No categories found</p>
+                  )}
                 </div>
               ) : (
                 filteredTree.map((parent: Category, parentIndex: number) => {
@@ -259,6 +277,7 @@ export function Categories() {
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         parentId={selectedParentId}
+        initialName={searchQuery && filteredTree.length === 0 ? searchQuery : undefined}
       />
     </div>
   );
