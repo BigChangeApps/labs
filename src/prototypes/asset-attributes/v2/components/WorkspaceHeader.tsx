@@ -60,12 +60,11 @@ export function WorkspaceHeader({ workspaceTitle = "Assets" }: WorkspaceHeaderPr
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={handleSettingsClick}
-                className="shrink-0"
+                className="shrink-0 h-7 w-7"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
+                <Settings className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>

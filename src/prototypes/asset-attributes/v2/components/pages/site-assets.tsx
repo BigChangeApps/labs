@@ -76,7 +76,7 @@ export function SiteAssets() {
   const handleCreateAsset = () => {
     const pathname = window.location.pathname;
     const basePath = pathname.match(/^\/asset-attributes\/v2/)?.[0] || "/asset-attributes/v2";
-    navigate(`${basePath}/create-asset`);
+    navigate(`${basePath}/create-asset`, { state: { siteId } });
   };
 
   return (
