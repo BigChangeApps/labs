@@ -361,9 +361,9 @@ export function CreateAsset() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight">
+              <span className="text-base sm:text-lg font-bold tracking-tight">
                 Create Asset
-              </h1>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -396,9 +396,9 @@ export function CreateAsset() {
             <div className="flex items-start gap-4 w-full">
               {/* Title */}
               <div className="flex-1 flex flex-col gap-2">
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                   Create asset
-                </h2>
+                </h1>
               </div>
             </div>
           </div>
