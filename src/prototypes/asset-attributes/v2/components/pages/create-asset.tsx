@@ -43,6 +43,7 @@ export function CreateAsset() {
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
   const isInitialMount = useRef(true);
   const isRestoringFromStorage = useRef(false);
+  const h1Ref = useRef<HTMLHeadingElement>(null);
 
   // Get selected category (for display purposes)
   const selectedCategory = useMemo(() => {
@@ -229,6 +230,22 @@ export function CreateAsset() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
+  // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
+  // Use double requestAnimationFrame to ensure this runs after all other focus management
+  useEffect(() => {
+    const focusH1 = () => {
+      if (h1Ref.current) {
+        h1Ref.current.focus();
+      }
+    };
+    // Double RAF ensures this runs after all other effects and focus management
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        focusH1();
+      });
+    });
+  }, []);
+
   // Handle form submission
   const onSubmit = (data: Record<string, unknown>) => {
     console.log("Form data:", data);
@@ -396,7 +413,11 @@ export function CreateAsset() {
             <div className="flex items-start gap-4 w-full">
               {/* Title */}
               <div className="flex-1 flex flex-col gap-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                <h1 
+                  ref={h1Ref}
+                  tabIndex={0}
+                  className="text-2xl sm:text-3xl font-bold tracking-tight outline-none focus-visible:outline-none"
+                >
                   Create asset
                 </h1>
               </div>

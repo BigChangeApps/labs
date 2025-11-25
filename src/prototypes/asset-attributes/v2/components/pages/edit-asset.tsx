@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,6 +59,7 @@ export function EditAsset() {
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [showSiteEditDialog, setShowSiteEditDialog] = useState(false);
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+  const h1Ref = useRef<HTMLHeadingElement>(null);
 
   // Get the asset from store
   const storeAsset = useMemo(() => {
@@ -191,6 +192,24 @@ export function EditAsset() {
       form.reset(mockAsset);
     }
   }, [mockAsset, form]);
+
+  // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
+  // Use double requestAnimationFrame to ensure this runs after all other focus management
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    
+    const focusH1 = () => {
+      if (h1Ref.current) {
+        h1Ref.current.focus();
+      }
+    };
+    // Double RAF ensures this runs after all other effects and focus management
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        focusH1();
+      });
+    });
+  }, [selectedCategoryId]);
 
   // Get selected site data
   const selectedSiteId = form.watch("global-contact");
@@ -549,7 +568,11 @@ export function EditAsset() {
               {/* Title and Actions */}
               <div className="flex-1 flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-4 w-full">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                  <h1 
+                    ref={h1Ref}
+                    tabIndex={0}
+                    className="text-2xl sm:text-3xl font-bold tracking-tight outline-none focus-visible:outline-none"
+                  >
                     {selectedCategory?.name || "Asset"} at {selectedSiteData?.name || MOCK_SITE.name}
                   </h1>
                   <div className="flex items-center gap-2">

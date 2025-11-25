@@ -125,6 +125,10 @@ export function Combobox({
               onChange={() => {
                 // Input is read-only, clicking opens popover
               }}
+              onFocus={(e) => {
+                // Prevent text selection when input receives focus
+                e.target.setSelectionRange(0, 0);
+              }}
               onKeyDown={(e) => {
                 // Handle keyboard navigation - open on Enter, Space, or ArrowDown
                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -210,12 +214,11 @@ export function Combobox({
                           value={option.value}
                           disabled={option.disabled}
                           onSelect={(currentValue) => {
-                            // Only close if a different value is selected
-                            if (currentValue !== value) {
-                              onValueChange?.(currentValue);
-                              setOpen(false);
-                              // Focus will be restored by useEffect when open becomes false
-                            }
+                            // Always trigger onValueChange to allow actions even when same value selected
+                            onValueChange?.(currentValue);
+                            // Always close the popover when an option is selected
+                            setOpen(false);
+                            // Focus will be restored by useEffect when open becomes false
                           }}
                         >
                           <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -245,12 +248,11 @@ export function Combobox({
                       value={option.value}
                       disabled={option.disabled}
                       onSelect={(currentValue) => {
-                        // Only close if a different value is selected
-                        if (currentValue !== value) {
-                          onValueChange?.(currentValue);
-                          setOpen(false);
-                          // Focus will be restored by useEffect when open becomes false
-                        }
+                        // Always trigger onValueChange to allow actions even when same value selected
+                        onValueChange?.(currentValue);
+                        // Always close the popover when an option is selected
+                        setOpen(false);
+                        // Focus will be restored by useEffect when open becomes false
                       }}
                     >
                       <div className="flex flex-col gap-0.5 flex-1 min-w-0">

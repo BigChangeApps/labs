@@ -33,6 +33,7 @@ export function ManufacturerCreatableSelect({
   const [searchValue, setSearchValue] = useState("");
   const { manufacturers, addManufacturer } = useAttributeStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasBeenOpenedRef = useRef(false);
 
   // Get manufacturer options
   const manufacturerOptions = useMemo(() => {
@@ -72,9 +73,16 @@ export function ManufacturerCreatableSelect({
     );
   }, [searchValue, searchMatchesExisting]);
 
-  // Restore focus to input when popover closes
+  // Track when popover has been opened (to avoid auto-focusing on initial mount)
   useEffect(() => {
-    if (!open && inputRef.current) {
+    if (open) {
+      hasBeenOpenedRef.current = true;
+    }
+  }, [open]);
+
+  // Restore focus to input when popover closes (only if it was previously opened)
+  useEffect(() => {
+    if (!open && inputRef.current && hasBeenOpenedRef.current) {
       // Use requestAnimationFrame to ensure the popover has fully closed
       requestAnimationFrame(() => {
         inputRef.current?.focus();

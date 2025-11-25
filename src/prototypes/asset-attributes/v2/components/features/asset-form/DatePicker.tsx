@@ -134,7 +134,8 @@ export function DatePicker({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
+    // Open calendar on Enter, Space, or ArrowDown (when closed)
+    if ((e.key === "Enter" || e.key === " " || e.key === "ArrowDown") && !open) {
       e.preventDefault()
       setOpen(true)
     } else if (e.key === "Escape" && open) {
@@ -164,6 +165,13 @@ export function DatePicker({
               variant="ghost"
               size="icon"
               className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2"
+              onKeyDown={(e) => {
+                // Ensure Enter and Space open the calendar popover
+                if ((e.key === "Enter" || e.key === " ") && !open) {
+                  e.preventDefault()
+                  setOpen(true)
+                }
+              }}
             >
               <CalendarIcon className="size-3" />
               <span className="sr-only">Select date</span>
