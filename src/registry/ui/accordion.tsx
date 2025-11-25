@@ -41,15 +41,24 @@ AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Content
-    ref={ref}
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
-    {...props}
-  >
-    <div className={cn("pb-4 pt-0", className)}>{children}</div>
-  </AccordionPrimitive.Content>
-));
+>(({ className, children, ...props }, ref) => {
+  // Check if overflow-visible is requested (with or without !important)
+  const hasOverflowVisible = className?.includes('overflow-visible');
+  // Extract overflow class to apply to outer element, default to overflow-hidden for animations
+  const overflowClass = hasOverflowVisible ? 'overflow-visible' : 'overflow-hidden';
+  // Remove overflow classes from inner className
+  const innerClassName = className?.replace(/!?overflow-\w+/g, '').trim();
+  
+  return (
+    <AccordionPrimitive.Content
+      ref={ref}
+      className={cn("text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down", overflowClass)}
+      {...props}
+    >
+      <div className={cn("pb-4 pt-0", innerClassName)}>{children}</div>
+    </AccordionPrimitive.Content>
+  );
+});
 
 AccordionContent.displayName = AccordionPrimitive.Content.displayName;
 
