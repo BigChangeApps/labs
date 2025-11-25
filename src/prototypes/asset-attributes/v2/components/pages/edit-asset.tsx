@@ -225,6 +225,24 @@ export function EditAsset() {
     });
   }, [selectedCategoryId]);
 
+  // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
+  // Use double requestAnimationFrame to ensure this runs after all other focus management
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    
+    const focusH1 = () => {
+      if (h1Ref.current) {
+        h1Ref.current.focus();
+      }
+    };
+    // Double RAF ensures this runs after all other effects and focus management
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        focusH1();
+      });
+    });
+  }, [selectedCategoryId]);
+
   // Get selected site data
   const selectedSiteId = form.watch("global-contact");
   const selectedSiteData = useMemo(() => {
