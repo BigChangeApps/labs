@@ -17,7 +17,11 @@ Commit and push changes with comprehensive validation checks for production-read
    - Run `git status` to see current changes
    - Run `git diff --staged` to review what will be committed
    - Run `git log -3 --oneline` to understand commit message style
-   - Check current branch name - warn if on main/master
+   - Check current branch name - **If on main/master branch:**
+     - **STOP and ask for confirmation:** "⚠️ WARNING: You are on the 'main' (or 'master') branch. Committing directly to main/master bypasses code review. Are you sure you want to proceed? (yes/no)"
+     - **Wait for user response** before proceeding
+     - If user says "no" or declines, STOP and suggest creating a feature branch instead
+     - If user confirms "yes", proceed with commit
    - Analyze staged changes and draft an appropriate commit message
    - Create commit with proper formatting including:
      ```
@@ -37,7 +41,7 @@ Commit and push changes with comprehensive validation checks for production-read
 **Safety Rules:**
 - NEVER use `--force` or `--no-verify` unless explicitly requested
 - NEVER commit files with secrets (.env, credentials.json, etc.)
-- WARN user if attempting to push to main/master branch
+- **REQUIRE explicit confirmation before committing to main/master branch** - ask user if they're sure they want to proceed
 - Follow repository's commit message style
 
 **Use Case:** Before creating PRs, merging to main, or when you want maximum confidence that your changes are production-ready.
