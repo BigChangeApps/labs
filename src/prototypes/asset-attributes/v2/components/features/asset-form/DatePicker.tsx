@@ -126,12 +126,22 @@ export function DatePicker({
     setOpen(false)
     setInputError(null)
     setHasBlurred(false)
+    
+    // Restore focus to input after calendar selection
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
+    // Open calendar on Enter, Space, or ArrowDown (when closed)
+    if ((e.key === "Enter" || e.key === " " || e.key === "ArrowDown") && !open) {
       e.preventDefault()
       setOpen(true)
+    } else if (e.key === "Escape" && open) {
+      e.preventDefault()
+      setOpen(false)
+      inputRef.current?.focus()
     }
   }
 
@@ -155,6 +165,13 @@ export function DatePicker({
               variant="ghost"
               size="icon"
               className="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2"
+              onKeyDown={(e) => {
+                // Ensure Enter and Space open the calendar popover
+                if ((e.key === "Enter" || e.key === " ") && !open) {
+                  e.preventDefault()
+                  setOpen(true)
+                }
+              }}
             >
               <CalendarIcon className="size-3" />
               <span className="sr-only">Select date</span>
@@ -165,6 +182,20 @@ export function DatePicker({
             align="end"
             alignOffset={-8}
             sideOffset={10}
+            onEscapeKeyDown={(e) => {
+              // Restore focus to input when closing with Escape
+              e.preventDefault()
+              setOpen(false)
+              inputRef.current?.focus()
+            }}
+            onInteractOutside={() => {
+              // When clicking outside, restore focus to input
+              if (inputRef.current) {
+                requestAnimationFrame(() => {
+                  inputRef.current?.focus()
+                })
+              }
+            }}
           >
             <Calendar
               mode="single"

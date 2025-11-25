@@ -4,34 +4,171 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
-import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
+import {
+  DayButton,
+  DayPicker,
+  getDefaultClassNames,
+} from "react-day-picker"
 
 import { cn } from "@/registry/lib/utils"
-import { Button, buttonVariants } from "@/registry/ui/button"
+import { Button } from "@/registry/ui/button"
+
+function CalendarPreviousButton({
+  onClick,
+  disabled,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"button">) {
+  const ref = React.useRef<HTMLButtonElement>(null)
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" && ref.current) {
+      e.preventDefault()
+      ref.current.click()
+    }
+  }
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className={cn("size-(--cell-size)", className)}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
+      {...props}
+    >
+      {children}
+    </Button>
+  )
+}
+
+function CalendarNextButton({
+  onClick,
+  disabled,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"button">) {
+  const ref = React.useRef<HTMLButtonElement>(null)
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" && ref.current) {
+      e.preventDefault()
+      ref.current.click()
+    }
+  }
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className={cn("size-(--cell-size)", className)}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
+      {...props}
+    >
+      {children}
+    </Button>
+  )
+}
+
+function CalendarRoot({
+  className,
+  rootRef,
+  ...props
+}: React.ComponentProps<"div"> & { rootRef?: React.Ref<HTMLDivElement> }) {
+  return (
+    <div
+      data-slot="calendar"
+      ref={rootRef}
+      className={cn(className)}
+      {...props}
+    />
+  )
+}
+
+function CalendarChevron({
+  className,
+  orientation,
+  ...props
+}: React.ComponentProps<"svg"> & { orientation?: "left" | "right" | "down" | "up" }) {
+  if (orientation === "left") {
+    return (
+      <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+    )
+  }
+
+  if (orientation === "right") {
+    return (
+      <ChevronRightIcon
+        className={cn("size-4", className)}
+        {...props}
+      />
+    )
+  }
+
+  if (orientation === "up") {
+    return (
+      <ChevronDownIcon className={cn("size-4 rotate-180", className)} {...props} />
+    )
+  }
+
+  return (
+    <ChevronDownIcon className={cn("size-4", className)} {...props} />
+  )
+}
+
+function CalendarWeekNumber({
+  children,
+  ...props
+}: React.ComponentProps<"td">) {
+  return (
+    <td {...props}>
+      <div className="flex size-(--cell-size) items-center justify-center text-center">
+        {children}
+      </div>
+    </td>
+  )
+}
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
-  buttonVariant = "ghost",
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
-}) {
+}: React.ComponentProps<typeof DayPicker>) {
   const defaultClassNames = getDefaultClassNames()
+
+  const memoizedComponents = React.useMemo(
+    () => ({
+      Root: CalendarRoot,
+      Chevron: CalendarChevron,
+      PreviousMonthButton: CalendarPreviousButton,
+      NextMonthButton: CalendarNextButton,
+      DayButton: CalendarDayButton,
+      WeekNumber: CalendarWeekNumber,
+      ...components,
+    }),
+    [components]
+  )
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn(
-        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
-        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
-        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
-        className
-      )}
+        className={cn(
+          "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+          String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+          String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+          className
+        )}
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
@@ -50,13 +187,11 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          "aria-disabled:opacity-50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
-          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
+          "aria-disabled:opacity-50",
           defaultClassNames.button_next
         ),
         month_caption: cn(
@@ -125,49 +260,7 @@ function Calendar({
         hidden: cn("invisible", defaultClassNames.hidden),
         ...classNames,
       }}
-      components={{
-        Root: ({ className, rootRef, ...props }) => {
-          return (
-            <div
-              data-slot="calendar"
-              ref={rootRef}
-              className={cn(className)}
-              {...props}
-            />
-          )
-        },
-        Chevron: ({ className, orientation, ...props }) => {
-          if (orientation === "left") {
-            return (
-              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
-            )
-          }
-
-          if (orientation === "right") {
-            return (
-              <ChevronRightIcon
-                className={cn("size-4", className)}
-                {...props}
-              />
-            )
-          }
-
-          return (
-            <ChevronDownIcon className={cn("size-4", className)} {...props} />
-          )
-        },
-        DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
-          return (
-            <td {...props}>
-              <div className="flex size-(--cell-size) items-center justify-center text-center">
-                {children}
-              </div>
-            </td>
-          )
-        },
-        ...components,
-      }}
+      components={memoizedComponents}
       {...props}
     />
   )
@@ -177,6 +270,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  onKeyDown,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
@@ -185,6 +279,17 @@ function CalendarDayButton({
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    // Ensure Enter key triggers date selection (Space already works via default button behavior)
+    if (e.key === "Enter" && ref.current) {
+      e.preventDefault()
+      // Use the button's native click() method to trigger all click handlers
+      ref.current.click()
+    }
+    // Call the original onKeyDown handler if provided
+    onKeyDown?.(e)
+  }
 
   return (
     <Button
@@ -206,6 +311,7 @@ function CalendarDayButton({
         defaultClassNames.day,
         className
       )}
+      onKeyDown={handleKeyDown}
       {...props}
     />
   )

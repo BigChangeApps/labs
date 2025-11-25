@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,8 +36,13 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/registry/ui/command";
-import { AttributeFieldRenderer } from "../features/asset-form/AttributeFieldRenderer";
-import { CollapsibleSection } from "../features/asset-form/CollapsibleSection";
+import { AttributeField } from "../features/asset-form/AttributeField";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/registry/ui/accordion";
 import { SiteSearchableSelect } from "../features/asset-form/SiteSearchableSelect";
 import { MOCK_SITE, type AssetListItem } from "../../lib/mock-asset-list-data";
 import type { Category } from "../../types";
@@ -54,6 +59,7 @@ export function EditAsset() {
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [showSiteEditDialog, setShowSiteEditDialog] = useState(false);
   const [showUnsavedChangesDialog, setShowUnsavedChangesDialog] = useState(false);
+  const h1Ref = useRef<HTMLHeadingElement>(null);
 
   // Get the asset from store
   const storeAsset = useMemo(() => {
@@ -186,6 +192,24 @@ export function EditAsset() {
       form.reset(mockAsset);
     }
   }, [mockAsset, form]);
+
+  // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
+  // Use double requestAnimationFrame to ensure this runs after all other focus management
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    
+    const focusH1 = () => {
+      if (h1Ref.current) {
+        h1Ref.current.focus();
+      }
+    };
+    // Double RAF ensures this runs after all other effects and focus management
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        focusH1();
+      });
+    });
+  }, [selectedCategoryId]);
 
   // Get selected site data
   const selectedSiteId = form.watch("global-contact");
@@ -508,9 +532,9 @@ export function EditAsset() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight">
+              <span className="text-base sm:text-lg font-bold tracking-tight">
                 Asset {assetId}
-              </h1>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -544,9 +568,13 @@ export function EditAsset() {
               {/* Title and Actions */}
               <div className="flex-1 flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-4 w-full">
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                  <h1 
+                    ref={h1Ref}
+                    tabIndex={0}
+                    className="text-2xl sm:text-3xl font-bold tracking-tight outline-none focus-visible:outline-none"
+                  >
                     {selectedCategory?.name || "Asset"} at {selectedSiteData?.name || MOCK_SITE.name}
-                  </h2>
+                  </h1>
                   <div className="flex items-center gap-2">
                     <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
                       <PopoverTrigger asChild>
@@ -682,10 +710,11 @@ export function EditAsset() {
                           </div>
                           <div className="flex flex-col gap-3">
                             {organizedAttributes.assetInfo.map((attr) => (
-                              <AttributeFieldRenderer
+                              <AttributeField
                                 key={attr.id}
                                 attribute={attr}
                                 fieldName={attr.id}
+                                siteOptions={siteOptions}
                               />
                             ))}
                           </div>
@@ -697,101 +726,123 @@ export function EditAsset() {
                     )}
 
 
-                    {/* Manufacturer Section */}
-                    {organizedAttributes.manufacturer.length > 0 && (
-                      <>
-                        <div className="flex flex-col gap-4 py-5">
-                          <CollapsibleSection
-                            title="Manufacturer"
-                            defaultExpanded={true}
-                          >
-                            <div className="flex flex-col gap-4">
-                              {organizedAttributes.manufacturer.map((attr) => (
-                                <AttributeFieldRenderer
-                                  key={attr.id}
-                                  attribute={attr}
-                                  fieldName={attr.id}
-                                />
-                              ))}
+                    {/* Collapsible Sections - Manufacturer, Attributes, Installation, Warranty */}
+                    {(organizedAttributes.manufacturer.length > 0 ||
+                      coreAttributes.length > 0 ||
+                      organizedAttributes.installation.length > 0 ||
+                      organizedAttributes.warranty.length > 0) && (
+                      <Accordion
+                        type="multiple"
+                        defaultValue={["manufacturer"]}
+                        className="w-full"
+                      >
+                        {/* Manufacturer Section */}
+                        {organizedAttributes.manufacturer.length > 0 && (
+                          <>
+                            <AccordionItem value="manufacturer" className="border-b-0">
+                              <div className="flex flex-col py-5">
+                                <AccordionTrigger className="!py-0 hover:no-underline font-bold text-base">
+                                  Manufacturer
+                                </AccordionTrigger>
+                                <AccordionContent className="!pt-4 !pb-0 overflow-visible">
+                                  <div className="flex flex-col gap-4 w-full">
+                                    {organizedAttributes.manufacturer.map((attr) => (
+                                      <AttributeField
+                                        key={attr.id}
+                                        attribute={attr}
+                                        fieldName={attr.id}
+                                        siteOptions={siteOptions}
+                                      />
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </div>
+                            </AccordionItem>
+                            <div className="w-[calc(100%+2.5rem)] -ml-5">
+                              <Separator />
                             </div>
-                          </CollapsibleSection>
-                        </div>
-                        <div className="w-[calc(100%+2.5rem)] -ml-5">
-                          <Separator />
-                        </div>
-                      </>
-                    )}
+                          </>
+                        )}
 
-                    {/* Core Attributes Section */}
-                    {coreAttributes.length > 0 && (
-                      <>
-                        <div className="flex flex-col gap-4 py-5">
-                          <CollapsibleSection
-                            title="Attributes"
-                            defaultExpanded={false}
-                          >
-                            <div className="flex flex-col gap-4">
-                              {coreAttributes.map((attr) => (
-                                <AttributeFieldRenderer
-                                  key={attr.id}
-                                  attribute={attr}
-                                  fieldName={attr.id}
-                                />
-                              ))}
+                        {/* Core Attributes Section */}
+                        {coreAttributes.length > 0 && (
+                          <>
+                            <AccordionItem value="attributes" className="border-b-0">
+                              <div className="flex flex-col py-5">
+                                <AccordionTrigger className="!py-0 hover:no-underline font-bold text-base">
+                                  Attributes
+                                </AccordionTrigger>
+                                <AccordionContent className="!pt-4 !pb-0 overflow-visible">
+                                  <div className="flex flex-col gap-4 w-full">
+                                    {coreAttributes.map((attr) => (
+                                      <AttributeField
+                                        key={attr.id}
+                                        attribute={attr}
+                                        fieldName={attr.id}
+                                        siteOptions={siteOptions}
+                                      />
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </div>
+                            </AccordionItem>
+                            <div className="w-[calc(100%+2.5rem)] -ml-5">
+                              <Separator />
                             </div>
-                          </CollapsibleSection>
-                        </div>
-                        <div className="w-[calc(100%+2.5rem)] -ml-5">
-                          <Separator />
-                        </div>
-                      </>
-                    )}
+                          </>
+                        )}
 
-                    {/* Installation Section */}
-                    {organizedAttributes.installation.length > 0 && (
-                      <>
-                        <div className="flex flex-col gap-4 py-5">
-                          <CollapsibleSection
-                            title="Installation"
-                            defaultExpanded={false}
-                          >
-                            <div className="flex flex-col gap-4">
-                              {organizedAttributes.installation.map((attr) => (
-                                <AttributeFieldRenderer
-                                  key={attr.id}
-                                  attribute={attr}
-                                  fieldName={attr.id}
-                                />
-                              ))}
+                        {/* Installation Section */}
+                        {organizedAttributes.installation.length > 0 && (
+                          <>
+                            <AccordionItem value="installation" className="border-b-0">
+                              <div className="flex flex-col py-5">
+                                <AccordionTrigger className="!py-0 hover:no-underline font-bold text-base">
+                                  Installation
+                                </AccordionTrigger>
+                                <AccordionContent className="!pt-4 !pb-0 overflow-visible">
+                                  <div className="flex flex-col gap-4 w-full">
+                                    {organizedAttributes.installation.map((attr) => (
+                                      <AttributeField
+                                        key={attr.id}
+                                        attribute={attr}
+                                        fieldName={attr.id}
+                                        siteOptions={siteOptions}
+                                      />
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </div>
+                            </AccordionItem>
+                            <div className="w-[calc(100%+2.5rem)] -ml-5">
+                              <Separator />
                             </div>
-                          </CollapsibleSection>
-                        </div>
-                        <div className="w-[calc(100%+2.5rem)] -ml-5">
-                          <Separator />
-                        </div>
-                      </>
-                    )}
+                          </>
+                        )}
 
-                    {/* Warranty Section */}
-                    {organizedAttributes.warranty.length > 0 && (
-                      <>
-                        <div className="flex flex-col gap-4 pt-5">
-                          <CollapsibleSection
-                            title="Warranty"
-                            defaultExpanded={false}
-                          >
-                            <div className="flex flex-col gap-4">
-                              {organizedAttributes.warranty.map((attr) => (
-                                <AttributeFieldRenderer
-                                  key={attr.id}
-                                  attribute={attr}
-                                  fieldName={attr.id}
-                                />
-                              ))}
+                        {/* Warranty Section */}
+                        {organizedAttributes.warranty.length > 0 && (
+                          <AccordionItem value="warranty" className="border-b-0">
+                            <div className="flex flex-col pt-5">
+                              <AccordionTrigger className="!py-0 hover:no-underline font-bold text-base">
+                                Warranty
+                              </AccordionTrigger>
+                              <AccordionContent className="!pt-4 !pb-0 overflow-visible">
+                                <div className="flex flex-col gap-4 w-full">
+                                  {organizedAttributes.warranty.map((attr) => (
+                                    <AttributeField
+                                      key={attr.id}
+                                      attribute={attr}
+                                      fieldName={attr.id}
+                                      siteOptions={siteOptions}
+                                    />
+                                  ))}
+                                </div>
+                              </AccordionContent>
                             </div>
-                          </CollapsibleSection>
-                        </div>
-                      </>
+                          </AccordionItem>
+                        )}
+                      </Accordion>
                     )}
                   </CardContent>
                 </Card>
@@ -806,10 +857,11 @@ export function EditAsset() {
                         </h2>
                         <div className="flex flex-col gap-4">
                           {categorySpecificAttributes.map((attr) => (
-                            <AttributeFieldRenderer
+                            <AttributeField
                               key={attr.id}
                               attribute={attr}
                               fieldName={attr.id}
+                              siteOptions={siteOptions}
                             />
                           ))}
                         </div>
