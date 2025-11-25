@@ -20,9 +20,6 @@ Commit and push changes with quick validation checks for rapid development itera
    - Analyze staged changes and draft an appropriate commit message
    - Create commit with proper formatting including:
      ```
-     🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-     Co-Authored-By: Claude <noreply@anthropic.com>
      ```
    - Check if branch has upstream tracking
    - **Before pushing, check if branch is behind remote:**

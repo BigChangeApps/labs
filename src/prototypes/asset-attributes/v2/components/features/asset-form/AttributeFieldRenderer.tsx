@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Calendar } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/registry/ui/input";
 import {
@@ -17,6 +16,7 @@ import { CategorySearchableSelect } from "./CategorySearchableSelect";
 import { SiteSearchableSelect } from "./SiteSearchableSelect";
 import { ManufacturerCreatableSelect } from "./ManufacturerCreatableSelect";
 import { ModelCreatableSelect } from "./ModelCreatableSelect";
+import { DatePicker } from "./DatePicker";
 
 interface AttributeFieldRendererProps {
   attribute: FormAttribute;
@@ -162,14 +162,11 @@ export function AttributeFieldRenderer({
 
       case "date":
         return (
-          <div className="relative">
-            <Input
-              {...register(fieldName)}
-              type="date"
-              className="h-9 pr-10"
-            />
-            <Calendar className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          </div>
+          <DatePicker
+            value={watch(fieldName) || ""}
+            onChange={(value) => setValue(fieldName, value)}
+            placeholder={attribute.description || "Select date"}
+          />
         );
 
       case "boolean":
