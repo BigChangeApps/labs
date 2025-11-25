@@ -19,7 +19,7 @@ export function CollapsibleSection({
     <div className="flex flex-col gap-4">
       <Button
         variant="ghost"
-        className="w-full justify-between p-0 h-auto font-bold text-base hover:bg-transparent"
+        className="w-full justify-between !p-0 !px-0 h-auto font-bold text-base hover:bg-transparent"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <span>{title}</span>

@@ -151,11 +151,7 @@ export function ModelCreatableSelect({
                 setOpen(true);
               }
             }}
-            placeholder={
-              !manufacturerId
-                ? "Select manufacturer first"
-                : placeholder
-            }
+            placeholder={placeholder}
             className="h-9 pr-8 cursor-pointer select-none"
             disabled={effectiveDisabled}
             readOnly
