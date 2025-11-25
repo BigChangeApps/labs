@@ -36,7 +36,6 @@ Create a pull request with comprehensive validation and proper PR documentation.
      - [ ] Verified no regressions
      - [ ] Checked browser compatibility
 
-     🤖 Generated with [Claude Code](https://claude.com/claude-code)
      EOF
      )"
      ```
