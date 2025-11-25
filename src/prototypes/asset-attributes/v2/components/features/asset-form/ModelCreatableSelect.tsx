@@ -216,6 +216,11 @@ export function ModelCreatableSelect({
                 setOpen(false);
                 inputRef.current?.focus();
               }
+              // Handle Enter key to create new model if "Create" option is shown
+              if (e.key === "Enter" && shouldShowCreate && searchValue.trim()) {
+                e.preventDefault();
+                handleSelect(`create:${searchValue.trim()}`);
+              }
             }}
           />
           <CommandList id="model-select-listbox">

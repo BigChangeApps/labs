@@ -187,11 +187,43 @@ export function EditAsset() {
   });
 
   // Update form when mock asset loads
+  // Only reset if the asset itself changed, not when manufacturers/models change
+  const previousAssetIdRef = useRef<string | null>(null);
+  const previousStoreAssetRef = useRef<AssetListItem | null>(null);
+  
   useEffect(() => {
     if (mockAsset) {
-      form.reset(mockAsset);
+      const assetChanged = 
+        previousAssetIdRef.current !== assetId ||
+        previousStoreAssetRef.current !== storeAsset;
+      
+      if (assetChanged) {
+        form.reset(mockAsset);
+        previousAssetIdRef.current = assetId || null;
+        previousStoreAssetRef.current = storeAsset;
+      }
+      // If only manufacturers changed (e.g., new model added), don't reset the form
+      // This preserves the user's current selections including newly created models
     }
-  }, [mockAsset, form]);
+  }, [mockAsset, form, assetId, storeAsset]);
+
+  // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
+  // Use double requestAnimationFrame to ensure this runs after all other focus management
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    
+    const focusH1 = () => {
+      if (h1Ref.current) {
+        h1Ref.current.focus();
+      }
+    };
+    // Double RAF ensures this runs after all other effects and focus management
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        focusH1();
+      });
+    });
+  }, [selectedCategoryId]);
 
   // Focus h1 on mount for accessibility (programmatic focus doesn't show focus-visible)
   // Use double requestAnimationFrame to ensure this runs after all other focus management
@@ -694,8 +726,8 @@ export function EditAsset() {
                   }
                 }}
               >
-                <Card className="w-full">
-                  <CardContent className="p-5">
+                <Card className="w-full overflow-visible">
+                  <CardContent className="p-5 overflow-visible">
                     {/* Asset Info Section */}
                     {organizedAttributes.assetInfo.length > 0 && (
                       <>

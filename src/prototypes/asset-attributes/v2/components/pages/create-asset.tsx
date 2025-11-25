@@ -444,8 +444,8 @@ export function CreateAsset() {
                   }
                 }}
               >
-                <Card className="w-full">
-                  <CardContent className="p-5">
+                <Card className="w-full overflow-visible">
+                  <CardContent className="p-5 overflow-visible">
                     {/* Asset Info Section */}
                     {organizedAttributes.assetInfo.length > 0 && (
                       <>
