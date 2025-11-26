@@ -455,7 +455,7 @@ export function JobsReadyToInvoice() {
       </header>
 
       {/* Main Content */}
-      <main className={cn("p-6", selectedJobs.size > 0 && "pb-20")}>
+      <main className={cn("p-6", selectedJobs.size > 0 && "pb-32")}>
         {/* Filters */}
         <div className="mb-4 flex items-center gap-2">
           <div className="flex-1 max-w-[300px]">
@@ -723,7 +723,7 @@ export function JobsReadyToInvoice() {
 
       {/* Multi-Select Footer - Sticky Banner */}
       {selectedJobs.size > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#101929] z-20">
+        <div className="fixed bottom-10 left-0 right-0 bg-[#101929] z-[60]">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="text-sm text-white tracking-[-0.14px]">
               <span className="font-bold">{summary.jobs}</span>{" "}
