@@ -24,6 +24,17 @@ export const prototypes: PrototypeMetadata[] = [
     deviceType: "desktop",
     visibility: "public",
   },
+  {
+    id: "bulk-invoicing",
+    title: "Bulk / Group Invoicing",
+    description:
+      "Select multiple jobs, choose grouping method, and generate invoices in one flow. Jobs ready to invoice with multi-select table.",
+    thumbnail: "/thumbnails/bulk-invoicing.png",
+    path: "/bulk-invoicing",
+    createdAt: "2025-01-27",
+    deviceType: "desktop",
+    visibility: "public",
+  },
   // Add more prototypes here as they are created
 ];
 

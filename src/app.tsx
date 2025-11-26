@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "@/home";
 import TokensPage from "@/tokens";
 import AssetAttributesApp from "@/prototypes/asset-attributes/App";
+import BulkInvoicingApp from "@/prototypes/bulk-invoicing/App";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { BrandSwitcher } from "@/components/BrandSwitcher";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -26,6 +27,14 @@ function App() {
           element={
             <ProtectedRoute prototypeId="asset-attributes">
               <AssetAttributesApp />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bulk-invoicing/*"
+          element={
+            <ProtectedRoute prototypeId="bulk-invoicing">
+              <BulkInvoicingApp />
             </ProtectedRoute>
           }
         />
