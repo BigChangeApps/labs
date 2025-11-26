@@ -15,6 +15,13 @@ export const components: ComponentMetadata[] = [
     path: "/playground/navigation",
     description: "Demo of the navigation built with shadcn.",
   },
+  {
+    id: "button-variants",
+    title: "Button Variants",
+    category: "forms",
+    path: "/playground/button-variants",
+    description: "Tweaking button variants",
+  },
 ];
 
 export function getAllComponents(): ComponentMetadata[] {
