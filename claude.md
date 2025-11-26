@@ -1,0 +1,107 @@
+# Claude Context - Design Prototypes Playground
+
+## Project Overview
+This is a design prototype playground for testing concepts with customers, aligned with the BigChange MFE Suite. It's a React + TypeScript application built with Vite.
+
+## Tech Stack
+- **Framework**: React 18.2 with TypeScript
+- **Build Tool**: Vite 7.1
+- **Styling**: Tailwind CSS 4.1 with custom animations
+- **UI Components**: Radix UI primitives (dialogs, popovers, selects, etc.)
+- **Forms**: React Hook Form + Zod validation
+- **Routing**: React Router DOM
+- **State Management**: Zustand
+- **Drag & Drop**: dnd-kit
+- **Package Manager**: pnpm 10.18.3
+
+## UI Components & Registry
+This project uses a **custom shadcn component registry** hosted at `highway-shadcn` on GitHub.
+
+### Adding Components
+**IMPORTANT**: Always use the `@highway` registry when adding components:
+
+```bash
+# ✅ Correct - Use the custom registry
+npx shadcn@latest add @highway/button
+npx shadcn@latest add @highway/dialog
+npx shadcn@latest add @highway/form
+
+# ❌ Wrong - Do NOT use the default registry
+npx shadcn@latest add button  # This will fail or use wrong components
+```
+
+### Why @highway Registry?
+- **Customized components**: highway-shadcn components have BigChange-specific modifications
+- **Consistency**: Ensures all prototypes use the same component versions
+- **Team alignment**: Matches the BigChange MFE Suite component standards
+
+### Registry Configuration
+The custom registry is configured in `components.json`:
+```json
+"registries": {
+  "@highway": "https://raw.githubusercontent.com/Simpro-Group/highway-shadcn/..."
+}
+```
+
+**Security Note**: The registry URL contains a GitHub token for private repo access. Do not commit changes that expose this token in logs or screenshots.
+
+## Project Structure
+```
+labs/
+├── src/
+│   └── prototypes/          # Individual prototype implementations
+│       └── asset-attributes/ # Current prototype for asset attributes
+├── scripts/                 # Build and utility scripts
+├── public/                  # Static assets
+├── docs/                    # Documentation
+├── .claude/                 # Claude Code configuration
+│   └── commands/            # Custom slash commands
+└── styles/                  # Global styles
+```
+
+## Development Commands
+```bash
+pnpm dev                    # Start development server
+pnpm build                  # Type check and build for production
+pnpm lint                   # Run ESLint
+pnpm preview                # Preview production build
+pnpm generate:thumbnails    # Generate prototype thumbnails
+```
+
+## Important Notes
+- This is a prototype/playground repo - focus is on rapid experimentation
+- Always run `npx tsc --noEmit` before committing to ensure type safety
+- Use the existing Radix UI + Tailwind component patterns
+- Prototypes should be self-contained within their directories
+
+## Git Workflow & Commit Guidelines
+- **NEVER commit changes unless explicitly requested by the user**
+- Always ask for permission before creating commits
+- Only use git commands (add, commit, push) when the user specifically asks
+- Use custom slash commands like `/commit-push` or `/commit-push-quick` only when instructed
+- If unsure whether to commit, always ask first
+
+## MCP Servers
+This project uses Model Context Protocol (MCP) servers to extend Claude Code capabilities:
+
+**Project-level servers** (configured in `.mcp.json`):
+- **Playwright** - Browser automation and testing for UI prototypes
+- **Chrome DevTools** - Performance analysis, debugging, and browser inspection
+
+These servers are automatically available to all team members when using Claude Code in this project.
+
+## Custom Slash Commands
+Available commands in `.claude/commands/`:
+- `/commit-push-quick` - Quick commit and push with fast validation (tsc + lint)
+- `/commit-push` - Commit and push with full validation (tsc + lint + build)
+- `/pr` - Create a pull request with full validation checks
+- `/new-prototype` - Scaffold a new prototype in the prototypes directory
+- `/remove-prototype` - Remove a prototype from the prototypes directory
+
+## Coding Standards
+- Use TypeScript strict mode
+- Follow existing component patterns (see asset-attributes prototype)
+- Leverage Radix UI primitives for accessibility
+- Use Tailwind utility classes for styling
+- Implement proper form validation with Zod schemas
+- Keep components focused and composable
