@@ -381,8 +381,9 @@ export function JobsReadyToInvoice() {
 
   const handleCreateInvoice = (breakdownLevel: "contact" | "site" | "job") => {
     setBreakdownModalOpen(false);
+    
     // Navigate to the invoice creation page with selected jobs data
-    navigate("/bulk-invoicing/create", {
+    navigate("/bulk-invoicing/v1/create", {
       state: {
         selectedJobs: selectedJobsData,
         breakdownLevel,

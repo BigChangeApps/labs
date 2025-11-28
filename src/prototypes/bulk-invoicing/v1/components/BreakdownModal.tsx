@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { User, Building2, Briefcase } from "lucide-react";
 import {
   Dialog,
@@ -17,6 +17,7 @@ interface BreakdownModalProps {
   onOpenChange: (open: boolean) => void;
   selectedJobs: Job[];
   onCreateInvoice: (breakdownLevel: BreakdownLevel) => void;
+  currentBreakdownLevel?: BreakdownLevel;
 }
 
 function StatusBadge({ count, label, variant }: { count: number; label: string; variant: "scheduled" | "progress" | "complete" }) {
@@ -33,8 +34,15 @@ function StatusBadge({ count, label, variant }: { count: number; label: string; 
   );
 }
 
-export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoice }: BreakdownModalProps) {
-  const [breakdownLevel, setBreakdownLevel] = useState<BreakdownLevel>("contact");
+export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoice, currentBreakdownLevel = "contact" }: BreakdownModalProps) {
+  const [breakdownLevel, setBreakdownLevel] = useState<BreakdownLevel>(currentBreakdownLevel);
+  
+  // Update internal state when modal opens with the current breakdown level
+  useEffect(() => {
+    if (open) {
+      setBreakdownLevel(currentBreakdownLevel);
+    }
+  }, [open, currentBreakdownLevel]);
 
   // Calculate summary data from selected jobs
   const summary = useMemo(() => {

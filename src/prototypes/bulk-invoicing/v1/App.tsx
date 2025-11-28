@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/registry/ui/tooltip";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { JobsReadyToInvoice } from "./components/JobsReadyToInvoice";
 import { BulkInvoiceCreation } from "./components/BulkInvoiceCreation";
+import { GroupInvoiceView } from "./components/GroupInvoiceView";
 
 function BulkInvoicingApp() {
   return (
@@ -14,6 +15,7 @@ function BulkInvoicingApp() {
           <Routes>
             <Route index element={<JobsReadyToInvoice />} />
             <Route path="create" element={<BulkInvoiceCreation />} />
+            <Route path="group" element={<GroupInvoiceView />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

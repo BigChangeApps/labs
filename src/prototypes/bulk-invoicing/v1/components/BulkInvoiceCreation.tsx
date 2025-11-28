@@ -1,8 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronRight, ChevronDown, MoreVertical, HelpCircle, Check } from "lucide-react";
+import { 
+  ChevronRight, 
+  ChevronDown, 
+  MoreVertical, 
+  HelpCircle, 
+  Check, 
+  Paperclip,
+  Calendar,
+  FileText,
+  X,
+} from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
+import { Input } from "@/registry/ui/input";
+import { Textarea } from "@/registry/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -10,38 +22,168 @@ import {
 } from "@/registry/ui/popover";
 import { cn } from "@/registry/lib/utils";
 import { type Job, formatCurrency } from "../lib/mock-data";
+import { BreakdownModal } from "./BreakdownModal";
 
+// Types
 type BreakdownLevel = "contact" | "site" | "job";
+type LevelOfDetail = "summary" | "partial" | "detailed";
 
-interface InvoiceGroup {
-  id: string;
-  name: string;
-  jobs: Job[];
-  address: string;
-  department: string;
-  nominalCode: string;
-  structure: BreakdownLevel;
-  showLines: boolean;
+interface JobWithLines extends Job {
+  linesCount: number;
+  selectedLinesCount: number;
+  jobCategory: "External" | "Internal" | "External, Internal";
+  isGroupJob: boolean;
+  childJobs?: JobWithLines[];
 }
 
+interface Attachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+interface InvoiceCardData {
+  id: string;
+  invoiceNumber: number;
+  name: string;
+  address: string;
+  jobs: JobWithLines[];
+  // Per-card settings
+  title: string;
+  levelOfDetail: LevelOfDetail;
+  isLevelOfDetailOverridden: boolean;
+  reference: string;
+  issueDate: string;
+  dueDate: string;
+  bankAccount: string;
+  currency: string;
+  notes: string;
+  attachments: Attachment[];
+}
+
+// Constants
 const structureLabels: Record<BreakdownLevel, string> = {
   contact: "Contact Level",
   site: "Site Level",
   job: "Job Level",
 };
 
-const structureOptions: BreakdownLevel[] = ["contact", "site", "job"];
+const levelOfDetailLabels: Record<LevelOfDetail, string> = {
+  summary: "Summary",
+  partial: "Partial",
+  detailed: "Detailed",
+};
 
-// Building/apartment icon for contact cards
-function ApartmentIcon() {
+const levelOfDetailOptions: LevelOfDetail[] = ["summary", "partial", "detailed"];
+
+const bankAccountOptions = [
+  { id: "barclays", label: "Barclays", last4: "1234" },
+  { id: "hsbc", label: "HSBC", last4: "5678" },
+  { id: "lloyds", label: "Lloyds", last4: "9012" },
+];
+
+const currencyOptions = [
+  { id: "gbp", label: "British Pound", symbol: "£" },
+  { id: "usd", label: "US Dollar", symbol: "$" },
+  { id: "eur", label: "Euro", symbol: "€" },
+];
+
+// Helper to generate today's date in YYYY-MM-DD format
+function getToday(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+// Helper to get date 30 days from now
+function getDueDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().split("T")[0];
+}
+
+// Format date for display
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const today = new Date();
+  const isToday = date.toDateString() === today.toDateString();
+  const formatted = date.toLocaleDateString("en-GB", { 
+    day: "numeric", 
+    month: "short", 
+    year: "numeric" 
+  });
+  return isToday ? `${formatted} (Today)` : formatted;
+}
+
+// Editable Invoice Title Badge with number
+function InvoiceTitleBadge({ 
+  invoiceNumber,
+  title, 
+  onChange 
+}: { 
+  invoiceNumber: number;
+  title: string; 
+  onChange: (newTitle: string) => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    setEditValue(title);
+    setIsEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (editValue.trim() && editValue !== title) {
+      onChange(editValue.trim());
+    } else {
+      setEditValue(title);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleBlur();
+    } else if (e.key === "Escape") {
+      setEditValue(title);
+      setIsEditing(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)]">
+        <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{invoiceNumber}</span>
+        <FileText className="h-4 w-4 text-[#73777D]" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] bg-transparent border-none outline-none w-[120px]"
+        />
+      </div>
+    );
+  }
+
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M17 11V3H7V7H3V21H11V17H13V21H21V11H17ZM7 19H5V17H7V19ZM7 15H5V13H7V15ZM7 11H5V9H7V11ZM11 15H9V13H11V15ZM11 11H9V9H11V11ZM11 7H9V5H11V7ZM15 15H13V13H15V15ZM15 11H13V9H15V11ZM15 7H13V5H15V7ZM19 19H17V17H19V19ZM19 15H17V13H19V15Z" fill="#555D66"/>
-    </svg>
+    <button
+      onClick={handleClick}
+      className="inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-[rgba(8,109,255,0.12)] transition-colors cursor-pointer"
+    >
+      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{invoiceNumber}</span>
+      <FileText className="h-4 w-4 text-[#73777D]" />
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{title}</span>
+    </button>
   );
 }
 
-// Stacked layers icon for invoice groups
+// Stacked layers icon for group jobs
 function StacksIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,45 +197,197 @@ function StacksIcon() {
 // Status badge component
 function DraftBadge() {
   return (
-    <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#F2F4F7] border border-[rgba(16,25,41,0.1)]">
-      <span className="text-xs font-medium text-[#101929] tracking-[-0.12px]">Draft</span>
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-[rgba(16,25,41,0.1)]">
+      <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px]">Draft</span>
     </div>
   );
 }
 
-// Structure Select dropdown component with proper options
-function StructureSelect({ 
-  label, 
+// Override tag
+function OverrideTag() {
+  return (
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)]">
+      <span className="text-xs font-normal text-[#0288d1] tracking-[-0.12px]">Override</span>
+    </div>
+  );
+}
+
+
+// Attachment Uploader Component
+function AttachmentUploader({
+  attachments,
+  onAttachmentsChange,
+}: {
+  attachments: Attachment[];
+  onAttachmentsChange: (attachments: Attachment[]) => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newAttachments: Attachment[] = Array.from(files).map((file) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    }));
+
+    onAttachmentsChange([...attachments, ...newAttachments]);
+    
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemove = (id: string) => {
+    onAttachmentsChange(attachments.filter((a) => a.id !== id));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  return (
+    <div className="space-y-2">
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+      />
+      
+      {/* Uploaded files list */}
+      {attachments.length > 0 && (
+        <div className="space-y-1.5">
+          {attachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className="flex items-center justify-between px-3 py-2 bg-[#F8F9FC] rounded-md"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="h-4 w-4 text-[#73777D] shrink-0" />
+                <span className="text-sm text-[#0B2642] truncate">{attachment.name}</span>
+                <span className="text-xs text-[#73777D] shrink-0">
+                  ({formatFileSize(attachment.size)})
+                </span>
+              </div>
+              <button
+                onClick={() => handleRemove(attachment.id)}
+                className="p-1 hover:bg-[rgba(11,38,66,0.08)] rounded transition-colors shrink-0"
+              >
+                <X className="h-4 w-4 text-[#73777D]" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* Upload button */}
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="gap-1.5"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <Paperclip className="h-4 w-4" />
+        Upload attachments
+      </Button>
+    </div>
+  );
+}
+
+// Resource avatar component
+function ResourceAvatar({ initials = "LB" }: { initials?: string }) {
+  return (
+    <div className="relative size-[18px]">
+      <div className="absolute inset-0 rounded-full bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.45px_1.8px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+        <div className="absolute inset-[5%] rounded-full bg-[#F8F9FC] flex items-center justify-center">
+          <span className="text-[8px] font-semibold text-[#73777D] leading-none">{initials}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Lines selection badge
+function LinesBadge({ 
+  total, 
+  selected, 
+  isPartial = false,
+  isInactive = false,
+}: { 
+  total: number; 
+  selected?: number; 
+  isPartial?: boolean;
+  isInactive?: boolean;
+}) {
+  if (isPartial && selected !== undefined) {
+    return (
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)]">
+        <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
+      </div>
+    );
+  }
+  if (isInactive) {
+    return (
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)]">
+        <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
+    </div>
+  );
+}
+
+// Job type badge
+function JobTypeBadge({ type }: { type: string }) {
+  return (
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{type}</span>
+    </div>
+  );
+}
+
+// Level of Detail Select with Override tag
+function LevelOfDetailSelect({ 
   value, 
   onChange, 
-  showHelp = false,
-  fullWidth = false,
+  showOverrideTag = false,
 }: { 
-  label: string; 
-  value: BreakdownLevel; 
-  onChange: (value: BreakdownLevel) => void;
-  showHelp?: boolean;
-  fullWidth?: boolean;
+  value: LevelOfDetail; 
+  onChange: (value: LevelOfDetail) => void;
+  showOverrideTag?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className={cn("flex flex-col gap-1.5", fullWidth ? "w-full" : "w-[328px]")}>
+    <div className="flex flex-col gap-1.5 w-[220px]">
       <div className="flex items-center gap-1">
-        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
-        {showHelp && <HelpCircle className="h-4 w-4 text-[#73777D]" />}
+        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Level of detail</span>
+        <HelpCircle className="h-4 w-4 text-[#73777D]" />
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button 
-            className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors"
-          >
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{structureLabels[value]}</span>
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
+              {showOverrideTag && <OverrideTag />}
+            </div>
             <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-          {structureOptions.map((option) => (
+          {levelOfDetailOptions.map((option) => (
             <button
               key={option}
               onClick={() => {
@@ -105,7 +399,7 @@ function StructureSelect({
                 value === option ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
               )}
             >
-              <span>{structureLabels[option]}</span>
+              <span>{levelOfDetailLabels[option]}</span>
               {value === option && <Check className="h-4 w-4 text-[#086DFF]" />}
             </button>
           ))}
@@ -115,104 +409,779 @@ function StructureSelect({
   );
 }
 
-// ============================================
-// BULK INVOICE CARD (Multiple Parent Contacts)
-// ============================================
-function BulkInvoiceCard({ 
-  group, 
-  onStructureChange,
-  onShowLinesToggle,
+// Universal Level of Detail Select (full width)
+function UniversalLevelOfDetailSelect({ 
+  value, 
+  onChange, 
 }: { 
-  group: InvoiceGroup;
-  onStructureChange: (id: string, structure: BreakdownLevel) => void;
-  onShowLinesToggle: (id: string) => void;
+  value: LevelOfDetail; 
+  onChange: (value: LevelOfDetail) => void;
 }) {
-  const total = group.jobs.reduce((sum, job) => sum + job.leftToInvoice, 0);
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-1">
-          <ApartmentIcon />
-          <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">{group.name}</h3>
-        </div>
-        <button className="p-0.5 hover:bg-gray-100 rounded">
-          <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-        </button>
+    <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex items-center gap-1">
+        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
+          Level of detail <span className="font-normal text-[#73777D]">(for all invoices)</span>
+        </span>
+        <HelpCircle className="h-4 w-4 text-[#73777D]" />
       </div>
-
-      {/* Invoice Structure Select */}
-      <div className="mb-5">
-        <StructureSelect 
-          label="Invoice Structure" 
-          value={group.structure}
-          onChange={(structure) => onStructureChange(group.id, structure)}
-          showHelp
-        />
-      </div>
-
-      {/* Info Grid */}
-      <div className="flex justify-between mb-5">
-        <div className="w-[179px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Address</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.address}</p>
-        </div>
-        <div className="w-[134px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Default department</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.department}</p>
-        </div>
-        <div className="w-[143px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Default nominal code</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.nominalCode}</p>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-3">
-        <button 
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#086DFF] bg-[#F0F6FF] hover:bg-[#E0EDFF] rounded-md transition-colors"
-          onClick={() => onShowLinesToggle(group.id)}
-        >
-          <ChevronDown className={cn("h-4 w-4 transition-transform", group.showLines && "rotate-180")} />
-          <span>Show Lines</span>
-        </button>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
-            Preview invoice
-          </Button>
-          <div className="flex items-center">
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="rounded-r-none pr-3"
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+          {levelOfDetailOptions.map((option) => (
+            <button
+              key={option}
+              onClick={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
+                value === option ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
+              )}
             >
-              Send invoice
-            </Button>
-            <button className="h-9 px-2 bg-[#086dff] hover:bg-[#0761e6] border-l border-white/20 rounded-r-md transition-colors flex items-center justify-center">
-              <ChevronDown className="h-4 w-4 text-white" />
+              <span>{levelOfDetailLabels[option]}</span>
+              {value === option && <Check className="h-4 w-4 text-[#086DFF]" />}
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Date Select
+function DateSelect({ 
+  label, 
+  value, 
+  onChange,
+}: { 
+  label: string;
+  value: string; 
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-1.5 flex-1">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center gap-1.5 w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+            <Calendar className="h-5 w-5 text-[#0B2642]" />
+            <span className="flex-1 text-left text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
+              {formatDisplayDate(value)}
+            </span>
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-3" align="start">
+          <Input
+            type="date"
+            value={value}
+            onChange={(e) => {
+              onChange(e.target.value);
+              setOpen(false);
+            }}
+            className="h-9"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Bank Account Select
+function BankAccountSelect({ 
+  value, 
+  onChange,
+}: { 
+  value: string; 
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = bankAccountOptions.find(b => b.id === value) || bankAccountOptions[0];
+
+  return (
+    <div className="flex flex-col gap-1.5 flex-1">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Bank account</span>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+            <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
+              {selected.label} ({selected.last4})
+            </span>
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+          {bankAccountOptions.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => {
+                onChange(option.id);
+                setOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
+                value === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
+              )}
+            >
+              <span>{option.label} ({option.last4})</span>
+              {value === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Currency Select
+function CurrencySelect({ 
+  value, 
+  onChange,
+}: { 
+  value: string; 
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = currencyOptions.find(c => c.id === value) || currencyOptions[0];
+
+  return (
+    <div className="flex flex-col gap-1.5 flex-1">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Currency</span>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+            <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
+              <span className="font-semibold">{selected.symbol}</span> {selected.label}
+            </span>
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+          {currencyOptions.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => {
+                onChange(option.id);
+                setOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
+                value === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
+              )}
+            >
+              <span><span className="font-semibold">{option.symbol}</span> {option.label}</span>
+              {value === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Generic Select dropdown
+function GenericSelect({ 
+  label, 
+  value, 
+  onChange, 
+  options,
+}: { 
+  label: string; 
+  value: string; 
+  onChange: (value: string) => void;
+  options: { id: string; label: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find(o => o.id === value) || options[0];
+
+  return (
+    <div className="flex flex-col gap-1.5 w-full">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+            <span className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">{selected.label}</span>
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => {
+                onChange(option.id);
+                setOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
+                value === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
+              )}
+            >
+              <span>{option.label}</span>
+              {value === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
+            </button>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Mock line items for detailed view
+interface LineItem {
+  id: string;
+  name: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+  category: "blue" | "orange" | "purple";
+  selected: boolean;
+}
+
+const mockLineItems: LineItem[] = [
+  { id: "1", name: "Smoke Alarm Testing", qty: 2.0, unitPrice: 100, total: 100, category: "blue", selected: true },
+  { id: "2", name: "Emergency Light Check", qty: 3.0, unitPrice: 150, total: 150, category: "orange", selected: true },
+  { id: "3", name: "First Aid Kit Restock", qty: 4.0, unitPrice: 200, total: 200, category: "purple", selected: true },
+  { id: "4", name: "Health and Safety Audit", qty: 5.0, unitPrice: 300, total: 300, category: "orange", selected: true },
+  { id: "5", name: "Electrical Safety Inspection", qty: 6.0, unitPrice: 1200, total: 1200, category: "blue", selected: true },
+  { id: "6", name: "Fire Safety Training", qty: 7.0, unitPrice: 3000, total: 3000, category: "blue", selected: true },
+  { id: "7", name: "Building Security Review", qty: 8.0, unitPrice: 2000, total: 2000, category: "orange", selected: true },
+  { id: "8", name: "Hazardous Material Handling", qty: 9.0, unitPrice: 1500, total: 1500, category: "blue", selected: true },
+  { id: "9", name: "Workplace Ergonomic Assessment", qty: 10.0, unitPrice: 1000, total: 1000, category: "purple", selected: true },
+  { id: "10", name: "Annual Compliance Review", qty: 11.0, unitPrice: 2000, total: 2000, category: "blue", selected: true },
+];
+
+// Category dot indicator
+function CategoryDot({ category }: { category: "blue" | "orange" | "purple" }) {
+  const colors = {
+    blue: "bg-[#086DFF]",
+    orange: "bg-[#F59E0B]",
+    purple: "bg-[#8B5CF6]",
+  };
+  return <div className={cn("w-2 h-2 rounded-full", colors[category])} />;
+}
+
+// Single job card
+function JobCard({ job }: { job: JobWithLines }) {
+  const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+            <ResourceAvatar initials={job.jobCategory === "Internal" ? "CS" : "LB"} />
+          </div>
+          <LinesBadge 
+            total={job.linesCount} 
+            selected={isPartial ? job.selectedLinesCount : undefined}
+            isPartial={isPartial}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(job.leftToInvoice)}</span>
+          <button className="p-0.5 hover:bg-gray-100 rounded">
+            <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Summary view - single condensed line
+function SummaryJobView({ jobs, totalValue }: { jobs: JobWithLines[]; totalValue: number }) {
+  const totalLines = jobs.reduce((sum, job) => {
+    if (job.isGroupJob && job.childJobs) {
+      return sum + job.childJobs.reduce((s, c) => s + c.linesCount, 0);
+    }
+    return sum + job.linesCount;
+  }, 0);
+
+  const firstJob = jobs[0];
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "EXT/12345"}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
+            <ResourceAvatar />
+          </div>
+          <LinesBadge total={totalLines} />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+          <button className="p-0.5 hover:bg-gray-100 rounded">
+            <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Detailed view - table with line items
+function DetailedJobView({ 
+  lineItems, 
+  onLineItemToggle,
+  onSelectAll,
+  allSelected,
+}: { 
+  lineItems: LineItem[];
+  onLineItemToggle: (id: string) => void;
+  onSelectAll: () => void;
+  allSelected: boolean;
+}) {
+  return (
+    <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
+      {/* Table Header */}
+      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
+        <Checkbox 
+          checked={allSelected}
+          onCheckedChange={onSelectAll}
+        />
+        <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Name</span>
+        <span className="w-16 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-center">Qty</span>
+        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Unit price</span>
+        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Total</span>
+      </div>
+      
+      {/* Table Body */}
+      <div className="divide-y divide-[rgba(26,28,46,0.08)]">
+        {lineItems.map((item) => (
+          <div key={item.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-[#F8F9FC] transition-colors">
+            <Checkbox 
+              checked={item.selected}
+              onCheckedChange={() => onLineItemToggle(item.id)}
+            />
+            <div className="flex-1 flex items-center gap-2">
+              <CategoryDot category={item.category} />
+              <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{item.name}</span>
+            </div>
+            <span className="w-16 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-center">{item.qty.toFixed(1)}</span>
+            <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.unitPrice)}</span>
+            <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.total)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Nested job card with checkbox
+function NestedJobCard({ 
+  job,
+  checked,
+  onCheckedChange,
+}: { 
+  job: JobWithLines;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Checkbox 
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+            <ResourceAvatar />
+          </div>
+          <div className="flex items-center gap-2">
+            <LinesBadge 
+              total={job.linesCount} 
+              selected={isPartial ? job.selectedLinesCount : undefined}
+              isPartial={isPartial && checked}
+              isInactive={!checked}
+            />
+            <JobTypeBadge type={job.jobCategory} />
+          </div>
+        </div>
+        <span className={cn(
+          "text-sm font-bold tracking-[-0.14px]",
+          checked ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)] line-through"
+        )}>
+          {formatCurrency(job.leftToInvoice)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Group job card
+function GroupJobCard({ 
+  groupJob,
+  childJobs,
+  selectedChildIds,
+  onChildSelectionChange,
+  groupLinesSelected,
+  onGroupLinesSelectionChange,
+}: { 
+  groupJob: JobWithLines;
+  childJobs: JobWithLines[];
+  selectedChildIds: Set<string>;
+  onChildSelectionChange: (jobId: string, checked: boolean) => void;
+  groupLinesSelected?: boolean;
+  onGroupLinesSelectionChange?: (checked: boolean) => void;
+}) {
+  const groupLinesValue = 1000;
+  const childJobsValue = childJobs.reduce((sum, job) => 
+    selectedChildIds.has(job.id) ? sum + job.leftToInvoice : sum, 0
+  );
+  const totalValue = childJobsValue + (groupLinesSelected ? groupLinesValue : 0);
+
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] px-3 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <StacksIcon />
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{groupJob.jobRef}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">21 May - 3 June 2025</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+            <button className="p-0.5 hover:bg-white/50 rounded">
+              <MoreVertical className="h-5 w-5 text-[#0B2642]" />
             </button>
           </div>
         </div>
       </div>
-
-      {/* Expandable Lines Section */}
-      {group.showLines && (
-        <div className="mt-4 pt-4 border-t border-[rgba(26,28,46,0.12)]">
-          <div className="space-y-2">
-            {group.jobs.map((job) => (
-              <div key={job.id} className="flex items-center justify-between py-2 px-3 bg-[#FCFCFD] rounded">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-[#0B2642]">{job.jobRef}</span>
-                  <span className="text-sm text-[#73777D]">{job.site}</span>
-                </div>
-                <span className="text-sm font-medium text-[#0B2642]">{formatCurrency(job.leftToInvoice)}</span>
+      
+      <div className="p-4 space-y-3">
+        {/* Group-level lines */}
+        {onGroupLinesSelectionChange && (
+          <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <Checkbox 
+                checked={groupLinesSelected}
+                onCheckedChange={onGroupLinesSelectionChange}
+              />
+              <div className="flex-1 flex flex-col gap-1.5">
+                <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Group-level lines</span>
+                <LinesBadge total={10} />
               </div>
-            ))}
-            <div className="flex items-center justify-between pt-2 border-t border-[rgba(26,28,46,0.12)]">
-              <span className="text-sm font-bold text-[#0B2642]">Total</span>
-              <span className="text-sm font-bold text-[#0B2642]">{formatCurrency(total)}</span>
+              <span className={cn(
+                "text-sm font-bold tracking-[-0.14px]",
+                groupLinesSelected ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)]"
+              )}>
+                {formatCurrency(groupLinesValue)}
+              </span>
             </div>
+          </div>
+        )}
+        
+        {childJobs.map((childJob) => (
+          <NestedJobCard
+            key={childJob.id}
+            job={childJob}
+            checked={selectedChildIds.has(childJob.id)}
+            onCheckedChange={(checked) => onChildSelectionChange(childJob.id, checked as boolean)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Invoice Card Component
+function InvoiceCard({ 
+  invoiceData,
+  selectedJobIds,
+  selectedGroupLines,
+  onJobSelectionChange,
+  onGroupLinesSelectionChange,
+  onInvoiceDataChange,
+  universalLevelOfDetail,
+  lineItems,
+  onLineItemToggle,
+  onSelectAllLineItems,
+  totalInvoiceCount,
+}: { 
+  invoiceData: InvoiceCardData;
+  selectedJobIds: Set<string>;
+  selectedGroupLines: Set<string>;
+  onJobSelectionChange: (jobId: string, checked: boolean) => void;
+  onGroupLinesSelectionChange: (groupJobId: string, checked: boolean) => void;
+  onInvoiceDataChange: (id: string, updates: Partial<InvoiceCardData>) => void;
+  universalLevelOfDetail: LevelOfDetail;
+  lineItems: LineItem[];
+  onLineItemToggle: (id: string) => void;
+  onSelectAllLineItems: () => void;
+  totalInvoiceCount: number;
+}) {
+  // Group jobs by category
+  const jobsByCategory = useMemo(() => {
+    const groups: Record<string, JobWithLines[]> = {
+      "External": [],
+      "Internal": [],
+      "External, Internal": [],
+    };
+    
+    invoiceData.jobs.forEach((job) => {
+      if (groups[job.jobCategory]) {
+        groups[job.jobCategory].push(job);
+      }
+    });
+    
+    return groups;
+  }, [invoiceData.jobs]);
+
+  // Calculate total value for summary view
+  const totalValue = useMemo(() => {
+    return invoiceData.jobs.reduce((sum, job) => {
+      if (job.isGroupJob && job.childJobs) {
+        return sum + job.childJobs.reduce((s, c) => s + c.leftToInvoice, 0);
+      }
+      return sum + job.leftToInvoice;
+    }, 0);
+  }, [invoiceData.jobs]);
+
+  // Calculate per-card totals based on level of detail
+  const { cardSubtotal, cardVat, cardTotal } = useMemo(() => {
+    let subtotal = 0;
+    const levelOfDetail = invoiceData.levelOfDetail;
+    
+    if (levelOfDetail === "detailed") {
+      // For detailed view, sum selected line items
+      lineItems.forEach(item => {
+        if (item.selected) {
+          subtotal += item.total;
+        }
+      });
+    } else if (levelOfDetail === "summary") {
+      // For summary view, include all jobs
+      invoiceData.jobs.forEach(job => {
+        if (job.isGroupJob && job.childJobs) {
+          job.childJobs.forEach(child => {
+            subtotal += child.leftToInvoice;
+          });
+          if (selectedGroupLines.has(job.id)) {
+            subtotal += job.leftToInvoice;
+          }
+        } else {
+          subtotal += job.leftToInvoice;
+        }
+      });
+    } else {
+      // For partial view, sum based on selected jobs and group lines
+      invoiceData.jobs.forEach(job => {
+        if (job.isGroupJob && job.childJobs) {
+          job.childJobs.forEach(child => {
+            if (selectedJobIds.has(child.id)) {
+              subtotal += child.leftToInvoice;
+            }
+          });
+          if (selectedGroupLines.has(job.id)) {
+            subtotal += job.leftToInvoice;
+          }
+        } else {
+          subtotal += job.leftToInvoice;
+        }
+      });
+    }
+    
+    const vatRate = 0.20;
+    const vat = subtotal * vatRate;
+    const total = subtotal + vat;
+    
+    return { cardSubtotal: subtotal, cardVat: vat, cardTotal: total };
+  }, [invoiceData.jobs, invoiceData.levelOfDetail, selectedJobIds, selectedGroupLines, lineItems]);
+
+  const handleLevelOfDetailChange = (value: LevelOfDetail) => {
+    // Update the invoice card's level of detail
+    onInvoiceDataChange(invoiceData.id, { 
+      levelOfDetail: value,
+      isLevelOfDetailOverridden: value !== universalLevelOfDetail,
+    });
+  };
+
+  const allLineItemsSelected = lineItems.every(item => item.selected);
+
+  return (
+    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
+      {/* Invoice Header & Settings */}
+      <div className="px-6 pt-5 pb-6 space-y-6">
+        {/* Invoice Title Badge with Number */}
+        <InvoiceTitleBadge 
+          invoiceNumber={invoiceData.invoiceNumber}
+          title={invoiceData.title}
+          onChange={(newTitle) => onInvoiceDataChange(invoiceData.id, { title: newTitle })}
+        />
+
+        {/* Level of Detail */}
+        <LevelOfDetailSelect
+          value={invoiceData.levelOfDetail}
+          onChange={handleLevelOfDetailChange}
+          showOverrideTag={invoiceData.isLevelOfDetailOverridden}
+        />
+
+        {/* Contact Info */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{invoiceData.name}</span>
+            <span className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">Change</span>
+          </div>
+          <p className="text-sm font-normal text-[#555D66] tracking-[-0.14px]">{invoiceData.address}</p>
+        </div>
+
+        {/* Form Fields */}
+        <div className="space-y-4">
+          {/* Row 1: Reference, Issue Date, Due Date */}
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Reference (optional)</span>
+              <Input
+                type="text"
+                value={invoiceData.reference}
+                onChange={(e) => onInvoiceDataChange(invoiceData.id, { reference: e.target.value })}
+                className="h-9"
+              />
+            </div>
+            <DateSelect
+              label="Issue date"
+              value={invoiceData.issueDate}
+              onChange={(value) => onInvoiceDataChange(invoiceData.id, { issueDate: value })}
+            />
+            <DateSelect
+              label="Due date"
+              value={invoiceData.dueDate}
+              onChange={(value) => onInvoiceDataChange(invoiceData.id, { dueDate: value })}
+            />
+          </div>
+
+          {/* Row 2: Bank Account, Currency */}
+          <div className="flex gap-4">
+            <BankAccountSelect
+              value={invoiceData.bankAccount}
+              onChange={(value) => onInvoiceDataChange(invoiceData.id, { bankAccount: value })}
+            />
+            <CurrencySelect
+              value={invoiceData.currency}
+              onChange={(value) => onInvoiceDataChange(invoiceData.id, { currency: value })}
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Notes</span>
+            <Textarea
+              value={invoiceData.notes}
+              onChange={(e) => onInvoiceDataChange(invoiceData.id, { notes: e.target.value })}
+              placeholder=""
+              className="min-h-[66px] resize-y"
+            />
+          </div>
+
+          {/* Upload Attachments */}
+          <AttachmentUploader
+            attachments={invoiceData.attachments}
+            onAttachmentsChange={(attachments) => onInvoiceDataChange(invoiceData.id, { attachments })}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-[rgba(26,28,46,0.12)] mx-6" />
+
+      {/* Job Details Section */}
+      <div className="px-6 py-6 space-y-6">
+        <h3 className="text-base font-medium text-[#0B2642] tracking-[-0.16px]">Job Details</h3>
+        
+        {/* Render based on level of detail */}
+        <div key={`job-details-${invoiceData.levelOfDetail}`}>
+          {invoiceData.levelOfDetail === "summary" && (
+            <SummaryJobView jobs={invoiceData.jobs} totalValue={totalValue} />
+          )}
+          
+          {invoiceData.levelOfDetail === "detailed" && (
+            <DetailedJobView 
+              lineItems={lineItems}
+              onLineItemToggle={onLineItemToggle}
+              onSelectAll={onSelectAllLineItems}
+              allSelected={allLineItemsSelected}
+            />
+          )}
+          
+          {invoiceData.levelOfDetail === "partial" && (
+            <div className="space-y-6">
+              {Object.entries(jobsByCategory).map(([category, jobs]) => {
+                if (jobs.length === 0) return null;
+                
+                return (
+                  <div key={category} className="space-y-2">
+                    <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{category}</p>
+                    {jobs.map(job => {
+                      if (job.isGroupJob && job.childJobs) {
+                        return (
+                          <GroupJobCard
+                            key={job.id}
+                            groupJob={job}
+                            childJobs={job.childJobs}
+                            selectedChildIds={selectedJobIds}
+                            onChildSelectionChange={onJobSelectionChange}
+                            groupLinesSelected={selectedGroupLines.has(job.id)}
+                            onGroupLinesSelectionChange={(checked) => onGroupLinesSelectionChange(job.id, checked as boolean)}
+                          />
+                        );
+                      }
+                      return <JobCard key={job.id} job={job} />;
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Invoice Totals Section - Only show if multiple invoices */}
+      {totalInvoiceCount > 1 && (
+        <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-6 py-4 space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Subtotal</span>
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardSubtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">VAT (Rate)</span>
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardVat)}</span>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-[rgba(16,25,41,0.1)]">
+              <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Total</span>
+              <span className="text-lg font-bold text-[#0B2642] tracking-[-0.18px]">{formatCurrency(cardTotal)}</span>
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button variant="outline" size="sm" className="flex-1">
+              Preview invoice
+            </Button>
+            <Button variant="default" size="sm" className="flex-1">
+              Send Invoice
+            </Button>
           </div>
         </div>
       )}
@@ -220,230 +1189,102 @@ function BulkInvoiceCard({
   );
 }
 
-// ============================================
-// GROUP INVOICE CARD (Single Parent Contact)
-// ============================================
-function GroupInvoiceCard({ 
-  group,
-  dateRange,
+// Universal Settings Panel
+function UniversalSettingsPanel({ 
+  levelOfDetail,
+  onLevelOfDetailChange,
+  breakdownLevel,
+  onBreakdownChange,
+  department,
+  nominalCode,
+  onDepartmentChange,
+  onNominalCodeChange,
 }: { 
-  group: InvoiceGroup;
-  dateRange: string;
+  levelOfDetail: LevelOfDetail;
+  onLevelOfDetailChange: (value: LevelOfDetail) => void;
+  breakdownLevel: BreakdownLevel;
+  onBreakdownChange: () => void;
+  department: string;
+  nominalCode: string;
+  onDepartmentChange: (value: string) => void;
+  onNominalCodeChange: (value: string) => void;
 }) {
-  const total = group.jobs.reduce((sum, job) => sum + job.leftToInvoice, 0);
-  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set(group.jobs.map(j => j.id)));
+  const departmentOptions = [
+    { id: "hs49301", label: "HS/49301" },
+    { id: "hs49302", label: "HS/49302" },
+    { id: "hs49303", label: "HS/49303" },
+  ];
 
-  const toggleJob = (jobId: string) => {
-    const newSelected = new Set(selectedJobs);
-    if (newSelected.has(jobId)) {
-      newSelected.delete(jobId);
-    } else {
-      newSelected.add(jobId);
-    }
-    setSelectedJobs(newSelected);
-  };
+  const nominalCodeOptions = [
+    { id: "5001", label: "5001" },
+    { id: "5002", label: "5002" },
+    { id: "5003", label: "5003" },
+  ];
 
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-1">
-          <ApartmentIcon />
-          <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">{group.name}</h3>
-        </div>
-        <button className="p-0.5 hover:bg-gray-100 rounded">
-          <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-        </button>
-      </div>
-
-      {/* Info Grid */}
-      <div className="flex justify-between mb-5">
-        <div className="w-[179px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Address</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.address}</p>
-        </div>
-        <div className="w-[134px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Default department</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.department}</p>
-        </div>
-        <div className="w-[143px]">
-          <p className="text-sm text-[#1A1C2E] tracking-[-0.14px]">Default nominal code</p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px] mt-1">{group.nominalCode}</p>
-        </div>
-      </div>
-
-      {/* Invoice Summary Row */}
-      <div className="bg-[#FCFCFD] rounded-lg border border-[rgba(26,28,46,0.08)] p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <StacksIcon />
-            <span className="text-sm font-medium text-[#086DFF]">{group.jobs.length} invoice{group.jobs.length !== 1 ? 's' : ''}</span>
-            <span className="text-sm text-[#73777D]">{dateRange}</span>
+    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
+      <div className="px-5 py-5 space-y-5">
+        <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">Universal Settings</h3>
+        
+        <UniversalLevelOfDetailSelect
+          value={levelOfDetail}
+          onChange={onLevelOfDetailChange}
+        />
+        
+        <GenericSelect
+          label="Default department"
+          value={department}
+          onChange={onDepartmentChange}
+          options={departmentOptions}
+        />
+        
+        <GenericSelect
+          label="Default nominal code"
+          value={nominalCode}
+          onChange={onNominalCodeChange}
+          options={nominalCodeOptions}
+        />
+        
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{structureLabels[breakdownLevel]}</span>
+            <HelpCircle className="h-4 w-4 text-[#73777D]" />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[#0B2642]">{formatCurrency(total)}</span>
-            <button className="p-0.5 hover:bg-gray-100 rounded">
-              <MoreVertical className="h-4 w-4 text-[#475467]" />
-            </button>
-          </div>
-        </div>
-
-        {/* Job Lines */}
-        <div className="space-y-2">
-          {group.jobs.map((job) => {
-            const isSelected = selectedJobs.has(job.id);
-            return (
-              <div 
-                key={job.id} 
-                className={cn(
-                  "flex items-center justify-between py-2 px-3 rounded-md border transition-colors",
-                  isSelected 
-                    ? "bg-[#f0f6ff] border-[rgba(8,109,255,0.2)]" 
-                    : "bg-white border-[rgba(26,28,46,0.08)]"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Checkbox 
-                    checked={isSelected}
-                    onCheckedChange={() => toggleJob(job.id)}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-[#0B2642]">{job.site}</p>
-                    <p className="text-xs text-[#73777D]">{group.jobs.length} lines</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-[#0B2642]">{formatCurrency(job.leftToInvoice)}</span>
-                  <Button variant="outline" size="sm" className="h-8">
-                    Preview
-                  </Button>
-                  <Button variant="default" size="sm" className="h-8">
-                    Send
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// OVERVIEW PANELS
-// ============================================
-
-// Overview panel for Bulk Invoice (multiple parents)
-function BulkOverviewPanel({ 
-  invoiceId,
-  invoiceCount, 
-  structureLabel, 
-  total,
-  onSend,
-  universalStructure,
-  onStructureChange,
-}: { 
-  invoiceId: string;
-  invoiceCount: number;
-  structureLabel: string;
-  total: number;
-  onSend: () => void;
-  universalStructure: BreakdownLevel;
-  onStructureChange: (structure: BreakdownLevel) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      {/* Universal Structure Card */}
-      <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Bulk Invoice</span>
-            <div className="flex items-center gap-1">
-              <DraftBadge />
-              <button className="p-0.5 hover:bg-gray-100 rounded">
-                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-              </button>
-            </div>
-          </div>
-          <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{invoiceId}</p>
-        </div>
-        <div className="px-4 pb-4">
-          <StructureSelect 
-            label="Invoice Structure" 
-            value={universalStructure}
-            onChange={onStructureChange}
-            showHelp
-            fullWidth
-          />
-        </div>
-      </div>
-
-      {/* Overview Panel */}
-      <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] overflow-hidden">
-        <div className="px-5 pt-5 pb-4">
-          <h2 className="text-xl font-extrabold text-[#0B2642] tracking-[-0.2px]" style={{ fontFamily: "'Roboto Flex', sans-serif" }}>
-            Overview
-          </h2>
-          <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px] mt-1">
-            {invoiceId}
-          </p>
-        </div>
-        <div className="h-px bg-[#E5E7EB]" />
-        <div className="px-5 py-4">
-          <div className="space-y-1">
-            <p className="text-sm text-[#73777D] tracking-[-0.14px]">
-              {invoiceCount} Invoice{invoiceCount !== 1 ? 's' : ''} will be sent
-            </p>
-            <p className="text-sm text-[#73777D] tracking-[-0.14px]">
-              Using {structureLabel.toLowerCase()} structure
-            </p>
-          </div>
-        </div>
-        <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-5 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Bulk Invoice total</span>
-            <span className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">{formatCurrency(total)}</span>
-          </div>
-          <Button 
-            variant="default" 
-            size="default" 
-            className="w-full"
-            onClick={onSend}
+          <button 
+            onClick={onBreakdownChange}
+            className="text-sm font-normal text-[#086DFF] hover:underline tracking-[-0.14px]"
           >
-            Send All Invoices
-          </Button>
+            Change
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// Overview panel for Group Invoice (single parent)
-function GroupOverviewPanel({ 
-  invoiceId,
-  invoiceCount, 
-  structureLabel, 
+// Overview Panel
+function OverviewPanel({ 
+  subtotal,
+  vatAmount,
   total,
   onSend,
-  universalStructure,
-  onStructureChange,
 }: { 
-  invoiceId: string;
-  invoiceCount: number;
-  structureLabel: string;
+  subtotal: number;
+  vatAmount: number;
   total: number;
   onSend: () => void;
-  universalStructure: BreakdownLevel;
-  onStructureChange: (structure: BreakdownLevel) => void;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] overflow-hidden">
+    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+      {/* Header */}
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-extrabold text-[#0B2642] tracking-[-0.2px]" style={{ fontFamily: "'Roboto Flex', sans-serif" }}>
-            Overview
-          </h2>
+          <div className="space-y-0.5">
+            <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">Overview</h3>
+            <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">
+              Invoice - 1234
+            </p>
+          </div>
           <div className="flex items-center gap-1">
             <DraftBadge />
             <button className="p-0.5 hover:bg-gray-100 rounded">
@@ -451,168 +1292,366 @@ function GroupOverviewPanel({
             </button>
           </div>
         </div>
-        <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px] mt-1">
-          {invoiceId}
-        </p>
       </div>
-
-      <div className="px-5 pb-4">
-        <StructureSelect 
-          label="Invoice Structure" 
-          value={universalStructure}
-          onChange={onStructureChange}
-          showHelp
-          fullWidth
-        />
-      </div>
-
-      <div className="h-px bg-[#E5E7EB]" />
-
-      <div className="px-5 py-4">
-        <div className="space-y-1">
-          <p className="text-sm text-[#73777D] tracking-[-0.14px]">
-            {invoiceCount} Invoice{invoiceCount !== 1 ? 's' : ''} will be sent
-          </p>
-          <p className="text-sm text-[#73777D] tracking-[-0.14px]">
-            Using {structureLabel.toLowerCase()} structure
-          </p>
+      
+      {/* Totals */}
+      <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-5 py-4 space-y-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Subtotal</span>
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">VAT (Rate)</span>
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
+          </div>
+          <div className="flex items-center justify-between pt-3 border-t border-[rgba(16,25,41,0.1)]">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Group Total</span>
+            <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-5 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Invoice Total</span>
-          <span className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">{formatCurrency(total)}</span>
-        </div>
+        
         <Button 
           variant="default" 
           size="default" 
           className="w-full"
           onClick={onSend}
         >
-          Send Invoice
+          Send All Invoices
         </Button>
       </div>
     </div>
   );
 }
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
+// Main Component
 export function BulkInvoiceCreation() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get data from navigation state
-  const { selectedJobs = [], breakdownLevel = "contact" as BreakdownLevel } = (location.state || {}) as { 
+  const locationState = (location.state || {}) as { 
     selectedJobs?: Job[]; 
     breakdownLevel?: BreakdownLevel;
   };
+  
+  // Use demo jobs if none selected (for testing)
+  const demoJobs: Job[] = [
+    { id: "demo-1", jobRef: "381910", site: "Next Arndale Manchester", parent: "Next Head Office", completed: "18 Mar 2024", status: "Complete", selling: 8393, leftToInvoice: 5000, progress: 100, jobType: "home_repair" },
+    { id: "demo-2", jobRef: "382011", site: "Next Bull Ring Birmingham", parent: "Next Head Office", completed: "5 Mar 2024", status: "Complete", selling: 7450, leftToInvoice: 4500, progress: 100, jobType: "stacks" },
+    { id: "demo-3", jobRef: "382112", site: "Next Trafford Centre", parent: "Next Head Office", completed: "15 Jan 2024", status: "Complete", selling: 9200, leftToInvoice: 6000, progress: 100, jobType: "stacks" },
+  ];
+  
+  const selectedJobs = locationState.selectedJobs?.length ? locationState.selectedJobs : demoJobs;
+  const breakdownLevel = locationState.breakdownLevel || "contact" as BreakdownLevel;
 
-  // Determine if this is a Group Invoice (single parent) or Bulk Invoice (multiple parents)
-  const uniqueParents = useMemo(() => {
-    return [...new Set(selectedJobs.map(job => job.parent))];
-  }, [selectedJobs]);
-
-  const isGroupInvoice = uniqueParents.length === 1;
-
+  // Universal controls state
+  const [universalLevelOfDetail, setUniversalLevelOfDetail] = useState<LevelOfDetail>("partial");
   const [universalStructure, setUniversalStructure] = useState<BreakdownLevel>(breakdownLevel);
-  const [invoiceGroups, setInvoiceGroups] = useState<InvoiceGroup[]>(() => {
-    // Group jobs by parent contact
-    const groupedByParent = selectedJobs.reduce((acc, job) => {
-      if (!acc[job.parent]) {
-        acc[job.parent] = [];
-      }
-      acc[job.parent].push(job);
-      return acc;
-    }, {} as Record<string, Job[]>);
-
-    // Create invoice groups
-    return Object.entries(groupedByParent).map(([parent, jobs], index) => ({
-      id: `group-${index}`,
-      name: parent,
-      jobs,
-      address: "1 Drummond Gate, Pimlico, London, SW1V 2QQ",
-      department: "HS/49301",
-      nominalCode: "5001",
-      structure: breakdownLevel,
-      showLines: false,
-    }));
+  const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
+  const [department, setDepartment] = useState("hs49301");
+  const [nominalCode, setNominalCode] = useState("5001");
+  
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+    const uniqueParents = [...new Set(selectedJobs.map(j => j.parent))];
+    uniqueParents.forEach((_, groupIndex) => {
+      ids.add(`${groupIndex}-group-child-1`);
+      ids.add(`${groupIndex}-group-child-2`);
+    });
+    return ids;
   });
 
-  // Generate a unique invoice ID
-  const invoiceId = useMemo(() => {
-    const prefix = isGroupInvoice ? "Bulk Invoice" : "Bulk Invoice";
-    return `${prefix} - ${Math.floor(1000 + Math.random() * 9000)}`;
-  }, [isGroupInvoice]);
+  // Line items state for detailed view
+  const [lineItems, setLineItems] = useState<LineItem[]>(mockLineItems);
+  
+  // Group lines selection state
+  const [selectedGroupLines, setSelectedGroupLines] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+    const uniqueParents = [...new Set(selectedJobs.map(j => j.parent))];
+    uniqueParents.forEach((_, groupIndex) => {
+      ids.add(`${groupIndex}-group`);
+    });
+    return ids;
+  });
 
-  // Calculate date range from jobs
-  const dateRange = useMemo(() => {
-    // Simple date range for demo
-    return "21 May – 3 June 2025";
+  // Function to generate invoice cards based on breakdown level
+  const generateInvoiceCards = useCallback((jobs: Job[], breakdown: BreakdownLevel, currentLevelOfDetail: LevelOfDetail): InvoiceCardData[] => {
+    let groupedJobs: Record<string, Job[]> = {};
+    
+    if (breakdown === "contact") {
+      // Group by parent (contact)
+      groupedJobs = jobs.reduce((acc, job) => {
+        if (!acc[job.parent]) acc[job.parent] = [];
+        acc[job.parent].push(job);
+        return acc;
+      }, {} as Record<string, Job[]>);
+    } else if (breakdown === "site") {
+      // Group by site
+      groupedJobs = jobs.reduce((acc, job) => {
+        const key = job.site || job.parent;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(job);
+        return acc;
+      }, {} as Record<string, Job[]>);
+    } else {
+      // Job level - each job is its own invoice
+      groupedJobs = jobs.reduce((acc, job) => {
+        acc[job.jobRef] = [job];
+        return acc;
+      }, {} as Record<string, Job[]>);
+    }
+
+    return Object.entries(groupedJobs).map(([groupKey, groupJobs], groupIndex): InvoiceCardData => {
+      const baseJob = groupJobs[0] || { id: "1", parent: groupKey, site: "", jobRef: "", completed: "", status: "Complete" as const, selling: 0, leftToInvoice: 0, progress: 0, jobType: "home_repair" as const };
+      
+      const jobsWithLines: JobWithLines[] = [
+        {
+          ...baseJob,
+          id: `${groupIndex}-ext-1`,
+          jobRef: `EXT/${24680 + groupIndex}`,
+          completed: "Wed 21 May 2025",
+          linesCount: 20,
+          selectedLinesCount: 20,
+          jobCategory: "External",
+          isGroupJob: false,
+          leftToInvoice: 2000,
+        },
+        {
+          ...baseJob,
+          id: `${groupIndex}-int-1`,
+          jobRef: `INT/${24680 + groupIndex}`,
+          completed: "Wed 21 May 2025",
+          linesCount: 30,
+          selectedLinesCount: 20,
+          jobCategory: "Internal",
+          isGroupJob: false,
+          leftToInvoice: 2000,
+        },
+        {
+          ...baseJob,
+          id: `${groupIndex}-group`,
+          jobRef: `G/JOB${2468 + groupIndex}`,
+          completed: "21 May - 3 June 2025",
+          linesCount: 10,
+          selectedLinesCount: 10,
+          jobCategory: "External, Internal",
+          isGroupJob: true,
+          leftToInvoice: 1000,
+          childJobs: [
+            {
+              ...baseJob,
+              id: `${groupIndex}-group-child-1`,
+              jobRef: `JOB/${2469 + groupIndex}`,
+              completed: "Wed 21 May 2025",
+              linesCount: 12,
+              selectedLinesCount: 10,
+              leftToInvoice: 1000,
+              jobCategory: "External",
+              isGroupJob: false,
+            },
+            {
+              ...baseJob,
+              id: `${groupIndex}-group-child-2`,
+              jobRef: `JOB/${2470 + groupIndex}`,
+              completed: "Mon 2 June 2025",
+              linesCount: 12,
+              selectedLinesCount: 10,
+              leftToInvoice: 1000,
+              jobCategory: "Internal",
+              isGroupJob: false,
+            },
+            {
+              ...baseJob,
+              id: `${groupIndex}-group-child-3`,
+              jobRef: `JOB/${2471 + groupIndex}`,
+              completed: "Tue 3 June 2025",
+              linesCount: 25,
+              selectedLinesCount: 0,
+              leftToInvoice: 1000,
+              jobCategory: "Internal",
+              isGroupJob: false,
+            },
+          ],
+        },
+      ];
+
+      // Determine the name based on breakdown level
+      const name = breakdown === "contact" ? baseJob.parent : 
+                   breakdown === "site" ? (baseJob.site || baseJob.parent) : 
+                   baseJob.jobRef;
+
+      return {
+        id: `invoice-${groupIndex}`,
+        invoiceNumber: groupIndex + 1,
+        name,
+        address: "1 Drummond Gate, Pimlico, London, SW1V 2QQ",
+        jobs: jobsWithLines,
+        title: "Invoice title",
+        levelOfDetail: currentLevelOfDetail,
+        isLevelOfDetailOverridden: false,
+        reference: "",
+        issueDate: getToday(),
+        dueDate: getDueDate(),
+        bankAccount: "barclays",
+        currency: "gbp",
+        notes: "",
+        attachments: [],
+      };
+    });
   }, []);
 
-  // Calculate totals based on structure
-  const summary = useMemo(() => {
-    const total = selectedJobs.reduce((sum, job) => sum + job.leftToInvoice, 0);
+  // Transform jobs into invoice cards
+  const [invoiceCards, setInvoiceCards] = useState<InvoiceCardData[]>(() => {
+    return generateInvoiceCards(selectedJobs, breakdownLevel, "partial");
+  });
+
+  const handleUniversalLevelOfDetailChange = useCallback((value: LevelOfDetail) => {
+    setUniversalLevelOfDetail(value);
+    setInvoiceCards(prev => prev.map(card => {
+      if (!card.isLevelOfDetailOverridden) {
+        return { ...card, levelOfDetail: value };
+      }
+      return card;
+    }));
+  }, []);
+
+  const handleBreakdownChange = useCallback(() => {
+    setBreakdownModalOpen(true);
+  }, []);
+
+  const handleBreakdownConfirm = useCallback((confirmedStructure: BreakdownLevel) => {
+    setUniversalStructure(confirmedStructure);
     
-    // Invoice count depends on structure level
-    let invoiceCount: number;
-    switch (universalStructure) {
-      case "contact":
-        invoiceCount = invoiceGroups.length;
-        break;
-      case "site":
-        invoiceCount = new Set(selectedJobs.map(job => job.site)).size;
-        break;
-      case "job":
-        invoiceCount = selectedJobs.length;
-        break;
-      default:
-        invoiceCount = invoiceGroups.length;
+    // Regenerate invoice cards based on new breakdown level
+    const newCards = generateInvoiceCards(selectedJobs, confirmedStructure, universalLevelOfDetail);
+    setInvoiceCards(newCards);
+    
+    // Reset selections for the new cards
+    const newJobIds = new Set<string>();
+    const newGroupLines = new Set<string>();
+    newCards.forEach((_, groupIndex) => {
+      newJobIds.add(`${groupIndex}-group-child-1`);
+      newJobIds.add(`${groupIndex}-group-child-2`);
+      newGroupLines.add(`${groupIndex}-group`);
+    });
+    setSelectedJobIds(newJobIds);
+    setSelectedGroupLines(newGroupLines);
+    
+    setBreakdownModalOpen(false);
+  }, [generateInvoiceCards, selectedJobs, universalLevelOfDetail]);
+
+  const handleInvoiceDataChange = useCallback((id: string, updates: Partial<InvoiceCardData>) => {
+    setInvoiceCards(prev => prev.map(card => {
+      if (card.id === id) {
+        return { ...card, ...updates };
+      }
+      return card;
+    }));
+  }, []);
+
+  const handleJobSelectionChange = (jobId: string, checked: boolean) => {
+    const newSelected = new Set(selectedJobIds);
+    if (checked) {
+      newSelected.add(jobId);
+    } else {
+      newSelected.delete(jobId);
     }
+    setSelectedJobIds(newSelected);
+  };
+
+  const handleLineItemToggle = useCallback((id: string) => {
+    setLineItems(prev => prev.map(item => 
+      item.id === id ? { ...item, selected: !item.selected } : item
+    ));
+  }, []);
+
+  const handleSelectAllLineItems = useCallback(() => {
+    const allSelected = lineItems.every(item => item.selected);
+    setLineItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
+  }, [lineItems]);
+
+  const handleGroupLinesSelectionChange = useCallback((groupJobId: string, checked: boolean) => {
+    const newSelected = new Set(selectedGroupLines);
+    if (checked) {
+      newSelected.add(groupJobId);
+    } else {
+      newSelected.delete(groupJobId);
+    }
+    setSelectedGroupLines(newSelected);
+  }, [selectedGroupLines]);
+
+  // Calculate totals dynamically based on level of detail and selections
+  const summary = useMemo(() => {
+    let subtotal = 0;
     
-    return { total, invoiceCount };
-  }, [selectedJobs, invoiceGroups.length, universalStructure]);
+    invoiceCards.forEach(card => {
+      const levelOfDetail = card.levelOfDetail;
+      
+      if (levelOfDetail === "detailed") {
+        // For detailed view, sum selected line items
+        lineItems.forEach(item => {
+          if (item.selected) {
+            subtotal += item.total;
+          }
+        });
+      } else if (levelOfDetail === "summary") {
+        // For summary view, include all jobs
+        card.jobs.forEach(job => {
+          if (job.isGroupJob && job.childJobs) {
+            job.childJobs.forEach(child => {
+              subtotal += child.leftToInvoice;
+            });
+            // Add group-level lines if selected
+            if (selectedGroupLines.has(job.id)) {
+              subtotal += job.leftToInvoice;
+            }
+          } else {
+            subtotal += job.leftToInvoice;
+          }
+        });
+      } else {
+        // For partial view, sum based on selected jobs and group lines
+        card.jobs.forEach(job => {
+          if (job.isGroupJob && job.childJobs) {
+            // Add selected child jobs
+            job.childJobs.forEach(child => {
+              if (selectedJobIds.has(child.id)) {
+                subtotal += child.leftToInvoice;
+              }
+            });
+            // Add group-level lines if selected
+            if (selectedGroupLines.has(job.id)) {
+              subtotal += job.leftToInvoice;
+            }
+          } else {
+            subtotal += job.leftToInvoice;
+          }
+        });
+      }
+    });
+    
+    const vatRate = 0.20; // 20% VAT
+    const vatAmount = subtotal * vatRate;
+    const total = subtotal + vatAmount;
+    
+    return { subtotal, vatAmount, total };
+  }, [invoiceCards, selectedJobIds, selectedGroupLines, lineItems]);
 
-  const handleStructureChange = (groupId: string, structure: BreakdownLevel) => {
-    setInvoiceGroups(groups => 
-      groups.map(g => g.id === groupId ? { ...g, structure } : g)
-    );
-  };
-
-  const handleUniversalStructureChange = (structure: BreakdownLevel) => {
-    setUniversalStructure(structure);
-    // Update all groups to match
-    setInvoiceGroups(groups => 
-      groups.map(g => ({ ...g, structure }))
-    );
-  };
-
-  const handleShowLinesToggle = (groupId: string) => {
-    setInvoiceGroups(groups => 
-      groups.map(g => g.id === groupId ? { ...g, showLines: !g.showLines } : g)
-    );
-  };
-
-  const handleSendApplication = () => {
-    // Show success and navigate back
-    navigate("/bulk-invoicing", { 
+  const handleSendInvoices = () => {
+    navigate("/bulk-invoicing/v1", { 
       state: { 
         success: true, 
-        message: `Successfully created ${summary.invoiceCount} invoice${summary.invoiceCount !== 1 ? 's' : ''} totaling ${formatCurrency(summary.total)}` 
+        message: `Successfully created invoice totaling ${formatCurrency(summary.total)}` 
       } 
     });
   };
 
-  // If no jobs selected, redirect back
   if (selectedJobs.length === 0) {
     return (
       <div className="min-h-screen bg-[#FCFCFD] flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-[#73777D] mb-4">No jobs selected for invoicing</p>
-          <Button variant="default" onClick={() => navigate("/bulk-invoicing")}>
+          <Button variant="default" onClick={() => navigate("/bulk-invoicing/v1")}>
             Go back to Jobs
           </Button>
         </div>
@@ -625,22 +1664,19 @@ export function BulkInvoiceCreation() {
       {/* Subheader */}
       <header className="sticky top-0 z-10 bg-white border-b border-[rgba(16,25,41,0.1)]">
         <div className="flex items-center justify-between px-6 py-3">
-          {/* Breadcrumbs */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <button 
-                onClick={() => navigate("/bulk-invoicing")}
+                onClick={() => navigate("/bulk-invoicing/v1")}
                 className="text-sm font-medium text-[#475467] hover:text-[#0B2642] tracking-[-0.14px]"
               >
                 Jobs ready to invoice
               </button>
               <ChevronRight className="h-4 w-4 text-[#475467]" />
-              <span className="text-sm font-bold text-[#101929] tracking-[-0.14px]">{invoiceId}</span>
+              <span className="text-sm font-bold text-[#101929] tracking-[-0.14px]">Invoice/1234</span>
             </div>
             <DraftBadge />
           </div>
-
-          {/* Actions */}
           <Button variant="outline" size="sm">
             Save as draft
           </Button>
@@ -648,58 +1684,59 @@ export function BulkInvoiceCreation() {
       </header>
 
       {/* Main Content */}
-      <main className="px-6 lg:px-[160px] py-6">
-        <div className="flex gap-6 max-w-[1104px] mx-auto">
+      <main className="px-6 py-5">
+        <div className="flex gap-6 items-start justify-center max-w-[1240px] mx-auto">
           {/* Left Column - Invoice Cards */}
-          <div className="flex-1 space-y-6 max-w-[700px]">
-            {isGroupInvoice ? (
-              // GROUP INVOICE VIEW - Single parent, detailed view
-              invoiceGroups.map((group) => (
-                <GroupInvoiceCard
-                  key={group.id}
-                  group={group}
-                  dateRange={dateRange}
-                />
-              ))
-            ) : (
-              // BULK INVOICE VIEW - Multiple parents, each with structure selector
-              invoiceGroups.map((group) => (
-                <BulkInvoiceCard
-                  key={group.id}
-                  group={group}
-                  onStructureChange={handleStructureChange}
-                  onShowLinesToggle={handleShowLinesToggle}
-                />
-              ))
-            )}
+          <div className="w-[820px] shrink-0 space-y-4">
+            {invoiceCards.map((invoiceData) => (
+              <InvoiceCard
+                key={invoiceData.id}
+                invoiceData={invoiceData}
+                selectedJobIds={selectedJobIds}
+                selectedGroupLines={selectedGroupLines}
+                onJobSelectionChange={handleJobSelectionChange}
+                onGroupLinesSelectionChange={handleGroupLinesSelectionChange}
+                onInvoiceDataChange={handleInvoiceDataChange}
+                universalLevelOfDetail={universalLevelOfDetail}
+                lineItems={lineItems}
+                onLineItemToggle={handleLineItemToggle}
+                onSelectAllLineItems={handleSelectAllLineItems}
+                totalInvoiceCount={invoiceCards.length}
+              />
+            ))}
           </div>
 
-          {/* Right Column - Overview */}
-          <div className="w-[380px]">
-            {isGroupInvoice ? (
-              <GroupOverviewPanel
-                invoiceId={invoiceId}
-                invoiceCount={summary.invoiceCount}
-                structureLabel={structureLabels[universalStructure]}
-                total={summary.total}
-                onSend={handleSendApplication}
-                universalStructure={universalStructure}
-                onStructureChange={handleUniversalStructureChange}
-              />
-            ) : (
-              <BulkOverviewPanel
-                invoiceId={invoiceId}
-                invoiceCount={summary.invoiceCount}
-                structureLabel={structureLabels[universalStructure]}
-                total={summary.total}
-                onSend={handleSendApplication}
-                universalStructure={universalStructure}
-                onStructureChange={handleUniversalStructureChange}
-              />
-            )}
+          {/* Right Column - Settings & Overview (Sticky) */}
+          <div className="w-[380px] shrink-0 space-y-4 sticky top-[100px] self-start h-fit">
+            <UniversalSettingsPanel
+              levelOfDetail={universalLevelOfDetail}
+              onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
+              breakdownLevel={universalStructure}
+              onBreakdownChange={handleBreakdownChange}
+              department={department}
+              nominalCode={nominalCode}
+              onDepartmentChange={setDepartment}
+              onNominalCodeChange={setNominalCode}
+            />
+            
+            <OverviewPanel
+              subtotal={summary.subtotal}
+              vatAmount={summary.vatAmount}
+              total={summary.total}
+              onSend={handleSendInvoices}
+            />
           </div>
         </div>
       </main>
+
+      {/* Breakdown Modal */}
+      <BreakdownModal
+        open={breakdownModalOpen}
+        onOpenChange={setBreakdownModalOpen}
+        selectedJobs={selectedJobs}
+        onCreateInvoice={handleBreakdownConfirm}
+        currentBreakdownLevel={universalStructure}
+      />
     </div>
   );
 }
