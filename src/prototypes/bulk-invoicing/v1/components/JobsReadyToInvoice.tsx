@@ -10,6 +10,12 @@ import {
   PopoverTrigger,
 } from "@/registry/ui/popover";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/registry/ui/tooltip";
+import {
   Table,
   TableBody,
   TableCell,
@@ -376,6 +382,15 @@ export function JobsReadyToInvoice() {
     return { jobs, sites, parents, total };
   }, [selectedJobsData]);
 
+  // Check if all selected jobs have the same parent contact
+  const hasSameParent = useMemo(() => {
+    if (selectedJobsData.length === 0) return true;
+    const uniqueParents = new Set(selectedJobsData.map((j) => j.parent));
+    return uniqueParents.size === 1;
+  }, [selectedJobsData]);
+
+  const canCreateInvoice = selectedJobs.size > 0 && hasSameParent;
+
   const allPaginatedSelected = paginatedJobs.length > 0 && paginatedJobs.every(job => selectedJobs.has(job.id));
   const somePaginatedSelected = paginatedJobs.some(job => selectedJobs.has(job.id)) && !allPaginatedSelected;
 
@@ -456,7 +471,7 @@ export function JobsReadyToInvoice() {
       </header>
 
       {/* Main Content */}
-      <main className={cn("p-6", selectedJobs.size > 0 && "pb-32")}>
+      <main className={cn("p-6", selectedJobs.size > 0 && "pb-24")}>
         {/* Filters */}
         <div className="mb-4 flex items-center gap-2">
           <div className="flex-1 max-w-[300px]">
@@ -722,34 +737,70 @@ export function JobsReadyToInvoice() {
         </div>
       </main>
 
-      {/* Multi-Select Footer - Sticky Banner */}
+      {/* Multi-Select Action Bar */}
       {selectedJobs.size > 0 && (
-        <div className="fixed bottom-10 left-0 right-0 bg-[#101929] z-[60]">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div className="text-sm text-white tracking-[-0.14px]">
-              <span className="font-bold">{summary.jobs}</span>{" "}
-              <span className="font-normal opacity-80">jobs,</span>{" "}
-              <span className="font-bold">{summary.sites}</span>{" "}
-              <span className="font-normal opacity-80">sites,</span>{" "}
-              <span className="font-bold">{summary.parents}</span>{" "}
-              <span className="font-normal opacity-80">parents</span>{" "}
-              <span className="font-normal opacity-80">–</span>{" "}
-              <span className="font-medium">{formatCurrency(summary.total)}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm">
-                Apply for payment
-              </Button>
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={() => setBreakdownModalOpen(true)}
+        <TooltipProvider>
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
+            <div className="flex items-center gap-3 px-4 py-3 bg-[#101929] rounded-lg shadow-[0px_8px_24px_rgba(0,0,0,0.24)]">
+              <div className="text-sm text-white tracking-[-0.14px]">
+                <span className="font-bold">{summary.jobs}</span>{" "}
+                <span className="font-normal opacity-80">jobs,</span>{" "}
+                <span className="font-bold">{summary.sites}</span>{" "}
+                <span className="font-normal opacity-80">sites,</span>{" "}
+                <span className="font-bold">{summary.parents}</span>{" "}
+                <span className="font-normal opacity-80">parents</span>{" "}
+                <span className="font-normal opacity-80">-</span>{" "}
+                <span className="font-medium">{formatCurrency(summary.total)}</span>
+              </div>
+              <div className="w-px h-6 bg-white/20" />
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white"
+                >
+                  Apply for payment
+                </Button>
+                {canCreateInvoice ? (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => setBreakdownModalOpen(true)}
+                  >
+                    Create Invoice
+                  </Button>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0}>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          disabled
+                          className="pointer-events-none"
+                        >
+                          Create Invoice
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent 
+                      side="top" 
+                      className="bg-[#101929] text-[#F3F4F5] border-none px-3 py-2"
+                    >
+                      <p className="text-xs font-medium">Invoice with the same parent contact</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <button 
+                onClick={() => setSelectedJobs(new Set())}
+                className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
               >
-                Create Invoice
-              </Button>
+                <X className="h-4 w-4 text-white/60" />
+              </button>
             </div>
           </div>
-        </div>
+        </TooltipProvider>
       )}
 
       {/* Breakdown Selection Modal */}
