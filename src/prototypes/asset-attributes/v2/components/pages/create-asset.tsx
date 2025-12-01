@@ -385,7 +385,7 @@ export function CreateAsset() {
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleCancelClick}
               >
@@ -668,7 +668,7 @@ export function CreateAsset() {
                       {/* Add Photos Button as Thumbnail */}
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         className="h-[60px] flex-1 rounded-lg border border-border p-0 flex items-center justify-center hover:bg-muted"
                       >
                         <Plus className="h-5 w-5 text-muted-foreground" />
@@ -680,7 +680,7 @@ export function CreateAsset() {
                     {/* Empty state - Main image area becomes Add Photo area */}
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="secondary"
                       className="h-[185px] w-full rounded-lg border border-dashed border-border shrink-0 p-0 flex flex-col items-center justify-center gap-2 hover:bg-muted"
                     >
                       <Plus className="h-6 w-6 text-muted-foreground" />
@@ -705,7 +705,7 @@ export function CreateAsset() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={handleCancelCancel}>
+              <Button variant="secondary" onClick={handleCancelCancel}>
                 Keep editing
               </Button>
               <Button variant="default" onClick={handleConfirmCancel}>

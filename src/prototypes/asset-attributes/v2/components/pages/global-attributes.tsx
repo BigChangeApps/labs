@@ -258,7 +258,7 @@ export function GlobalAttributes() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setDeleteDialogOpen(false);
                 setAttributeToDelete(null);

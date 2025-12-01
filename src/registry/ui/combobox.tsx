@@ -282,7 +282,7 @@ export function Combobox({
       <PopoverTrigger asChild>
         <Button
           ref={buttonRef}
-          variant="outline"
+          variant="secondary"
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"

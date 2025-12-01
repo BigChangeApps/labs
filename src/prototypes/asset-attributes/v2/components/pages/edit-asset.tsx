@@ -571,7 +571,7 @@ export function EditAsset() {
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleCloseClick}
               >
@@ -676,7 +676,7 @@ export function EditAsset() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={handleCancelCategoryChange}>
+              <Button variant="secondary" onClick={handleCancelCategoryChange}>
                 Cancel
               </Button>
               <Button variant="default" onClick={handleConfirmCategoryChange}>
@@ -696,7 +696,7 @@ export function EditAsset() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={handleCancelClose}>
+              <Button variant="secondary" onClick={handleCancelClose}>
                 Keep editing
               </Button>
               <Button variant="default" onClick={handleConfirmClose}>
@@ -936,7 +936,7 @@ export function EditAsset() {
                       {/* Add Photos Button as Thumbnail */}
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         className="h-[60px] w-[calc((100%-40px)/5)] rounded-lg border border-border p-0 flex items-center justify-center hover:bg-muted shrink-0"
                       >
                         <Plus className="h-5 w-5 text-muted-foreground" />
@@ -948,7 +948,7 @@ export function EditAsset() {
                     {/* Empty state - Main image area becomes Add Photo area */}
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="secondary"
                       className="h-[185px] w-full rounded-lg border border-dashed border-border shrink-0 p-0 flex flex-col items-center justify-center gap-2 hover:bg-muted"
                     >
                       <Plus className="h-6 w-6 text-muted-foreground" />
@@ -1038,7 +1038,7 @@ export function EditAsset() {
                   </div>
                   <DialogFooter>
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => setShowSiteEditDialog(false)}
                     >
                       Cancel

@@ -200,7 +200,7 @@ export function CategorySearchDialog({
             )}
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="secondary" onClick={handleCancel}>
               Cancel
             </Button>
             <Button onClick={handleAddCategories} disabled={selectedCategories.size === 0}>

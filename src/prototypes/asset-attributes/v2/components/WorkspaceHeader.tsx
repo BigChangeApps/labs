@@ -59,7 +59,7 @@ export function WorkspaceHeader({ workspaceTitle = "Assets" }: WorkspaceHeaderPr
             </h1>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 size="icon"
                 onClick={handleSettingsClick}
                 className="shrink-0 h-7 w-7"

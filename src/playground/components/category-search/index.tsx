@@ -73,7 +73,7 @@ export function CategorySearchDemo() {
               Add categories
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleReset}
               disabled={addedCategories.length === 0 && !dialogOpen}

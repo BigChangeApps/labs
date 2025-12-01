@@ -34,7 +34,7 @@ export function InteractionPanel<TState extends Record<string, unknown>>({
 
       <div className="flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => onStepChange(currentStep - 1)}
           disabled={currentStep === 0}
@@ -44,7 +44,7 @@ export function InteractionPanel<TState extends Record<string, unknown>>({
           Previous
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => onStepChange(0)}
           disabled={currentStep === 0}
@@ -53,7 +53,7 @@ export function InteractionPanel<TState extends Record<string, unknown>>({
           <RotateCcw className="h-4 w-4" />
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => onStepChange(currentStep + 1)}
           disabled={currentStep >= scenario.steps.length - 1}
