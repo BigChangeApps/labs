@@ -60,8 +60,8 @@ importers:
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@18.3.7(@types/react@18.3.26))(@types/react@18.3.26)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@simpro-group/highway-tokens':
-        specifier: ^1.1.4
-        version: 1.1.4
+        specifier: ^1.1.6
+        version: 1.1.6
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1370,8 +1370,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@simpro-group/highway-tokens@1.1.4':
-    resolution: {integrity: sha512-wUXhq1xrQCf+mb08LzkiorHjgpzU9iBMe3/RVtQH6SPK9Hn0WXD2BTl+hvkRv9PWI0t0ewPgdt2rtxRTkeLJCw==, tarball: https://npm.pkg.github.com/download/@simpro-group/highway-tokens/1.1.4/607bc5607365c0b2f4b9cc13405162401255e3e8}
+  '@simpro-group/highway-tokens@1.1.6':
+    resolution: {integrity: sha512-ic7WlmFecm5tZSRrNNsUv1My/e4g1y/it2RRFtRQfPxD1M/uVaV3aUdH8T93Dto74HVCH8b4A8iUH8UgLTHWqA==, tarball: https://npm.pkg.github.com/download/@simpro-group/highway-tokens/1.1.6/4df5610a6b95c826a86fd8abb5491a211c69ba38}
 
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
@@ -3905,7 +3905,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.52.4':
     optional: true
 
-  '@simpro-group/highway-tokens@1.1.4': {}
+  '@simpro-group/highway-tokens@1.1.6': {}
 
   '@standard-schema/utils@0.3.0': {}
 
