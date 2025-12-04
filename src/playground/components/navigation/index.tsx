@@ -3,6 +3,7 @@ import { Search, Clock, Star, ChevronDown, LayoutGrid, HelpCircle } from "lucide
 import { Button } from "@/registry/ui/button";
 import { Avatar, AvatarFallback } from "@/registry/ui/avatar";
 import { Badge } from "@/registry/ui/badge";
+import { Input } from "@/registry/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +23,7 @@ function Logo() {
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="text-white"
+        className="text-hw-brand-foreground"
       >
         <path
           d="M12 2L2 7L12 12L22 7L12 2Z"
@@ -89,13 +90,13 @@ export function NavigationDemo() {
         </p>
       </div>
       <div className="border rounded-lg overflow-hidden bg-card -mx-3 sm:-mx-6">
-        <header className="bg-[var(--brand-500)] flex items-center justify-between px-5 py-2 w-full">
+        <header className="bg-hw-brand flex items-center justify-between px-5 py-2 w-full">
           {/* Left: Logo + Company Dropdown */}
           <div className="flex items-center gap-1.5">
             <Logo />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-0.5 pl-2 pr-1 py-1.5 rounded-md text-white text-sm font-medium hover:bg-white/10 transition-colors bg-transparent">
+                <button className="flex items-center gap-0.5 pl-2 pr-1 py-1.5 rounded-md text-hw-brand-foreground text-sm font-medium hover:bg-white/10 transition-colors bg-transparent">
                   <span>{selectedCompany}</span>
                   <ChevronDown className="size-5" />
                 </button>
@@ -119,15 +120,15 @@ export function NavigationDemo() {
           <div className="flex items-center gap-4">
             {/* Search Input */}
             <div className="relative w-[260px]">
-              <div className="bg-[rgba(16,25,41,0.2)] flex items-center gap-2 px-2.5 py-1.5 rounded-md shadow-[0px_0px_0px_1px_rgba(255,255,255,0.08)]">
-                <Search className="size-5 text-white shrink-0" />
-                <input
+              <div className="bg-hw-surface/80 flex items-center gap-2 px-2.5 py-1.5 rounded-md ring-1 ring-white/10">
+                <Search className="size-5 text-hw-brand-foreground shrink-0" />
+                <Input
                   type="text"
                   placeholder="Search"
                   className={cn(
-                    "flex-1 bg-transparent border-0 outline-none",
-                    "text-sm text-white placeholder:text-white/60",
-                    "focus:outline-none"
+                    "flex-1 bg-transparent border-0 outline-none shadow-none ring-0",
+                    "text-sm text-hw-brand-foreground placeholder:text-hw-brand-foreground/60",
+                    "focus-visible:ring-0 focus-visible:ring-offset-0"
                   )}
                 />
               </div>
@@ -138,20 +139,20 @@ export function NavigationDemo() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/10 hover:text-white p-1"
+                className="h-10 w-10 text-hw-brand-foreground hover:bg-white/10 hover:text-hw-brand-foreground p-1"
               >
                 <Clock className="!size-5" strokeWidth={2.5} />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/10 hover:text-white p-1"
+                className="h-10 w-10 text-hw-brand-foreground hover:bg-white/10 hover:text-hw-brand-foreground p-1"
               >
                 <Star className="!size-5" strokeWidth={2.5} />
               </Button>
               <button className="h-10 w-10 flex items-center justify-center p-1 hover:opacity-90 transition-opacity cursor-pointer">
                 <Avatar className="size-6">
-                  <AvatarFallback className="bg-white text-[var(--brand-500)] text-[10.8px] font-semibold leading-none">
+                  <AvatarFallback className="bg-hw-brand-foreground text-hw-brand text-[10.8px] font-semibold leading-none">
                     LB
                   </AvatarFallback>
                 </Avatar>
@@ -161,7 +162,7 @@ export function NavigationDemo() {
         </header>
 
         {/* Bottom Navigation Bar */}
-        <div className="bg-white border-b border-[#eaecf0] flex items-center justify-between pl-[12px] pr-[20px] py-[8px]">
+        <div className="bg-hw-surface border-b border-hw-border flex items-center justify-between pl-[12px] pr-[20px] py-[8px]">
           {/* Left: Navigation Menu Items */}
           <div className="flex items-center gap-0">
             {menuItems.map((item) => {
@@ -174,7 +175,7 @@ export function NavigationDemo() {
                   className={cn(
                     "px-2 py-1.5 rounded-md text-sm transition-colors relative border font-semibold",
                     isSelected
-                      ? "bg-[rgba(8,109,255,0.08)] border-[rgba(16,25,41,0.1)] text-hw-text"
+                      ? "bg-hw-brand/10 border-hw-border text-hw-text"
                       : "text-hw-text hover:bg-hw-surface-hover border-transparent"
                   )}
                 >
@@ -183,7 +184,7 @@ export function NavigationDemo() {
                     {item.notificationCount !== undefined && (
                       <Badge
                         variant="secondary"
-                        className="min-h-[16px] min-w-[16px] rounded-full px-1.5 text-xs border border-[rgba(16,25,41,0.1)] bg-[#f9fafb] text-hw-text shrink-0"
+                        className="min-h-[16px] min-w-[16px] rounded-full px-1.5 text-xs border-hw-border bg-hw-surface-subtle text-hw-text shrink-0"
                       >
                         {item.notificationCount > 99 ? "99+" : item.notificationCount}
                       </Badge>
@@ -208,7 +209,7 @@ export function NavigationDemo() {
                         className={cn(
                           "px-2 py-1.5 rounded-md text-sm transition-colors relative border font-semibold",
                           isSelected
-                            ? "bg-[rgba(8,109,255,0.08)] border-[rgba(16,25,41,0.1)] text-hw-text"
+                            ? "bg-hw-brand/10 border-hw-border text-hw-text"
                             : "text-hw-text hover:bg-hw-surface-hover border-transparent"
                         )}
                       >
@@ -254,7 +255,7 @@ export function NavigationDemo() {
               >
                 <HelpCircle className="!size-5" strokeWidth={2.5} />
               </Button>
-              <div className="absolute top-[2px] right-[2px] w-[8px] h-[8px] rounded-full bg-[#d32f2f] border-[0.625px] border-[rgba(16,25,41,0.1)]" />
+              <div className="absolute top-[2px] right-[2px] w-[8px] h-[8px] rounded-full bg-hw-critical border-[0.625px] border-hw-border" />
             </div>
           </div>
         </div>
