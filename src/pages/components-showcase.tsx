@@ -21,345 +21,342 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/registry/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/registry/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/registry/ui/table";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/registry/ui/drawer";
+import { Calendar } from "@/registry/ui/calendar";
+import { Combobox } from "@/registry/ui/combobox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/registry/ui/command";
+import { Kbd } from "@/registry/ui/kbd";
 
-// Component list with render functions
-const componentList: { name: string; render: () => React.ReactNode }[] = [
-  {
-    name: "accordion",
-    render: () => (
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger>Is it accessible?</AccordionTrigger>
-          <AccordionContent>Yes. It adheres to the WAI-ARIA design pattern.</AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Is it styled?</AccordionTrigger>
-          <AccordionContent>Yes. It comes with default styles that match your theme.</AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    ),
-  },
-  {
-    name: "alert",
-    render: () => (
-      <div className="space-y-4">
-        <Alert>
-          <Mail className="h-4 w-4" />
-          <AlertTitle>Heads up!</AlertTitle>
-          <AlertDescription>You can add components to your app using the cli.</AlertDescription>
-        </Alert>
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
-        </Alert>
-      </div>
-    ),
-  },
-  {
-    name: "avatar",
-    render: () => (
-      <div className="flex gap-4">
-        <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-        <Avatar>
-          <AvatarFallback>JD</AvatarFallback>
-        </Avatar>
-        <Avatar>
-          <AvatarFallback>AB</AvatarFallback>
-        </Avatar>
-      </div>
-    ),
-  },
-  {
-    name: "badge",
-    render: () => (
+// Auto-discover all registry components
+const registryModules = import.meta.glob("@/registry/ui/*.tsx", { eager: true });
+
+// Extract component names from file paths
+const allComponentNames = Object.keys(registryModules)
+  .map((path) => path.replace(/^.*\/([^/]+)\.tsx$/, "$1"))
+  .sort();
+
+// Component demos - only define for components that need custom rendering
+const componentDemos: Record<string, () => React.ReactNode> = {
+  accordion: () => (
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="item-1">
+        <AccordionTrigger>Is it accessible?</AccordionTrigger>
+        <AccordionContent>Yes. It adheres to the WAI-ARIA design pattern.</AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="item-2">
+        <AccordionTrigger>Is it styled?</AccordionTrigger>
+        <AccordionContent>Yes. It comes with default styles that match your theme.</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ),
+  alert: () => (
+    <div className="space-y-4">
+      <Alert>
+        <Mail className="h-4 w-4" />
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>You can add components to your app using the cli.</AlertDescription>
+      </Alert>
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
+      </Alert>
+    </div>
+  ),
+  avatar: () => (
+    <div className="flex gap-4">
+      <Avatar>
+        <AvatarImage src="https://github.com/shadcn.png" />
+        <AvatarFallback>CN</AvatarFallback>
+      </Avatar>
+      <Avatar>
+        <AvatarFallback>JD</AvatarFallback>
+      </Avatar>
+      <Avatar>
+        <AvatarFallback>AB</AvatarFallback>
+      </Avatar>
+    </div>
+  ),
+  badge: () => (
+    <div className="flex flex-wrap gap-2">
+      <Badge>Default</Badge>
+      <Badge variant="secondary">Secondary</Badge>
+      <Badge variant="destructive">Destructive</Badge>
+      <Badge variant="outline">Outline</Badge>
+    </div>
+  ),
+  button: () => (
+    <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <Badge>Default</Badge>
-        <Badge variant="secondary">Secondary</Badge>
-        <Badge variant="destructive">Destructive</Badge>
-        <Badge variant="secondary">Outline</Badge>
+        <Button>Default</Button>
+        <Button variant="secondary">Secondary</Button>
+        <Button variant="outline">Outline</Button>
+        <Button variant="destructive">Destructive</Button>
+        <Button variant="ghost">Ghost</Button>
+        <Button variant="link">Link</Button>
       </div>
-    ),
-  },
-  {
-    name: "button",
-    render: () => (
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Button>Default</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="destructive">Destructive</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="link">Link</Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm">Small</Button>
-          <Button size="default">Default</Button>
-          <Button size="lg">Large</Button>
-          <Button size="icon"><Plus className="h-4 w-4" /></Button>
-        </div>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm">Small</Button>
+        <Button size="default">Default</Button>
+        <Button size="lg">Large</Button>
+        <Button size="icon"><Plus className="h-4 w-4" /></Button>
       </div>
-    ),
-  },
-  {
-    name: "card",
-    render: () => (
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Card Title</CardTitle>
-          <CardDescription>Card description goes here.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>Card content with some example text.</p>
-        </CardContent>
-        <CardFooter className="flex justify-between">
+    </div>
+  ),
+  calendar: () => (
+    <Calendar mode="single" className="rounded-md border" />
+  ),
+  card: () => (
+    <Card className="w-[350px]">
+      <CardHeader>
+        <CardTitle>Card Title</CardTitle>
+        <CardDescription>Card description goes here.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>Card content with some example text.</p>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline">Cancel</Button>
+        <Button>Save</Button>
+      </CardFooter>
+    </Card>
+  ),
+  checkbox: () => (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2">
+        <Checkbox id="terms" />
+        <Label htmlFor="terms">Accept terms and conditions</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox id="marketing" defaultChecked />
+        <Label htmlFor="marketing">Receive marketing emails</Label>
+      </div>
+    </div>
+  ),
+  combobox: () => (
+    <Combobox
+      options={[
+        { value: "react", label: "React" },
+        { value: "vue", label: "Vue" },
+        { value: "angular", label: "Angular" },
+        { value: "svelte", label: "Svelte" },
+      ]}
+      placeholder="Select framework..."
+      emptyText="No framework found."
+      className="w-[200px]"
+    />
+  ),
+  command: () => (
+    <Command className="rounded-lg border shadow-md w-[300px]">
+      <CommandInput placeholder="Type a command or search..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Suggestions">
+          <CommandItem>Calendar</CommandItem>
+          <CommandItem>Search</CommandItem>
+          <CommandItem>Settings</CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  ),
+  dialog: () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Open Dialog</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Dialog Title</DialogTitle>
+          <DialogDescription>This is a dialog description.</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">Dialog content goes here.</div>
+        <DialogFooter>
           <Button variant="outline">Cancel</Button>
           <Button>Save</Button>
-        </CardFooter>
-      </Card>
-    ),
-  },
-  {
-    name: "checkbox",
-    render: () => (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox id="terms" />
-          <Label htmlFor="terms">Accept terms and conditions</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="marketing" defaultChecked />
-          <Label htmlFor="marketing">Receive marketing emails</Label>
-        </div>
-      </div>
-    ),
-  },
-  {
-    name: "dialog",
-    render: () => (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Open Dialog</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Dialog Title</DialogTitle>
-            <DialogDescription>This is a dialog description.</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">Dialog content goes here.</div>
-          <DialogFooter>
-            <Button variant="outline">Cancel</Button>
-            <Button>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    ),
-  },
-  {
-    name: "drawer",
-    render: () => (
-      <Drawer>
-        <DrawerTrigger asChild>
-          <Button>Open Drawer</Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Drawer Title</DrawerTitle>
-            <DrawerDescription>This is a drawer description.</DrawerDescription>
-          </DrawerHeader>
-          <div className="p-4">Drawer content goes here.</div>
-          <DrawerFooter>
-            <Button>Save</Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-    ),
-  },
-  {
-    name: "dropdown-menu",
-    render: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary">
-            Options <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem><User className="mr-2 h-4 w-4" /> Profile</DropdownMenuItem>
-          <DropdownMenuItem><CreditCard className="mr-2 h-4 w-4" /> Billing</DropdownMenuItem>
-          <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /> Settings</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-  {
-    name: "input",
-    render: () => (
-      <div className="space-y-4 max-w-sm">
-        <Input placeholder="Default input" />
-        <Input type="email" placeholder="Email" />
-        <Input type="password" placeholder="Password" />
-        <Input disabled placeholder="Disabled" />
-      </div>
-    ),
-  },
-  {
-    name: "label",
-    render: () => (
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" placeholder="Enter your email" className="max-w-sm" />
-      </div>
-    ),
-  },
-  {
-    name: "popover",
-    render: () => (
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="secondary">Open Popover</Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="space-y-2">
-            <h4 className="font-medium">Popover Title</h4>
-            <p className="text-sm text-muted-foreground">This is the popover content.</p>
-          </div>
-        </PopoverContent>
-      </Popover>
-    ),
-  },
-  {
-    name: "select",
-    render: () => (
-      <Select>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select option" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="option1">Option 1</SelectItem>
-          <SelectItem value="option2">Option 2</SelectItem>
-          <SelectItem value="option3">Option 3</SelectItem>
-        </SelectContent>
-      </Select>
-    ),
-  },
-  {
-    name: "separator",
-    render: () => (
-      <div className="space-y-4">
-        <div>
-          <h4 className="text-sm font-medium">Section 1</h4>
-          <p className="text-sm text-muted-foreground">Content above separator</p>
-        </div>
-        <Separator />
-        <div>
-          <h4 className="text-sm font-medium">Section 2</h4>
-          <p className="text-sm text-muted-foreground">Content below separator</p>
-        </div>
-      </div>
-    ),
-  },
-  {
-    name: "sheet",
-    render: () => (
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button>Open Sheet</Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Sheet Title</SheetTitle>
-          </SheetHeader>
-          <div className="py-4">Sheet content goes here.</div>
-        </SheetContent>
-      </Sheet>
-    ),
-  },
-  {
-    name: "skeleton",
-    render: () => (
-      <div className="flex items-center space-x-4">
-        <Skeleton className="h-12 w-12 rounded-full" />
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ),
+  drawer: () => (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <Button>Open Drawer</Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Drawer Title</DrawerTitle>
+          <DrawerDescription>This is a drawer description.</DrawerDescription>
+        </DrawerHeader>
+        <div className="p-4">Drawer content goes here.</div>
+        <DrawerFooter>
+          <Button>Save</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  ),
+  "dropdown-menu": () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          Options <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem><User className="mr-2 h-4 w-4" /> Profile</DropdownMenuItem>
+        <DropdownMenuItem><CreditCard className="mr-2 h-4 w-4" /> Billing</DropdownMenuItem>
+        <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /> Settings</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+  input: () => (
+    <div className="space-y-4 max-w-sm">
+      <Input placeholder="Default input" />
+      <Input type="email" placeholder="Email" />
+      <Input type="password" placeholder="Password" />
+      <Input disabled placeholder="Disabled" />
+    </div>
+  ),
+  kbd: () => (
+    <div className="flex flex-wrap gap-2">
+      <Kbd>⌘</Kbd>
+      <Kbd>K</Kbd>
+      <span className="text-muted-foreground">or</span>
+      <Kbd>Ctrl</Kbd>
+      <Kbd>K</Kbd>
+    </div>
+  ),
+  label: () => (
+    <div className="space-y-2">
+      <Label htmlFor="email">Email</Label>
+      <Input id="email" placeholder="Enter your email" className="max-w-sm" />
+    </div>
+  ),
+  popover: () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline">Open Popover</Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
         <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
+          <h4 className="font-medium">Popover Title</h4>
+          <p className="text-sm text-muted-foreground">This is the popover content.</p>
         </div>
+      </PopoverContent>
+    </Popover>
+  ),
+  "responsive-modal": () => {
+    // This is a controlled component demo - requires state management
+    return (
+      <div className="text-center text-muted-foreground py-4">
+        <p className="mb-2">ResponsiveModal is a controlled component.</p>
+        <p className="text-sm">It shows as a Dialog on desktop and Drawer on mobile.</p>
+        <p className="text-sm mt-2">Requires <code className="bg-muted px-1 rounded">open</code> and <code className="bg-muted px-1 rounded">onOpenChange</code> props.</p>
       </div>
-    ),
+    );
   },
-  {
-    name: "switch",
-    render: () => (
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Switch id="airplane" />
-          <Label htmlFor="airplane">Airplane Mode</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch id="notifications" defaultChecked />
-          <Label htmlFor="notifications">Notifications</Label>
-        </div>
+  select: () => (
+    <Select>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select option" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="option1">Option 1</SelectItem>
+        <SelectItem value="option2">Option 2</SelectItem>
+        <SelectItem value="option3">Option 3</SelectItem>
+      </SelectContent>
+    </Select>
+  ),
+  separator: () => (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-medium">Section 1</h4>
+        <p className="text-sm text-muted-foreground">Content above separator</p>
       </div>
-    ),
-  },
-  {
-    name: "table",
-    render: () => (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell>John Doe</TableCell>
-            <TableCell><Badge>Active</Badge></TableCell>
-            <TableCell className="text-right">$250.00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Jane Smith</TableCell>
-            <TableCell><Badge variant="secondary">Pending</Badge></TableCell>
-            <TableCell className="text-right">$150.00</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    ),
-  },
-  {
-    name: "textarea",
-    render: () => (
-      <div className="space-y-2 max-w-sm">
-        <Label htmlFor="message">Message</Label>
-        <Textarea id="message" placeholder="Type your message here." />
+      <Separator />
+      <div>
+        <h4 className="text-sm font-medium">Section 2</h4>
+        <p className="text-sm text-muted-foreground">Content below separator</p>
       </div>
-    ),
-  },
-  {
-    name: "tooltip",
-    render: () => (
-      <TooltipProvider>
-        <div className="flex gap-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="secondary">Hover me</Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>This is a tooltip</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </TooltipProvider>
-    ),
-  },
-];
+    </div>
+  ),
+  sheet: () => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button>Open Sheet</Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Sheet Title</SheetTitle>
+        </SheetHeader>
+        <div className="py-4">Sheet content goes here.</div>
+      </SheetContent>
+    </Sheet>
+  ),
+  skeleton: () => (
+    <div className="flex items-center space-x-4">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+  ),
+  switch: () => (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2">
+        <Switch id="airplane" />
+        <Label htmlFor="airplane">Airplane Mode</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Switch id="notifications" defaultChecked />
+        <Label htmlFor="notifications">Notifications</Label>
+      </div>
+    </div>
+  ),
+  table: () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Amount</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>John Doe</TableCell>
+          <TableCell><Badge>Active</Badge></TableCell>
+          <TableCell className="text-right">$250.00</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Jane Smith</TableCell>
+          <TableCell><Badge variant="secondary">Pending</Badge></TableCell>
+          <TableCell className="text-right">$150.00</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  ),
+  textarea: () => (
+    <div className="space-y-2 max-w-sm">
+      <Label htmlFor="message">Message</Label>
+      <Textarea id="message" placeholder="Type your message here." />
+    </div>
+  ),
+  tooltip: () => (
+    <TooltipProvider>
+      <div className="flex gap-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline">Hover me</Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>This is a tooltip</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  ),
+};
 
 // Convert kebab-case to Title Case
 function toTitle(name: string): string {
@@ -379,25 +376,25 @@ function toPascalCase(name: string): string {
 
 export function ComponentsShowcase() {
   const [search, setSearch] = useState("");
-  const [selectedComponent, setSelectedComponent] = useState(componentList[0]?.name ?? "");
+  const [selectedComponent, setSelectedComponent] = useState(allComponentNames[0] ?? "");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const filteredComponents = useMemo(() => {
-    if (!search.trim()) return componentList;
+    if (!search.trim()) return allComponentNames;
     const query = search.toLowerCase();
-    return componentList.filter(
-      ({ name }) =>
+    return allComponentNames.filter(
+      (name) =>
         name.toLowerCase().includes(query) ||
         toTitle(name).toLowerCase().includes(query)
     );
   }, [search]);
 
-  const selectedEntry = componentList.find((c) => c.name === selectedComponent);
+  const renderDemo = componentDemos[selectedComponent];
 
   // Navigation component
   const NavigationLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-0.5">
-      {filteredComponents.map(({ name }) => (
+      {filteredComponents.map((name) => (
         <button
           key={name}
           onClick={() => {
@@ -488,7 +485,16 @@ export function ComponentsShowcase() {
               </div>
 
               <div className="border rounded-lg p-6 bg-card">
-                {selectedEntry?.render()}
+                {renderDemo ? (
+                  renderDemo()
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p className="mb-2">No demo available for this component.</p>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {`import { ${toPascalCase(selectedComponent)} } from "@/registry/ui/${selectedComponent}"`}
+                    </code>
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 text-sm text-muted-foreground">
