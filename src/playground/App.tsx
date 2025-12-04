@@ -6,8 +6,6 @@ import { Layout } from "./components/layout";
 import { getFirstComponent } from "./lib/registry";
 
 // Component demos
-import { ButtonVariantsDemo } from "./components/button-variants";
-import { CardDemo } from "./components/card";
 import { CategorySearchDemo } from "./components/category-search";
 import { NavigationDemo } from "./components/navigation";
 
@@ -41,8 +39,6 @@ function PlaygroundApp() {
                   )
                 }
               />
-              <Route path="button-variants" element={<ButtonVariantsDemo />} />
-              <Route path="card" element={<CardDemo />} />
               <Route path="category-search" element={<CategorySearchDemo />} />
               <Route path="navigation" element={<NavigationDemo />} />
             </Route>

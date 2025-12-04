@@ -5,6 +5,7 @@ import AssetAttributesV1App from "@/prototypes/asset-attributes/v1/App";
 import AssetAttributesV2App from "@/prototypes/asset-attributes/v2/App";
 import AssetServiceAgreementsV1App from "@/prototypes/asset-service-agreements/v1/App";
 import PlaygroundApp from "@/playground/App";
+import { ComponentsShowcase } from "@/pages/components-showcase";
 import { DevBar } from "@/components/DevBar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicLanding } from "@/components/PublicLanding";
@@ -18,9 +19,12 @@ function App() {
       <Routes>
         <Route path="/" element={showInternal ? <Home /> : <PublicLanding />} />
         {showInternal && <Route path="/tokens" element={<TokensPage />} />}
-        {/* Component playground (internal only) */}
+        {/* Component playground and registry (internal only) */}
         {showInternal && (
-          <Route path="/playground/*" element={<PlaygroundApp />} />
+          <>
+            <Route path="/playground/*" element={<PlaygroundApp />} />
+            <Route path="/components" element={<ComponentsShowcase />} />
+          </>
         )}
         {/* Prototype routes */}
         <Route

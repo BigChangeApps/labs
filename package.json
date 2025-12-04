@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:thumbnails": "node scripts/generate-thumbnails.js"
+    "generate:thumbnails": "node scripts/generate-thumbnails.js",
+    "lockfile:clean": "mv pnpm-workspace.yaml pnpm-workspace.yaml.local 2>/dev/null || true && pnpm install && mv pnpm-workspace.yaml.local pnpm-workspace.yaml 2>/dev/null || true"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
