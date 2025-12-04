@@ -78,6 +78,11 @@
   --color-hw-interactive-secondary-hover: var(--hw-interactive-secondary-hover);
   --color-hw-interactive-secondary-foreground: var(--hw-interactive-secondary-foreground);
 
+  /* Brand */
+  --color-hw-brand: var(--hw-brand);
+  --color-hw-brand-hover: var(--hw-brand-hover);
+  --color-hw-brand-foreground: var(--hw-brand-foreground);
+
   /* Status - Critical */
   --color-hw-critical: var(--hw-critical);
   --color-hw-critical-foreground: var(--hw-critical-foreground);

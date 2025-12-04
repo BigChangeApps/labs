@@ -155,7 +155,7 @@ export function CategoryAddDialog({
                     <FormControl>
                       <PopoverTrigger asChild>
                         <Button
-                          variant="outline"
+                          variant="secondary"
                           role="combobox"
                           aria-expanded={popoverOpen}
                           className="w-full justify-between"
@@ -194,7 +194,7 @@ export function CategoryAddDialog({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="secondary" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button

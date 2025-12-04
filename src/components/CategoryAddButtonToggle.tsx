@@ -18,7 +18,7 @@ export function CategoryAddButtonToggle() {
 
   return (
     <Button
-      variant="outline"
+      variant="secondary"
       size="icon"
       onClick={() => setShowButton(!showButton)}
       className="fixed bottom-4 left-24 z-50 rounded-full h-9 w-9 shadow-md hover:shadow-lg transition-all"
