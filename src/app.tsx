@@ -3,6 +3,7 @@ import Home from "@/home";
 import TokensPage from "@/tokens";
 import AssetAttributesV1App from "@/prototypes/asset-attributes/v1/App";
 import AssetAttributesV2App from "@/prototypes/asset-attributes/v2/App";
+import AssetServiceAgreementsV1App from "@/prototypes/asset-service-agreements/v1/App";
 import PlaygroundApp from "@/playground/App";
 import { DevBar } from "@/components/DevBar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -35,6 +36,14 @@ function App() {
           element={
             <ProtectedRoute prototypeId="asset-attributes-v2">
               <AssetAttributesV2App />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/asset-service-agreements/v1/*"
+          element={
+            <ProtectedRoute prototypeId="asset-service-agreements-v1">
+              <AssetServiceAgreementsV1App />
             </ProtectedRoute>
           }
         />
