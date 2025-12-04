@@ -10,7 +10,9 @@ import { PublicLanding } from "@/components/PublicLanding";
 const AssetAttributesV1App = lazy(() => import("@/prototypes/asset-attributes/v1/App"));
 const AssetAttributesV2App = lazy(() => import("@/prototypes/asset-attributes/v2/App"));
 const PlaygroundApp = lazy(() => import("@/playground/App"));
-const ComponentsShowcase = lazy(() => import("@/pages/components-showcase").then(m => ({ default: m.ComponentsShowcase })));
+const ComponentsShowcase = lazy(() => 
+  import("@/pages/components-showcase").then(module => ({ default: module.ComponentsShowcase }))
+);
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
