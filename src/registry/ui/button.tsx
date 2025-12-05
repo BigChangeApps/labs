@@ -9,16 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-hw-brand shadow-xs ring-1 ring-hw-brand text-hw-brand-foreground hover:bg-hw-brand-hover focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[3px] dark:focus-visible:ring-ring/40",
+        default: "border border-transparent bg-hw-brand shadow-xs ring-1 ring-hw-brand text-hw-brand-foreground hover:bg-hw-brand-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-[4px] dark:focus-visible:ring-hw-focus/50",
         destructive:
-          "bg-hw-critical shadow-xs ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical focus-visible:ring-hw-critical/20 focus-visible:ring-[3px] dark:focus-visible:ring-hw-critical/40 dark:bg-hw-critical/60",
+          "border border-transparent bg-hw-critical shadow-xs ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical/80 focus-visible:ring-hw-critical/30 focus-visible:ring-[4px] dark:focus-visible:ring-hw-critical/30 dark:bg-hw-critical/60",
         secondary:
-          "border border-transparent ring-hw-border shadow-xs ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-border focus-visible:ring-hw-border/20 focus-visible:ring-[3px] dark:focus-visible:ring-hw-border/40",
+          "border border-transparent ring-hw-border shadow-xs ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-[4px] dark:focus-visible:ring-hw-focus/50",
         outline:
-          "border border-transparent ring-hw-border shadow-xs ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-border focus-visible:ring-hw-border/20 focus-visible:ring-[3px] dark:focus-visible:ring-hw-border/40",
+          "border border-transparent ring-hw-border shadow-xs ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-[4px] dark:focus-visible:ring-hw-focus/50",
         ghost:
-          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-border focus-visible:ring-hw-border/20 focus-visible:ring-[3px] dark:focus-visible:ring-hw-border/40",
-        link: "text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-interactive focus-visible:ring-hw-interactive/20 focus-visible:ring-[3px] dark:focus-visible:ring-hw-interactive/40",
+          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-[4px] dark:focus-visible:ring-hw-focus/50",
+        link: "border border-transparent text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-[4px] dark:focus-visible:ring-hw-focus/50",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
