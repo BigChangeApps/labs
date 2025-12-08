@@ -165,7 +165,7 @@ export function Combobox({
               aria-controls={open ? "combobox-listbox" : undefined}
               role="combobox"
             />
-            <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-hw-text-secondary pointer-events-none" />
           </div>
         </PopoverTrigger>
         <PopoverContent
@@ -225,7 +225,7 @@ export function Combobox({
                             <span>{option.label}</span>
                             {option.description && (
                               <span 
-                                className="text-xs text-muted-foreground"
+                                className="text-xs text-hw-text-secondary"
                                 style={{ textWrap: 'balance' }}
                               >
                                 {option.description}
@@ -258,7 +258,7 @@ export function Combobox({
                       <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                         <span>{option.label}</span>
                         {option.description && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-hw-text-secondary">
                             {option.description}
                           </span>
                         )}
@@ -282,14 +282,14 @@ export function Combobox({
       <PopoverTrigger asChild>
         <Button
           ref={buttonRef}
-          variant="secondary"
+          variant="outline"
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-controls={open ? "combobox-listbox" : undefined}
           className={cn(
             "w-full justify-between h-9",
-            !selectedOption && "text-muted-foreground",
+            !selectedOption && "text-hw-text-secondary",
             triggerClassName
           )}
           disabled={disabled}
@@ -362,7 +362,7 @@ export function Combobox({
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                           <span>{option.label}</span>
                           {option.description && (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-hw-text-secondary">
                               {option.description}
                             </span>
                           )}
@@ -390,7 +390,7 @@ export function Combobox({
                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                       <span>{option.label}</span>
                       {option.description && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-hw-text-secondary">
                           {option.description}
                         </span>
                       )}

@@ -6,13 +6,19 @@ Commit and push changes with quick validation checks for rapid development itera
 
 **Validation Process:**
 
-1. Run fast validation checks:
+1. **Pre-flight: Clean pnpm-lock.yaml link overrides**
+   - Check if `pnpm-lock.yaml` has unstaged or staged changes
+   - If modified, check if it contains `link:` paths (from `pnpm link` local development)
+   - If `link:` paths are found, automatically run `git restore pnpm-lock.yaml` to discard those changes
+   - Inform the user: "ℹ️ Restored pnpm-lock.yaml - local `pnpm link` overrides should not be committed"
+
+2. Run fast validation checks:
    - `tsc --noEmit` - Type checking (catches type errors)
    - `pnpm run lint` - Linting (code quality checks)
 
-2. If any check fails, STOP immediately and report errors to the user
+3. If any check fails, STOP immediately and report errors to the user
 
-3. If all checks pass, proceed with git workflow:
+4. If all checks pass, proceed with git workflow:
    - Run `git status` to see current changes
    - Run `git diff --staged` to review what will be committed
    - Run `git log -3 --oneline` to understand commit message style
@@ -38,6 +44,7 @@ Commit and push changes with quick validation checks for rapid development itera
 - NEVER commit files with secrets (.env, credentials.json, etc.)
 - WARN user if attempting to push to main/master branch
 - Follow repository's commit message style
+- **NEVER commit pnpm-lock.yaml with `link:` paths** - these are local development overrides that break CI/CD
 
 **Use Case:** Quick iterations during feature development when you need fast feedback.
 
