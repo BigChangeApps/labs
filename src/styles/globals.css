@@ -47,9 +47,11 @@
   --color-card: var(--hw-surface);
   --color-card-foreground: var(--hw-text);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  /* Border radius - using Highway tokens */
+  --radius-button: var(--hw-radius-button);
+  --radius-input: var(--hw-radius-input);
+  --radius-card: var(--hw-radius-card);
+  --radius-modal: var(--hw-radius-modal);
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -121,6 +123,16 @@
   --color-hw-border: var(--hw-border);
   --color-hw-focus: var(--hw-focus);
   --color-hw-overlay: var(--hw-overlay);
+
+  /* Shadows - using Highway tokens */
+  --shadow-button: var(--hw-shadow-button);
+  --shadow-input: var(--hw-shadow-input);
+  --shadow-card: var(--hw-shadow-card);
+  --shadow-modal: var(--hw-shadow-modal);
+  --shadow-overlay: var(--hw-shadow-overlay);
+
+  /* Ring width - focus */
+  --ring-hw-focus: var(--hw-border-width-focus);
 
   @keyframes accordion-down {
     from {
