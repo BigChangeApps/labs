@@ -203,7 +203,7 @@ function Calendar({
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "relative has-focus:border-hw-focus border border-hw-border shadow-input has-focus:ring-hw-focus/50 has-focus:ring-[4px] rounded-input",
+          "relative has-focus:border-hw-focus border border-hw-border shadow-input has-focus:ring-hw-focus/50 has-focus:ring-(--ring-width-focus) rounded-input",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
@@ -307,7 +307,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-hw-brand data-[selected-single=true]:text-hw-brand-foreground data-[range-middle=true]:bg-hw-surface-subtle data-[range-middle=true]:text-hw-text data-[range-start=true]:bg-hw-brand data-[range-start=true]:text-hw-brand-foreground data-[range-end=true]:bg-hw-brand data-[range-end=true]:text-hw-brand-foreground group-data-[focused=true]/day:border-hw-focus group-data-[focused=true]/day:ring-hw-focus/50 dark:hover:text-hw-text flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[4px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+        "data-[selected-single=true]:bg-hw-brand data-[selected-single=true]:text-hw-brand-foreground data-[range-middle=true]:bg-hw-surface-subtle data-[range-middle=true]:text-hw-text data-[range-start=true]:bg-hw-brand data-[range-start=true]:text-hw-brand-foreground data-[range-end=true]:bg-hw-brand data-[range-end=true]:text-hw-brand-foreground group-data-[focused=true]/day:border-hw-focus group-data-[focused=true]/day:ring-hw-focus/50 dark:hover:text-hw-text flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-(--ring-width-focus) data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}

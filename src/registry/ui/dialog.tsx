@@ -97,7 +97,7 @@ const DialogHeader = ({
         {beforeTitle}
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">{title}</div>
-          <DialogPrimitive.Close className="border border-transparent rounded-sm opacity-70 ring-offset-hw-background transition-opacity hover:opacity-100 hover:bg-hw-surface-hover hover:text-hw-text cursor-pointer focus:outline-hidden focus:border-hw-focus focus:ring-hw-focus/50 focus:ring-[4px] dark:focus:ring-hw-focus/50 focus:ring-offset-2 disabled:pointer-events-none shrink-0">
+          <DialogPrimitive.Close className="border border-transparent rounded-sm opacity-70 ring-offset-hw-background transition-opacity hover:opacity-100 hover:bg-hw-surface-hover hover:text-hw-text cursor-pointer focus:outline-hidden focus:border-hw-focus focus:ring-hw-focus/50 focus:ring-(--ring-width-focus) dark:focus:ring-hw-focus/50 focus:ring-offset-2 disabled:pointer-events-none shrink-0">
             <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>

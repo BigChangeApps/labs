@@ -131,8 +131,8 @@
   --shadow-modal: var(--hw-shadow-modal);
   --shadow-overlay: var(--hw-shadow-overlay);
 
-  /* Ring width - focus */
-  --ring-hw-focus: var(--hw-border-width-focus);
+  /* Ring width - focus (with fallback for components) */
+  --ring-width-focus: var(--hw-border-width-focus, 4px);
 
   @keyframes accordion-down {
     from {
