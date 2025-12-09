@@ -49,6 +49,7 @@ interface InvoiceCardData {
   name: string;
   address: string;
   jobs: JobWithLines[];
+  originalJobIds: string[]; // Track original job IDs from mockJobs
   // Per-card settings
   title: string;
   levelOfDetail: LevelOfDetail;
@@ -918,6 +919,7 @@ function InvoiceCard({
   onLineItemToggle,
   onSelectAllLineItems,
   totalInvoiceCount,
+  onPreview,
 }: { 
   invoiceData: InvoiceCardData;
   selectedJobIds: Set<string>;
@@ -927,6 +929,7 @@ function InvoiceCard({
   onInvoiceDataChange: (id: string, updates: Partial<InvoiceCardData>) => void;
   universalLevelOfDetail: LevelOfDetail;
   lineItems: LineItem[];
+  onPreview: () => void;
   onLineItemToggle: (id: string) => void;
   onSelectAllLineItems: () => void;
   totalInvoiceCount: number;
@@ -1176,9 +1179,12 @@ function InvoiceCard({
           
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button variant="outline" size="sm" className="flex-1">
+            <a 
+              href="/bulk-invoicing/v1/preview"
+              className="flex-1 h-8 px-3 border rounded-md bg-white text-sm font-medium hover:bg-gray-50 flex items-center justify-center"
+            >
               Preview invoice
-            </Button>
+            </a>
             <Button variant="default" size="sm" className="flex-1">
               Send Invoice
             </Button>
@@ -1268,12 +1274,18 @@ function OverviewPanel({
   vatAmount,
   total,
   onSend,
+  invoiceCount,
+  onPreview,
 }: { 
   subtotal: number;
   vatAmount: number;
   total: number;
   onSend: () => void;
+  invoiceCount: number;
+  onPreview?: () => void;
 }) {
+  const isSingleInvoice = invoiceCount === 1;
+  
   return (
     <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
       {/* Header */}
@@ -1306,19 +1318,27 @@ function OverviewPanel({
             <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
           </div>
           <div className="flex items-center justify-between pt-3 border-t border-[rgba(16,25,41,0.1)]">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Group Total</span>
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{isSingleInvoice ? "Total" : "Group Total"}</span>
             <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
           </div>
         </div>
         
-        <Button 
-          variant="default" 
-          size="default" 
-          className="w-full"
-          onClick={onSend}
-        >
-          Send All Invoices
-        </Button>
+        <div className="flex flex-col gap-2">
+          <a 
+            href="/bulk-invoicing/v1/preview"
+            className="w-full h-9 px-4 py-2 border rounded-md bg-white text-sm font-medium hover:bg-gray-50 flex items-center justify-center text-center"
+          >
+            Preview invoice
+          </a>
+          <Button 
+            variant="default" 
+            size="default" 
+            className="w-full"
+            onClick={onSend}
+          >
+            {isSingleInvoice ? "Send Invoice" : "Send All Invoices"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -1341,7 +1361,8 @@ export function BulkInvoiceCreation() {
     { id: "demo-3", jobRef: "382112", site: "Next Trafford Centre", parent: "Next Head Office", completed: "15 Jan 2024", status: "Complete", selling: 9200, leftToInvoice: 6000, progress: 100, jobType: "stacks" },
   ];
   
-  const selectedJobs = locationState.selectedJobs?.length ? locationState.selectedJobs : demoJobs;
+  // If selectedJobs is explicitly provided (even if empty), use it; otherwise use demoJobs for testing
+  const selectedJobs = locationState.selectedJobs !== undefined ? locationState.selectedJobs : demoJobs;
   const breakdownLevel = locationState.breakdownLevel || "contact" as BreakdownLevel;
 
   // Universal controls state
@@ -1350,6 +1371,7 @@ export function BulkInvoiceCreation() {
   const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
   const [department, setDepartment] = useState("hs49301");
   const [nominalCode, setNominalCode] = useState("5001");
+  
   
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(() => {
     const ids = new Set<string>();
@@ -1486,6 +1508,7 @@ export function BulkInvoiceCreation() {
         name,
         address: "1 Drummond Gate, Pimlico, London, SW1V 2QQ",
         jobs: jobsWithLines,
+        originalJobIds: groupJobs.map(job => job.id), // Store original job IDs
         title: "Invoice title",
         levelOfDetail: currentLevelOfDetail,
         isLevelOfDetailOverridden: false,
@@ -1646,17 +1669,29 @@ export function BulkInvoiceCreation() {
     });
   };
 
+  // Handle preview invoice - navigate to preview page
+  const handlePreviewInvoice = useCallback((invoiceId?: string) => {
+    console.log("handlePreviewInvoice called", { invoiceId, invoiceCards });
+    // If invoiceId is provided, preview that specific invoice
+    // Otherwise, preview the first (or only) invoice
+    const idToPreview = invoiceId || invoiceCards[0]?.id;
+    const invoiceToPreview = invoiceCards.find(card => card.id === idToPreview);
+    
+    console.log("Invoice to preview:", invoiceToPreview);
+    
+    if (invoiceToPreview) {
+      console.log("Navigating to preview page...");
+      navigate("/bulk-invoicing/v1/preview", {
+        state: { invoiceData: invoiceToPreview }
+      });
+    } else {
+      console.log("No invoice found to preview");
+    }
+  }, [invoiceCards, navigate]);
+
   if (selectedJobs.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#FCFCFD] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-[#73777D] mb-4">No jobs selected for invoicing</p>
-          <Button variant="default" onClick={() => navigate("/bulk-invoicing/v1")}>
-            Go back to Jobs
-          </Button>
-        </div>
-      </div>
-    );
+    navigate("/bulk-invoicing/v1/empty", { replace: true });
+    return null;
   }
 
   return (
@@ -1702,12 +1737,13 @@ export function BulkInvoiceCreation() {
                 onLineItemToggle={handleLineItemToggle}
                 onSelectAllLineItems={handleSelectAllLineItems}
                 totalInvoiceCount={invoiceCards.length}
+                onPreview={() => handlePreviewInvoice(invoiceData.id)}
               />
             ))}
           </div>
 
           {/* Right Column - Settings & Overview (Sticky) */}
-          <div className="w-[380px] shrink-0 space-y-4 sticky top-[100px] self-start h-fit">
+          <div className="w-[380px] shrink-0 space-y-4 sticky top-[100px] self-start h-fit z-10">
             <UniversalSettingsPanel
               levelOfDetail={universalLevelOfDetail}
               onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
@@ -1724,6 +1760,8 @@ export function BulkInvoiceCreation() {
               vatAmount={summary.vatAmount}
               total={summary.total}
               onSend={handleSendInvoices}
+              invoiceCount={invoiceCards.length}
+              onPreview={() => handlePreviewInvoice()}
             />
           </div>
         </div>
@@ -1737,6 +1775,7 @@ export function BulkInvoiceCreation() {
         onCreateInvoice={handleBreakdownConfirm}
         currentBreakdownLevel={universalStructure}
       />
+
     </div>
   );
 }

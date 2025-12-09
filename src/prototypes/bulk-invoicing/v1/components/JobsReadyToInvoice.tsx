@@ -27,6 +27,7 @@ import { mockJobs, formatCurrency, type Job } from "../lib/mock-data";
 import { cn } from "@/registry/lib/utils";
 import { BreakdownModal } from "./BreakdownModal";
 import { toast } from "sonner";
+import { getInvoicedJobIds } from "../lib/invoice-utils";
 
 // Icons matching the Figma design exactly
 // Briefcase icon - single job type
@@ -230,7 +231,26 @@ const ITEMS_PER_PAGE_OPTIONS = [25, 50, 100] as const;
 export function JobsReadyToInvoice() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
+  
+  // Restore selected jobs from location state if coming from empty state
+  const locationState = (location.state || {}) as { 
+    selectedJobs?: Job[];
+    fromEmptyState?: boolean;
+  };
+  
+  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(() => {
+    if (locationState.selectedJobs && locationState.fromEmptyState) {
+      return new Set(locationState.selectedJobs.map(job => job.id));
+    }
+    return new Set();
+  });
+  
+  // Clear location state after restoring selection
+  useEffect(() => {
+    if (locationState.fromEmptyState) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [locationState.fromEmptyState]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"jobs" | "applications">("jobs");
   const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
@@ -247,14 +267,28 @@ export function JobsReadyToInvoice() {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
 
+  // Get invoiced job IDs from localStorage
+  const [invoicedJobIds, setInvoicedJobIds] = useState<Set<string>>(() => getInvoicedJobIds());
+  
+  // Refresh invoiced jobs when returning from invoice preview
+  useEffect(() => {
+    const state = location.state as { success?: boolean; message?: string } | null;
+    if (state?.success) {
+      // Refresh invoiced job IDs after sending invoice
+      setInvoicedJobIds(getInvoicedJobIds());
+    }
+  }, [location.state]);
+
   // Get unique filter options from jobs (excluding invoiced jobs)
   const filterOptions = useMemo(() => {
-    const availableJobs = mockJobs.filter(job => job.status !== "Invoiced");
+    const availableJobs = mockJobs.filter(
+      job => job.status !== "Invoiced" && !invoicedJobIds.has(job.id)
+    );
     const sites = [...new Set(availableJobs.map(job => job.site))].sort();
     const parents = [...new Set(availableJobs.map(job => job.parent))].sort();
     const statuses: Job["status"][] = ["Scheduled", "In progress", "Complete"];
     return { sites, parents, statuses };
-  }, []);
+  }, [invoicedJobIds]);
 
   // Handle success message from invoice creation
   useEffect(() => {
@@ -268,7 +302,9 @@ export function JobsReadyToInvoice() {
 
   const filteredJobs = useMemo(() => {
     // Exclude already invoiced jobs - they don't need to be invoiced
-    let jobs = mockJobs.filter(job => job.status !== "Invoiced");
+    let jobs = mockJobs.filter(
+      job => job.status !== "Invoiced" && !invoicedJobIds.has(job.id)
+    );
 
     // Apply search filter
     if (searchQuery) {
@@ -320,7 +356,7 @@ export function JobsReadyToInvoice() {
     }
 
     return jobs;
-  }, [searchQuery, siteFilter, parentFilter, statusFilter, startDateFilter, endDateFilter]);
+  }, [searchQuery, siteFilter, parentFilter, statusFilter, startDateFilter, endDateFilter, invoicedJobIds]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -423,15 +459,16 @@ export function JobsReadyToInvoice() {
                 variant="default" 
                 size="sm"
                 onClick={() => {
-                  // If no jobs selected, select all jobs first then open modal
-                  if (selectedJobs.size === 0) {
-                    const allJobIds = new Set(filteredJobs.map((job) => job.id));
-                    setSelectedJobs(allJobIds);
-                    // Use setTimeout to ensure state updates before modal opens
-                    setTimeout(() => setBreakdownModalOpen(true), 0);
-                  } else {
-                    setBreakdownModalOpen(true);
-                  }
+                  // Select all jobs and navigate to empty state screen
+                  const allJobIds = new Set(filteredJobs.map((job) => job.id));
+                  const allJobsData = filteredJobs;
+                  setSelectedJobs(allJobIds);
+                  // Navigate to empty state screen
+                  navigate("/bulk-invoicing/v1/empty", {
+                    state: {
+                      selectedJobs: allJobsData,
+                    },
+                  });
                 }}
               >
                 Create invoice
