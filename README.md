@@ -174,6 +174,35 @@ Use the `/remove-prototype` slash command to cleanly remove a prototype:
 
 This command will remove all prototype files, routes, and configuration.
 
+### Prototype Handoff
+
+When moving a prototype to production, use the `TODO-HANDOFF` marker to identify work needed:
+
+```typescript
+// TODO-HANDOFF: Replace with GET /api/assets endpoint
+const assets = mockAssets;
+
+// TODO-HANDOFF: Add real authentication check
+const isAuthorized = true; // Bypassed for prototype
+```
+
+**For developers receiving a handoff:**
+
+1. Find all handoff markers:
+   ```bash
+   git grep TODO-HANDOFF
+   ```
+
+2. Common items to address:
+   - Replace mock data with real API calls
+   - Add proper error handling
+   - Implement real auth checks
+   - Write tests
+   - Add loading states
+
+3. Mock data location:
+   All mock data lives in `lib/mock-*.ts` files within each prototype.
+
 ### Adding a New Component
 
 1. Create component in `src/registry/ui/my-component.tsx`
