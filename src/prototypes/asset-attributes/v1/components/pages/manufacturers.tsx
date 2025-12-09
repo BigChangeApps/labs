@@ -292,7 +292,7 @@ export function Manufacturers() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setDeleteDialogOpen(false);
                 setManufacturerToDelete(null);

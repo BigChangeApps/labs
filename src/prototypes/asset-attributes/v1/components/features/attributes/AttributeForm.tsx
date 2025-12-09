@@ -328,7 +328,7 @@ export const AttributeForm = React.forwardRef<
                         {field.value && field.value.length > 1 && (
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="icon"
                             tabIndex={0}
                             onClick={() => {
@@ -364,7 +364,7 @@ export const AttributeForm = React.forwardRef<
                   <Button
                     ref={addOptionButtonRef}
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => {
                       field.onChange([...(field.value || []), ""]);

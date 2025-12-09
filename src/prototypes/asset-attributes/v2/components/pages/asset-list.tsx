@@ -190,7 +190,7 @@ export function AssetList() {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant="outline"
+                              variant="secondary"
                               className={
                                 asset.condition === "Excellent"
                                   ? "border-green-600 text-green-700"

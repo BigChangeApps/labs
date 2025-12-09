@@ -189,7 +189,7 @@ export function AttributeEditDrawer({
             <div className="flex flex-col-reverse sm:flex-row sm:space-x-2 gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={handleCancel}
               >
                 Cancel
@@ -213,7 +213,7 @@ export function AttributeEditDrawer({
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setIsDeleteDialogOpen(false);
                 // Parent modal will be restored via useEffect

@@ -93,7 +93,7 @@ export function SettingsLayout() {
               </h1>
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleBack}
               className="shrink-0"
@@ -138,7 +138,7 @@ export function SettingsLayout() {
               </SheetContent>
             </Sheet>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleBack}
               className="shrink-0 ml-auto"

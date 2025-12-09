@@ -63,7 +63,7 @@ export function CreateManufacturerDrawer({
           />
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
-            <Button type="button" variant="outline" onClick={handleCancel}>
+            <Button type="button" variant="secondary" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" form={formId}>Save Manufacturer</Button>

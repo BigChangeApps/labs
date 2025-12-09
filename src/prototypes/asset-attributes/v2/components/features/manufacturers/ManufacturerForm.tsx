@@ -181,7 +181,7 @@ export const ManufacturerForm = React.forwardRef<
                       {field.value && field.value.length > 1 && (
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           size="icon"
                           tabIndex={0}
                           onClick={() => {
@@ -217,7 +217,7 @@ export const ManufacturerForm = React.forwardRef<
                 <Button
                   ref={addModelButtonRef}
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     field.onChange([...(field.value || []), ""]);
                   }}

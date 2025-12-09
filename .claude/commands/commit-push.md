@@ -6,14 +6,20 @@ Commit and push changes with comprehensive validation checks for production-read
 
 **Validation Process:**
 
-1. Run complete validation suite:
+1. **Pre-flight: Clean pnpm-lock.yaml link overrides**
+   - Check if `pnpm-lock.yaml` has unstaged or staged changes
+   - If modified, check if it contains `link:` paths (from `pnpm link` local development)
+   - If `link:` paths are found, automatically run `git restore pnpm-lock.yaml` to discard those changes
+   - Inform the user: "ℹ️ Restored pnpm-lock.yaml - local `pnpm link` overrides should not be committed"
+
+2. Run complete validation suite:
    - `tsc --noEmit` - Type checking (catches type errors)
    - `pnpm run lint` - Linting (code quality checks)
    - `pnpm run build` - Full build (ensures everything compiles and bundles correctly)
 
-2. If any check fails, STOP immediately and report errors to the user
+3. If any check fails, STOP immediately and report errors to the user
 
-3. If all checks pass, proceed with git workflow:
+4. If all checks pass, proceed with git workflow:
    - Run `git status` to see current changes
    - Run `git diff --staged` to review what will be committed
    - Run `git log -3 --oneline` to understand commit message style
@@ -43,6 +49,7 @@ Commit and push changes with comprehensive validation checks for production-read
 - NEVER commit files with secrets (.env, credentials.json, etc.)
 - **REQUIRE explicit confirmation before committing to main/master branch** - ask user if they're sure they want to proceed
 - Follow repository's commit message style
+- **NEVER commit pnpm-lock.yaml with `link:` paths** - these are local development overrides that break CI/CD
 
 **Use Case:** Before creating PRs, merging to main, or when you want maximum confidence that your changes are production-ready.
 

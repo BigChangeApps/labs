@@ -134,7 +134,7 @@ export function AttributeViewDrawer({
                     : "This is a predefined attribute."}
                 </AlertDescription>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleFeedbackClick}
                   autoFocus={false}
@@ -153,7 +153,7 @@ export function AttributeViewDrawer({
                   This is a BigChange attribute. Help us improve it by submitting feedback.
                 </AlertDescription>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleFeedbackClick}
                   autoFocus={false}

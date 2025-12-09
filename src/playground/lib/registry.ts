@@ -1,5 +1,7 @@
 import type { ComponentMetadata } from "../types";
 
+// Playground demos - for exploring component combinations and interactions
+// (Individual component showcases are at /components)
 export const components: ComponentMetadata[] = [
   {
     id: "category-search",
