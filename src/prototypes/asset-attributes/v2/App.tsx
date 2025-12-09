@@ -1,3 +1,17 @@
+/**
+ * TODO-HANDOFF: Demo Feature Flags
+ *
+ * This prototype uses DevBar toggles (bottom toolbar) to control features during demos.
+ * DevBar is only visible when VITE_SHOW_INTERNAL=true (dev mode).
+ *
+ * | Flag                   | DevBar Icon | Production: Flagsmith Flag       |
+ * |------------------------|-------------|----------------------------------|
+ * | showCategoryAddButton  | Eye/EyeOff  | canManageAssetCategories         |
+ *
+ * For production, replace localStorage checks with Flagsmith SDK:
+ * - useCategoryAddButton() → flagsmith.hasFeature('canManageAssetCategories')
+ */
+
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
