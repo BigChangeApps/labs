@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ChevronRight, Plus } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
-import { useCategoryAddButton } from "../../lib/use-category-add-button";
+import { useCategoryAddButton, useParentInheritance } from "../../lib/use-category-add-button";
 import { Input } from "@/registry/ui/input";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
@@ -15,6 +15,7 @@ export function Categories() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();
   const showAddButton = useCategoryAddButton();
+  const showParentInheritance = useParentInheritance();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState<string | undefined>(
@@ -200,19 +201,21 @@ export function Categories() {
                     <p className="text-muted-foreground text-sm">No categories found</p>
                   )}
                 </div>
-              ) : (
+              ) : showParentInheritance ? (
+                // Grouped view: Show parent headers with "All [Category]" and children
                 filteredTree.map((parent: Category, parentIndex: number) => {
                   // Use filtered children if searching, otherwise use all children
                   const children = searchQuery && filteredChildrenMap.has(parent.id)
                     ? filteredChildrenMap.get(parent.id)!
                     : categories.filter((c: Category) => c.parentId === parent.id);
                   const hasChildren = children.length > 0;
+                  const isCustom = isCustomCategory(parent.id);
 
                   return (
                     <div key={parent.id}>
                       {/* Divider between groups */}
                       {parentIndex > 0 && <Separator />}
-                      
+
                       {/* Parent Category as Heading */}
                       <div className="px-3 sm:px-4 py-3 border-b bg-muted/30">
                         <div className="text-sm font-bold text-muted-foreground tracking-wide">
@@ -221,35 +224,26 @@ export function Categories() {
                       </div>
 
                       {/* "All [Category name]" as first item */}
-                      {(() => {
-                        const isCustom = isCustomCategory(parent.id);
-                        return (
-                          <div
-                            className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg pl-6 sm:pl-8"
-                            onClick={() => handleCategorySelect(parent.id)}
-                          >
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 flex items-center gap-2">
-                              <div className="text-sm text-hw-text truncate font-normal">
-                                All {parent.name}
-                              </div>
-                            </div>
-
-                            {/* Right side actions */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              {isCustom && (
-                                <Badge variant="secondary" className="text-xs shrink-0">
-                                  Custom
-                                </Badge>
-                              )}
-                              {/* Chevron */}
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            </div>
+                      <div
+                        className="flex items-center gap-2 sm:gap-4 py-3 px-3 sm:px-4 transition-colors hover:bg-muted/50 cursor-pointer rounded-lg pl-6 sm:pl-8"
+                        onClick={() => handleCategorySelect(parent.id)}
+                      >
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          <div className="text-sm text-hw-text truncate font-normal">
+                            All {parent.name}
                           </div>
-                        );
-                      })()}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isCustom && (
+                            <Badge variant="secondary" className="text-xs shrink-0">
+                              Custom
+                            </Badge>
+                          )}
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
 
-                      {/* Children Categories - Always shown when they exist */}
+                      {/* Children Categories */}
                       {hasChildren && (
                         <div>
                           {children.map((child: Category, childIndex: number) => (
@@ -261,10 +255,27 @@ export function Categories() {
                           ))}
                         </div>
                       )}
-
                     </div>
                   );
                 })
+              ) : (
+                // Flat view: Just show all children in one list, no groupings
+                (() => {
+                  const allChildren = categories
+                    .filter((c: Category) => c.parentId) // Only categories with a parent (children)
+                    .filter((c: Category) => {
+                      if (!searchQuery) return true;
+                      return c.name.toLowerCase().includes(searchQuery.toLowerCase());
+                    })
+                    .sort((a, b) => a.name.localeCompare(b.name));
+
+                  return allChildren.map((child: Category, index: number) => (
+                    <div key={child.id}>
+                      {index > 0 && <Separator />}
+                      {renderCategoryItem(child, false)}
+                    </div>
+                  ));
+                })()
               )}
             </CardContent>
           </Card>

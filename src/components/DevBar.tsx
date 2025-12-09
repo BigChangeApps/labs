@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun, Eye, EyeOff } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
+import { FeatureFlagsPopover } from "./FeatureFlagsPopover";
 import { Button } from "@/registry/ui/button";
 import {
   Select,
@@ -53,11 +54,6 @@ export function DevBar() {
     return initialBrand;
   });
 
-  // Category add button visibility state
-  const [showCategoryAddButton, setShowCategoryAddButton] = useState<boolean>(() => {
-    const stored = localStorage.getItem("showCategoryAddButton");
-    return stored === null ? true : stored === "true";
-  });
 
   // Dark mode effect
   useEffect(() => {
@@ -75,11 +71,6 @@ export function DevBar() {
     localStorage.setItem("brand", brand);
   }, [brand]);
 
-  // Category add button effect
-  useEffect(() => {
-    localStorage.setItem("showCategoryAddButton", String(showCategoryAddButton));
-    window.dispatchEvent(new Event("categoryAddButtonToggle"));
-  }, [showCategoryAddButton]);
 
   // Find current prototype and version
   const currentPrototype = prototypes.find((prototype) =>
@@ -105,7 +96,7 @@ export function DevBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-10 z-50 bg-background/95 backdrop-blur-sm border-t border-border/40 flex items-center justify-between px-4 gap-4">
-      {/* Left section: toggles */}
+      {/* Left section: global toggles */}
       <div className="flex items-center gap-2">
         {/* Dark mode toggle */}
         <Button
@@ -133,53 +124,31 @@ export function DevBar() {
           />
         </Button>
 
-        {/* Category add button toggle - only show for asset-attributes v2 */}
-        {location.pathname.startsWith("/asset-attributes/v2") && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowCategoryAddButton(!showCategoryAddButton)}
-            className="h-8 w-8"
-            aria-label="Toggle category add button visibility"
-          >
-            {showCategoryAddButton ? (
-              <Eye className="h-4 w-4" />
-            ) : (
-              <EyeOff className="h-4 w-4" />
-            )}
-          </Button>
-        )}
-
         {/* Separator */}
-        {currentPrototype && currentPrototype.versions.length > 1 && (
-          <div className="h-6 w-px bg-border/40 mx-1" />
-        )}
+        <div className="h-6 w-px bg-border/40 mx-1" />
 
-        {/* Version selector */}
-        {currentPrototype && currentPrototype.versions.length > 1 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Version:</span>
-            <Select
-              value={currentVersion?.id}
-              onValueChange={handleVersionChange}
-            >
-              <SelectTrigger className="h-7 w-[90px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {currentPrototype.versions.map((version) => (
-                  <SelectItem key={version.id} value={version.id} className="text-xs">
-                    {version.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {/* Feature flags popover - shows flags relevant to current prototype */}
+        <FeatureFlagsPopover currentPath={location.pathname} />
       </div>
 
-      {/* Right section: label */}
-      <span className="text-xs text-muted-foreground font-mono">DevBar</span>
+      {/* Right section: version selector */}
+      {currentPrototype && currentPrototype.versions.length > 1 && (
+        <Select
+          value={currentVersion?.id}
+          onValueChange={handleVersionChange}
+        >
+          <SelectTrigger className="h-7 w-16 text-xs gap-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {currentPrototype.versions.map((version) => (
+              <SelectItem key={version.id} value={version.id} className="text-xs">
+                {version.id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

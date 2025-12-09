@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/registry/ui/tooltip";
 import { Layout } from "./components/layout";
 import { getFirstComponent } from "./lib/registry";
 
-// Component demos - for exploring component combinations
+// Component demos
 import { CategorySearchDemo } from "./components/category-search";
 import { NavigationDemo } from "./components/navigation";
 

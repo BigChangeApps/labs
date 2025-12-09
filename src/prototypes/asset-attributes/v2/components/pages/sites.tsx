@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/registry/ui/table";
 import { WorkspaceHeader } from "../WorkspaceHeader";
+// TODO-HANDOFF: Replace mockSites with useQuery hook to GET /api/sites
 import { mockSites } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
 
@@ -21,7 +22,7 @@ export function Sites() {
   const [searchQuery, setSearchQuery] = useState("");
   const assets = useAttributeStore((state) => state.assets);
 
-  // Filter and sort sites
+  // TODO-HANDOFF: Replace mockSites with data from useSites() API hook
   const filteredSites = useMemo(() => {
     const filtered = mockSites.filter((site) =>
       [site.name, site.address]

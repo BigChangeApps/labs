@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { SiteWorkspaceHeader } from "../SiteWorkspaceHeader";
+// TODO-HANDOFF: Replace mockSites with API data from GET /api/sites/{siteId}
 import { mockSites } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
 import { Card, CardContent } from "@/registry/ui/card";

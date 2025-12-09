@@ -6,6 +6,7 @@ import { Plus, Check, ArrowLeft } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
 import { organizeAttributesForForm } from "../../lib/asset-form-utils";
 import { createAssetFormSchema } from "../../lib/asset-form-validation";
+// TODO-HANDOFF: Replace getMockAsset with useQuery hook to GET /api/assets/{id}
 import { getMockAsset } from "../../lib/mock-asset-data";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
@@ -67,7 +68,8 @@ export function EditAsset() {
     return assets.find((a) => a.id === assetId) || null;
   }, [assetId, assets]);
 
-  // Load mock asset data - use store asset if available, otherwise fall back to mock data
+  // TODO-HANDOFF: Replace with API fetch - GET /api/assets/{assetId}
+  // Should return asset with all attributes, category info, and site data
   const mockAsset = useMemo(() => {
     if (!assetId) return null;
     // Pass the store asset and manufacturers to getMockAsset so it uses the correct siteId and resolves IDs

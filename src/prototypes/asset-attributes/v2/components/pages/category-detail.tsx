@@ -35,6 +35,7 @@ import type {
   Category,
   CategoryAttributeConfig,
 } from "../../types";
+import { useCrowdsourcedAttributes } from "../../lib/use-category-add-button";
 
 // Sortable wrapper component for AttributeCard
 function SortableAttributeCard({
@@ -117,6 +118,7 @@ export function CategoryDetail() {
     deleteCategory,
   } = useAttributeStore();
   const [isInheritedExpanded, setIsInheritedExpanded] = useState(true);
+  const showCrowdsourced = useCrowdsourcedAttributes();
 
   // Check if a category is custom (user-created)
   const isCustomCategory = (categoryId: string) => {
@@ -184,23 +186,25 @@ export function CategoryDetail() {
   // Build all attributes array (both system and custom)
   const allAttributes: AttributeWithSource[] = [];
 
-  // Add system attributes
-  category.systemAttributes.forEach((config: CategoryAttributeConfig) => {
-    const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
-    const attribute = predefinedAttrs.find(
-      (a: Attribute) => a.id === config.attributeId
-    );
+  // Add system (crowdsourced) attributes - only if flag is enabled
+  if (showCrowdsourced) {
+    category.systemAttributes.forEach((config: CategoryAttributeConfig) => {
+      const predefinedAttrs = predefinedCategoryAttributes[categoryId] || [];
+      const attribute = predefinedAttrs.find(
+        (a: Attribute) => a.id === config.attributeId
+      );
 
-    if (attribute) {
-      allAttributes.push({
-        ...config,
-        attribute,
-        source: "system",
-        isDeletable: false,
-        isToggleable: true,
-      });
-    }
-  });
+      if (attribute) {
+        allAttributes.push({
+          ...config,
+          attribute,
+          source: "system",
+          isDeletable: false,
+          isToggleable: true,
+        });
+      }
+    });
+  }
 
   // Add custom attributes
   category.customAttributes.forEach((config: CategoryAttributeConfig) => {

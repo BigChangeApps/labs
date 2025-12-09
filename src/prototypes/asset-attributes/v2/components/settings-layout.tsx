@@ -9,11 +9,13 @@ import {
   SheetTrigger,
 } from "@/registry/ui/sheet";
 import { useState } from "react";
+import { useManufacturers } from "../lib/use-category-add-button";
 
 export function SettingsLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const showManufacturers = useManufacturers();
 
   // Only show banner when VITE_SHOW_INTERNAL is "false" (production/customer-facing mode)
   const showBanner = import.meta.env.VITE_SHOW_INTERNAL === "false";
@@ -64,20 +66,22 @@ export function SettingsLayout() {
       >
         Categories
       </NavLink>
-      <NavLink
-        to="manufacturers"
-        state={location.state}
-        onClick={onClick}
-        className={({ isActive }) =>
-          `px-3 py-2.5 rounded-lg text-sm transition-colors ${
-            isActive
-              ? "bg-hw-surface-subtle text-hw-text font-bold"
-              : "text-hw-text hover:bg-accent font-normal"
-          }`
-        }
-      >
-        Manufacturers
-      </NavLink>
+      {showManufacturers && (
+        <NavLink
+          to="manufacturers"
+          state={location.state}
+          onClick={onClick}
+          className={({ isActive }) =>
+            `px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              isActive
+                ? "bg-hw-surface-subtle text-hw-text font-bold"
+                : "text-hw-text hover:bg-accent font-normal"
+            }`
+          }
+        >
+          Manufacturers
+        </NavLink>
+      )}
     </nav>
   );
 

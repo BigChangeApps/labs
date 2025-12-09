@@ -9,16 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border border-transparent bg-hw-brand shadow-button ring-1 ring-hw-brand text-hw-brand-foreground hover:bg-hw-brand-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-button",
+        default: "border border-transparent bg-hw-brand shadow-button ring-1 ring-hw-brand text-hw-brand-foreground hover:bg-hw-brand-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
         destructive:
-          "border border-transparent bg-hw-critical shadow-button ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical/80 focus-visible:ring-hw-critical/30 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-critical/30 dark:bg-hw-critical/60 rounded-button",
+          "border border-transparent bg-hw-critical shadow-button ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical/80 focus-visible:ring-hw-critical/30 focus-visible:ring-4 dark:focus-visible:ring-hw-critical/30 dark:bg-hw-critical/60 rounded-button",
         secondary:
-          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-button",
+          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
         outline:
-          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-button",
+          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
         ghost:
-          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-button",
-        link: "border border-transparent text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-button",
+          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
+        link: "border border-transparent text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

@@ -47,6 +47,23 @@ export const prototypes: PrototypeMetadata[] = [
       },
     ],
   },
+  {
+    id: "asset-service-agreements",
+    title: "Asset Service Agreements",
+    description: "Service agreement management for assets.",
+    thumbnail: "/thumbnails/asset-service-agreements-v1.png",
+    deviceType: "desktop",
+    visibility: "public",
+    versions: [
+      {
+        id: "v1",
+        title: "Version 1",
+        description: "Initial prototype for asset service agreements.",
+        path: "/asset-service-agreements/v1",
+        createdAt: "2025-12-04",
+      },
+    ],
+  },
   // Add more prototypes here as they are created
 ];
 
