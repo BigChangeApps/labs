@@ -28,14 +28,14 @@ export const prototypeFlags: PrototypeFlags = {
   "/asset-attributes/v2": [
     {
       id: "showCategoryAddButton",
-      name: "Add Category Button",
-      description: "Show button to create new categories",
+      name: "Add categories",
+      description: "Create new categories",
       defaultValue: true,
     },
     {
       id: "showParentInheritance",
-      name: "Parent Category Inheritance",
-      description: "Show 'All [Category]' with inherited attributes",
+      name: "Parent categories",
+      description: "Parent categories with inherited attributes",
       defaultValue: true,
     },
   ],
