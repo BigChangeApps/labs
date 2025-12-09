@@ -1,47 +1,47 @@
-import { useState, useEffect } from "react";
+import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 
 /**
- * Hook to read the category add button visibility state from localStorage.
- * Returns true if the button should be shown, false otherwise.
- * Defaults to true if no value is stored.
+ * Hook to check if the "Add Category" button should be shown.
+ * Uses the centralized feature flags system.
  */
 export function useCategoryAddButton(): boolean {
-  const [showButton, setShowButton] = useState<boolean>(() => {
-    // SSR-safe: check if we're in the browser
-    if (typeof window === "undefined") {
-      return true; // Default to showing button during SSR
-    }
-    
-    // Load from localStorage or default to true (button visible)
-    const stored = localStorage.getItem("showCategoryAddButton");
-    return stored === null ? true : stored === "true";
-  });
+  return useFeatureFlag("showCategoryAddButton", true);
+}
 
-  useEffect(() => {
-    // Listen for storage changes (in case toggle is changed in another tab/window)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "showCategoryAddButton") {
-        setShowButton(e.newValue === "true");
-      }
-    };
+/**
+ * Hook to check if parent category inheritance should be shown.
+ * When true: Shows "All [Category]" rows with inherited attributes
+ * When false: Shows flat category list without inheritance
+ */
+export function useParentInheritance(): boolean {
+  return useFeatureFlag("showParentInheritance", true);
+}
 
-    window.addEventListener("storage", handleStorageChange);
-    
-    // Also listen for custom events (for same-tab updates)
-    const handleCustomStorageChange = () => {
-      const stored = localStorage.getItem("showCategoryAddButton");
-      setShowButton(stored === null ? true : stored === "true");
-    };
+/**
+ * Hook to check if the "Preferred" field should be shown on attributes.
+ * When true: Shows "Mark as Preferred" toggle on category attributes
+ * When false: Hides preferred functionality
+ */
+export function usePreferredField(): boolean {
+  return useFeatureFlag("showPreferredField", true);
+}
 
-    window.addEventListener("categoryAddButtonToggle", handleCustomStorageChange);
+/**
+ * Hook to check if crowdsourced (predefined) attributes should be shown.
+ * When true: Shows predefined attributes from BigChange system
+ * When false: Hides predefined attributes, only shows system and custom
+ */
+export function useCrowdsourcedAttributes(): boolean {
+  return useFeatureFlag("showCrowdsourcedAttributes", true);
+}
 
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("categoryAddButtonToggle", handleCustomStorageChange);
-    };
-  }, []);
-
-  return showButton;
+/**
+ * Hook to check if Manufacturers section should be shown in settings.
+ * When true: Shows Manufacturers nav item and page
+ * When false: Hides Manufacturers from settings
+ */
+export function useManufacturers(): boolean {
+  return useFeatureFlag("showManufacturers", true);
 }
 
 

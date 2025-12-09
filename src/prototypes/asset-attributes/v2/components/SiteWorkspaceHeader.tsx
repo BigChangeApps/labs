@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { cn } from "@/registry/lib/utils";
 import { useMemo } from "react";
+// TODO-HANDOFF: getSiteName should use sites data from store/API, not mock helper
 import { getSiteName } from "../lib/mock-asset-list-data";
 import { useAttributeStore } from "../lib/store";
 

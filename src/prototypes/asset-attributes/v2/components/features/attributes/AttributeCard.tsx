@@ -11,6 +11,7 @@ import {
 import { GripVertical, BadgeCheck, Check, ArrowDown } from "lucide-react";
 import type { Attribute, GlobalAttribute } from "../../../types";
 import { getAttributeIcon } from "../../../lib/utils";
+import { usePreferredField } from "../../../lib/use-category-add-button";
 
 type AttributeCardData = Attribute | GlobalAttribute;
 
@@ -44,12 +45,13 @@ export function AttributeCard({
   inheritedFrom,
 }: AttributeCardProps) {
   const IconComponent = getAttributeIcon(attribute.type);
+  const showPreferredField = usePreferredField();
 
   // All variants can be clicked to open side panel
   const isClickable = !!onClick;
 
-  // Determine if toggle should be shown (system attributes and inherited attributes don't have toggles)
-  const showToggle = variant !== "system" && !!onToggle && !isInherited;
+  // Determine if toggle should be shown (system, custom, and inherited attributes don't have toggles)
+  const showToggle = variant === "predefined" && !!onToggle && !isInherited;
 
   // Handle card click
   const handleCardClick = (e: MouseEvent) => {
@@ -124,7 +126,7 @@ export function AttributeCard({
                     <Badge
                       key={option}
                       variant="secondary"
-                      className="text-xs font-normal"
+                      className="text-xs font-normal bg-hw-surface-subtle"
                     >
                       {option}
                     </Badge>
@@ -143,7 +145,7 @@ export function AttributeCard({
           {variant === "custom" && (
             <Badge
               variant="secondary"
-              className="text-xs"
+              className="text-xs bg-hw-surface-subtle"
               data-badge
             >
               Custom
@@ -151,7 +153,7 @@ export function AttributeCard({
           )}
 
           {/* Preferred indicator - only for category attributes */}
-          {"isPreferred" in attribute && (
+          {showPreferredField && "isPreferred" in attribute && (
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -14,6 +14,7 @@ import {
 } from "@/registry/ui/table";
 import { Badge } from "@/registry/ui/badge";
 import { WorkspaceHeader } from "../WorkspaceHeader";
+// TODO-HANDOFF: getSiteName should resolve from sites API data in store, not mock helper
 import { getSiteName, type AssetListItem } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
 

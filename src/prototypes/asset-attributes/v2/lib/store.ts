@@ -7,6 +7,8 @@ import type {
   GlobalAttribute,
   GlobalAttributeSection,
 } from "../types";
+// TODO-HANDOFF: Replace mock data imports with API fetch hooks (React Query or similar)
+// These should be fetched on app initialization, not imported statically
 import {
   predefinedCategoryAttributes as initialPredefinedCategoryAttributes,
   categories as initialCategories,
@@ -89,7 +91,8 @@ interface AttributeStore {
 }
 
 export const useAttributeStore = create<AttributeStore>((set) => ({
-  // Initial state
+  // TODO-HANDOFF: Initial state should be empty objects/arrays, populated via API calls
+  // Consider: GET /api/categories, GET /api/manufacturers, GET /api/attributes, GET /api/assets
   currentCategoryId: "boiler",
   selectedCategoryView: null, // Start at category list view
   currentSettingsTab: "categories",
