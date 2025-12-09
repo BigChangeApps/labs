@@ -4,12 +4,14 @@
  * This prototype uses DevBar toggles (bottom toolbar) to control features during demos.
  * DevBar is only visible when VITE_SHOW_INTERNAL=true (dev mode).
  *
- * | Flag                   | DevBar Icon | Production: Flagsmith Flag       |
- * |------------------------|-------------|----------------------------------|
- * | showCategoryAddButton  | Eye/EyeOff  | canManageAssetCategories         |
+ * | Flag                    | Description                              | Production: Flagsmith Flag       |
+ * |-------------------------|------------------------------------------|----------------------------------|
+ * | showCategoryAddButton   | Show "Add Category" button               | canManageAssetCategories         |
+ * | showParentInheritance   | Show "All [Category]" with inheritance   | showCategoryInheritance          |
  *
- * For production, replace localStorage checks with Flagsmith SDK:
+ * For production, replace useFeatureFlag() calls with Flagsmith SDK:
  * - useCategoryAddButton() → flagsmith.hasFeature('canManageAssetCategories')
+ * - useParentInheritance() → flagsmith.hasFeature('showCategoryInheritance')
  */
 
 import { useEffect } from "react";

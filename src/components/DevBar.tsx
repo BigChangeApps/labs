@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Moon, Sun, Eye, EyeOff } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
+import { FeatureFlagsPopover } from "./FeatureFlagsPopover";
 import { Button } from "@/registry/ui/button";
 import {
   Select,
@@ -53,11 +54,6 @@ export function DevBar() {
     return initialBrand;
   });
 
-  // Category add button visibility state
-  const [showCategoryAddButton, setShowCategoryAddButton] = useState<boolean>(() => {
-    const stored = localStorage.getItem("showCategoryAddButton");
-    return stored === null ? true : stored === "true";
-  });
 
   // Dark mode effect
   useEffect(() => {
@@ -75,11 +71,6 @@ export function DevBar() {
     localStorage.setItem("brand", brand);
   }, [brand]);
 
-  // Category add button effect
-  useEffect(() => {
-    localStorage.setItem("showCategoryAddButton", String(showCategoryAddButton));
-    window.dispatchEvent(new Event("categoryAddButtonToggle"));
-  }, [showCategoryAddButton]);
 
   // Find current prototype and version
   const currentPrototype = prototypes.find((prototype) =>
@@ -133,22 +124,8 @@ export function DevBar() {
           />
         </Button>
 
-        {/* Category add button toggle - only show for asset-attributes v2 */}
-        {location.pathname.startsWith("/asset-attributes/v2") && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowCategoryAddButton(!showCategoryAddButton)}
-            className="h-8 w-8"
-            aria-label="Toggle category add button visibility"
-          >
-            {showCategoryAddButton ? (
-              <Eye className="h-4 w-4" />
-            ) : (
-              <EyeOff className="h-4 w-4" />
-            )}
-          </Button>
-        )}
+        {/* Feature flags popover - shows flags relevant to current prototype */}
+        <FeatureFlagsPopover currentPath={location.pathname} />
 
         {/* Separator */}
         {currentPrototype && currentPrototype.versions.length > 1 && (

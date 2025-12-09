@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ChevronRight, Plus } from "lucide-react";
 import { useAttributeStore } from "../../lib/store";
-import { useCategoryAddButton } from "../../lib/use-category-add-button";
+import { useCategoryAddButton, useParentInheritance } from "../../lib/use-category-add-button";
 import { Input } from "@/registry/ui/input";
 import { Card, CardContent } from "@/registry/ui/card";
 import { Separator } from "@/registry/ui/separator";
@@ -15,6 +15,7 @@ export function Categories() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();
   const showAddButton = useCategoryAddButton();
+  const showParentInheritance = useParentInheritance();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState<string | undefined>(
@@ -220,8 +221,8 @@ export function Categories() {
                         </div>
                       </div>
 
-                      {/* "All [Category name]" as first item */}
-                      {(() => {
+                      {/* "All [Category name]" as first item - only shown when parent inheritance is enabled */}
+                      {showParentInheritance && (() => {
                         const isCustom = isCustomCategory(parent.id);
                         return (
                           <div
