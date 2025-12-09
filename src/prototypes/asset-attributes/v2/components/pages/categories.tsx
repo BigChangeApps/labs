@@ -11,6 +11,13 @@ import { Badge } from "@/registry/ui/badge";
 import { CategoryAddDialog } from "../features/attributes/CategoryAddDialog";
 import type { Category } from "../../types";
 
+// TODO-HANDOFF: API integration points:
+//   - Load categories: GET /v1/categories → ReadCategoryModel[]
+//   - Create category: POST /v1/categories with CreateCategoryModel { name }
+//   - Update category: PATCH /v1/categories/{categoryId} with UpdateCategoryModel { name? }
+//   - Delete category: Not in API - would need DELETE /v1/categories/{categoryId}
+// Note: Parent/child hierarchy is prototype extension - API returns flat list
+
 export function Categories() {
   const { categories } = useAttributeStore();
   const navigate = useNavigate();

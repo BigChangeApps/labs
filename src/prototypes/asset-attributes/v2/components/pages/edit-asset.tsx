@@ -48,6 +48,13 @@ import { SiteSearchableSelect } from "../features/asset-form/SiteSearchableSelec
 import { MOCK_SITE, type AssetListItem } from "../../lib/mock-asset-list-data";
 import type { Category } from "../../types";
 
+// TODO-HANDOFF: API integration points:
+//   - Load asset: GET /v1/assets/{assetId} → ReadAssetModel
+//   - Update asset: PATCH /v1/assets/{assetId} with UpdateAssetModel
+//   - Asset images: GET /v1/assets/{assetId}/images → ReadAssetImageModel[]
+//   - Upload image: POST /v1/assets/{assetId}/images (multipart/form-data)
+//   - Delete image: DELETE /v1/assets/{assetId}/images/{imageId}
+
 export function EditAsset() {
   const { assetId } = useParams<{ assetId: string }>();
   const navigate = useNavigate();
