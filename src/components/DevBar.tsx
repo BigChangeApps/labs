@@ -96,7 +96,7 @@ export function DevBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-10 z-50 bg-background/95 backdrop-blur-sm border-t border-border/40 flex items-center justify-between px-4 gap-4">
-      {/* Left section: toggles */}
+      {/* Left section: global toggles */}
       <div className="flex items-center gap-2">
         {/* Dark mode toggle */}
         <Button
@@ -124,39 +124,31 @@ export function DevBar() {
           />
         </Button>
 
+        {/* Separator */}
+        <div className="h-6 w-px bg-border/40 mx-1" />
+
         {/* Feature flags popover - shows flags relevant to current prototype */}
         <FeatureFlagsPopover currentPath={location.pathname} />
-
-        {/* Separator */}
-        {currentPrototype && currentPrototype.versions.length > 1 && (
-          <div className="h-6 w-px bg-border/40 mx-1" />
-        )}
-
-        {/* Version selector */}
-        {currentPrototype && currentPrototype.versions.length > 1 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Version:</span>
-            <Select
-              value={currentVersion?.id}
-              onValueChange={handleVersionChange}
-            >
-              <SelectTrigger className="h-7 w-[90px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {currentPrototype.versions.map((version) => (
-                  <SelectItem key={version.id} value={version.id} className="text-xs">
-                    {version.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
       </div>
 
-      {/* Right section: label */}
-      <span className="text-xs text-muted-foreground font-mono">DevBar</span>
+      {/* Right section: version selector */}
+      {currentPrototype && currentPrototype.versions.length > 1 && (
+        <Select
+          value={currentVersion?.id}
+          onValueChange={handleVersionChange}
+        >
+          <SelectTrigger className="h-7 w-16 text-xs gap-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {currentPrototype.versions.map((version) => (
+              <SelectItem key={version.id} value={version.id} className="text-xs">
+                {version.id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

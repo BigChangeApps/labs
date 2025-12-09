@@ -35,7 +35,25 @@ export const prototypeFlags: PrototypeFlags = {
     {
       id: "showParentInheritance",
       name: "Parent categories",
-      description: "Parent categories with inherited attributes",
+      description: "With inherited attributes",
+      defaultValue: true,
+    },
+    {
+      id: "showPreferredField",
+      name: "Preferred attributes",
+      description: "Mark attributes as preferred",
+      defaultValue: true,
+    },
+    {
+      id: "showCrowdsourcedAttributes",
+      name: "Crowdsourced attributes",
+      description: "Attributes added by us",
+      defaultValue: true,
+    },
+    {
+      id: "showManufacturers",
+      name: "Manufacturers",
+      description: "Manufacturer management section",
       defaultValue: true,
     },
   ],
@@ -128,13 +146,10 @@ export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72" align="start" side="top">
+      <PopoverContent className="w-80" align="start" side="top" sideOffset={8}>
         <div className="space-y-4">
           <div className="space-y-1">
             <h4 className="font-medium text-sm">Feature Flags</h4>
-            <p className="text-xs text-muted-foreground">
-              Toggle features for demos
-            </p>
           </div>
           <div className="space-y-3">
             {flags.map((flag) => (

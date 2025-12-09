@@ -25,6 +25,7 @@ import { Button } from "@/registry/ui/button";
 import { Kbd } from "@/registry/ui/kbd";
 import { X, Plus, CornerDownLeft } from "lucide-react";
 import { AttributePreferredField } from "./fields/AttributePreferredField";
+import { usePreferredField } from "../../../lib/use-category-add-button";
 
 export type AttributeFormMode = "add" | "edit";
 export type AttributeFormContext = "category" | "global";
@@ -86,6 +87,7 @@ export const AttributeForm = React.forwardRef<
 >(({ context, initialData, onSubmit, formId = "attribute-form" }, ref) => {
   const [hasAutoFormatted, setHasAutoFormatted] = React.useState(false);
   const [autoFormattedValue, setAutoFormattedValue] = React.useState<string>("");
+  const showPreferredField = usePreferredField();
 
   // NOTE: Enter key functionality for dropdown options
   // This state and ref management enables pressing Enter to add/focus next option
@@ -397,7 +399,7 @@ export const AttributeForm = React.forwardRef<
           />
         )}
 
-        {context === "category" && (
+        {context === "category" && showPreferredField && (
           <FormField
             control={form.control}
             name="isPreferred"

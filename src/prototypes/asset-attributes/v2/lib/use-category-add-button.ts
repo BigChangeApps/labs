@@ -17,4 +17,31 @@ export function useParentInheritance(): boolean {
   return useFeatureFlag("showParentInheritance", true);
 }
 
+/**
+ * Hook to check if the "Preferred" field should be shown on attributes.
+ * When true: Shows "Mark as Preferred" toggle on category attributes
+ * When false: Hides preferred functionality
+ */
+export function usePreferredField(): boolean {
+  return useFeatureFlag("showPreferredField", true);
+}
+
+/**
+ * Hook to check if crowdsourced (predefined) attributes should be shown.
+ * When true: Shows predefined attributes from BigChange system
+ * When false: Hides predefined attributes, only shows system and custom
+ */
+export function useCrowdsourcedAttributes(): boolean {
+  return useFeatureFlag("showCrowdsourcedAttributes", true);
+}
+
+/**
+ * Hook to check if Manufacturers section should be shown in settings.
+ * When true: Shows Manufacturers nav item and page
+ * When false: Hides Manufacturers from settings
+ */
+export function useManufacturers(): boolean {
+  return useFeatureFlag("showManufacturers", true);
+}
+
 

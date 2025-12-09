@@ -4,14 +4,20 @@
  * This prototype uses DevBar toggles (bottom toolbar) to control features during demos.
  * DevBar is only visible when VITE_SHOW_INTERNAL=true (dev mode).
  *
- * | Flag                    | Description                              | Production: Flagsmith Flag       |
- * |-------------------------|------------------------------------------|----------------------------------|
- * | showCategoryAddButton   | Show "Add Category" button               | canManageAssetCategories         |
- * | showParentInheritance   | Show "All [Category]" with inheritance   | showCategoryInheritance          |
+ * | Flag                       | Description                              | Production: Flagsmith Flag       |
+ * |----------------------------|------------------------------------------|----------------------------------|
+ * | showCategoryAddButton      | Show "Add Category" button               | canManageAssetCategories         |
+ * | showParentInheritance      | Show "All [Category]" with inheritance   | showCategoryInheritance          |
+ * | showPreferredField         | Show "Mark as Preferred" on attributes   | showPreferredAttributes          |
+ * | showCrowdsourcedAttributes | Show predefined attributes from BigChange| showCrowdsourcedAttributes       |
+ * | showManufacturers          | Show Manufacturers section in settings   | showManufacturers                |
  *
  * For production, replace useFeatureFlag() calls with Flagsmith SDK:
  * - useCategoryAddButton() → flagsmith.hasFeature('canManageAssetCategories')
  * - useParentInheritance() → flagsmith.hasFeature('showCategoryInheritance')
+ * - usePreferredField() → flagsmith.hasFeature('showPreferredAttributes')
+ * - useCrowdsourcedAttributes() → flagsmith.hasFeature('showCrowdsourcedAttributes')
+ * - useManufacturers() → flagsmith.hasFeature('showManufacturers')
  */
 
 import { useEffect } from "react";

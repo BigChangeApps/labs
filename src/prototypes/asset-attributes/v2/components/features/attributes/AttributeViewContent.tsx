@@ -1,6 +1,7 @@
 import { Badge } from "@/registry/ui/badge";
 import { Label } from "@/registry/ui/label";
 import { AttributePreferredField } from "./fields/AttributePreferredField";
+import { usePreferredField } from "../../../lib/use-category-add-button";
 import type { AttributeFormContext, AttributeFormData } from "./AttributeForm";
 
 interface AttributeViewContentProps {
@@ -20,9 +21,10 @@ export function AttributeViewContent({
   const systemDropdownAttributes = ["Category", "Manufacturer", "Model"];
   const shouldHideOptions = attributeLabel && systemDropdownAttributes.includes(attributeLabel);
 
+  const preferredFlagEnabled = usePreferredField();
   const hasDropdownOptions = formData.type === "dropdown" && formData.dropdownOptions.length > 0 && !shouldHideOptions;
   const hasUnits = formData.type === "number" && formData.units;
-  const showPreferredField = context === "category";
+  const showPreferredField = context === "category" && preferredFlagEnabled;
 
   // Don't render anything if there's no content to display
   const hasContent = hasDropdownOptions || hasUnits || showPreferredField;
