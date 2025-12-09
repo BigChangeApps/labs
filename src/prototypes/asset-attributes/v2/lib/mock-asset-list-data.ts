@@ -3,6 +3,11 @@
  * Represents a collection of assets at a fixed site
  */
 
+// TODO-HANDOFF: AssetListItem should align with ReadAssetModel from docs/asset-api.md
+// ReadAssetModel fields: id, siteId, categoryId, reference, location, barcode,
+//   manufacturer, model, serialNumber, purchaseDate, lastServiceDate, warrantyExpiration,
+//   status (Active/Inactive), condition (enum), customFields (dict), metadata
+
 export interface AssetListItem {
   id: string;
   name: string;
@@ -30,6 +35,10 @@ export const MOCK_SITE = {
   name: "John Lewis, Manchester",
   address: "1 St Mary's Gate, Manchester M1 1PX",
 };
+
+// TODO-HANDOFF: Sites are from external Sites API, not Asset Management API
+// Would need: GET /v1/sites → Site[] (separate from Asset API)
+// Asset API references siteId but doesn't manage sites
 
 export const mockSites: Site[] = [
   {
@@ -68,6 +77,11 @@ export const mockSites: Site[] = [
     address: "Liverpool One Shopping Centre, Liverpool, L1 8JQ",
   },
 ];
+
+// TODO-HANDOFF: GET /v1/assets → ReadAssetModel[]
+// Supports filtering: GET /v1/assets?siteId=...&categoryId=...&searchText=...
+// Supports pagination: pageIndex, pageSize query params
+// Response includes: items[], totalCount, pageIndex, pageSize
 
 export const mockAssetList: AssetListItem[] = [
   {
@@ -192,10 +206,16 @@ export const mockAssetList: AssetListItem[] = [
   },
 ];
 
+// TODO-HANDOFF: GET /v1/assets/countBySite → CountBySiteItem[]
+// Schema: CountBySiteItem { siteId: number, count: number }
+
 // Helper function to get asset count per site
 export function getAssetCountBySite(siteId: string): number {
   return mockAssetList.filter((asset) => asset.siteId === siteId).length;
 }
+
+// TODO-HANDOFF: Site name resolution requires external Sites API
+// Not covered by Asset Management API
 
 // Helper function to get site name from siteId
 export function getSiteName(siteId: string): string {

@@ -5,6 +5,13 @@ import type {
   GlobalAttribute,
 } from "../types";
 
+// TODO-HANDOFF: Category-specific attributes are a custom prototype extension
+// Not covered by Asset Management API - would need new endpoints:
+//   - GET /v1/categories/{categoryId}/attributes → Attribute[]
+//   - POST /v1/categories/{categoryId}/attributes → create attribute
+//   - PATCH /v1/categories/{categoryId}/attributes/{attributeId} → update
+//   - DELETE /v1/categories/{categoryId}/attributes/{attributeId} → delete
+
 // Pre-defined category-specific attributes (can be toggled on/off but not edited)
 // Each category can have its own set of pre-defined attributes
 export const predefinedCategoryAttributes: Record<string, Attribute[]> = {
@@ -371,7 +378,11 @@ export const predefinedCategoryAttributes: Record<string, Attribute[]> = {
   ],
 };
 
-// Hierarchical categories with the full tree structure
+// TODO-HANDOFF: GET /v1/categories → ReadCategoryModel[]
+// Schema from docs/asset-api.md:
+//   ReadCategoryModel { id: number, name: string }
+// Note: API returns flat list - parent/child hierarchy is prototype extension
+// Note: systemAttributes/customAttributes are prototype extensions not in API
 export const categories: Category[] = [
   // ==================== MECHANICAL ====================
 
@@ -1301,6 +1312,14 @@ export const categories: Category[] = [
   },
 ];
 
+// TODO-HANDOFF: Global attributes are a custom prototype extension
+// Not covered by Asset Management API - would need new endpoints:
+//   - GET /v1/attributes/global → GlobalAttribute[]
+//   - POST /v1/attributes/global → create global attribute
+//   - PATCH /v1/attributes/global/{attributeId} → update
+//   - DELETE /v1/attributes/global/{attributeId} → delete
+// Some fields map to existing Asset API fields (see ReadAssetModel schema)
+
 // Global attributes that apply to all assets
 export const globalAttributes: GlobalAttribute[] = [
   // Asset Information
@@ -1456,6 +1475,16 @@ export const globalAttributes: GlobalAttribute[] = [
     dropdownOptions: ["Poor", "Fair", "Good", "Excellent", "Unknown"],
   },
 ];
+
+// TODO-HANDOFF: Manufacturers not in Asset Management API
+// Would need external Manufacturers API with CRUD endpoints:
+//   - GET /v1/manufacturers → Manufacturer[]
+//   - POST /v1/manufacturers → create manufacturer
+//   - PATCH /v1/manufacturers/{manufacturerId} → update
+//   - DELETE /v1/manufacturers/{manufacturerId} → delete
+//   - GET /v1/manufacturers/{manufacturerId}/models → Model[]
+//   - POST /v1/manufacturers/{manufacturerId}/models → create model
+// Note: Asset API has manufacturer/model fields but no manufacturer management
 
 // Manufacturers with models
 export const manufacturers: Manufacturer[] = [

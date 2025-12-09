@@ -29,6 +29,14 @@ import {
 import { type AssetListItem } from "../../lib/mock-asset-list-data";
 import { ATTRIBUTE_IDS } from "../features/asset-form/attribute-constants";
 
+// TODO-HANDOFF: API integration points:
+//   - Create asset: POST /v1/assets with CreateAssetModel
+//     Request: { siteId, categoryId, reference?, location?, barcode?, manufacturer?, model?, etc. }
+//     Response: StringPostResponse { id } (201 Created)
+//   - Validate asset: POST /v1/assets/validate with CreateAssetModel (optional pre-validation)
+//   - Site search: External Sites API (not in Asset Management API)
+//   - Categories: GET /v1/categories → ReadCategoryModel[]
+
 const SESSION_STORAGE_KEY = "asset-attributes-v2-create-asset-form-data";
 
 export function CreateAsset() {

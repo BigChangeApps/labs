@@ -9,6 +9,11 @@ import type {
 } from "../types";
 // TODO-HANDOFF: Replace mock data imports with API fetch hooks (React Query or similar)
 // These should be fetched on app initialization, not imported statically
+// API endpoints from docs/asset-api.md:
+//   - Categories: GET /v1/categories → ReadCategoryModel[]
+//   - Assets: GET /v1/assets → ReadAssetModel[]
+//   - Manufacturers: External API (not in Asset Management API)
+//   - Attributes: Custom extension (not in Asset Management API)
 import {
   predefinedCategoryAttributes as initialPredefinedCategoryAttributes,
   categories as initialCategories,
@@ -91,8 +96,11 @@ interface AttributeStore {
 }
 
 export const useAttributeStore = create<AttributeStore>((set) => ({
-  // TODO-HANDOFF: Initial state should be empty objects/arrays, populated via API calls
-  // Consider: GET /api/categories, GET /api/manufacturers, GET /api/attributes, GET /api/assets
+  // TODO-HANDOFF: Initial state should be empty, populated via API calls on app init
+  // See docs/asset-api.md for schemas:
+  //   - GET /v1/categories → categories (ReadCategoryModel[])
+  //   - GET /v1/assets → assets (ReadAssetModel[])
+  //   - Manufacturers/Attributes: Requires external APIs not in Asset Management API
   currentCategoryId: "boiler",
   selectedCategoryView: null, // Start at category list view
   currentSettingsTab: "categories",
@@ -429,7 +437,8 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  // Manufacturer actions
+  // TODO-HANDOFF: Manufacturers not in Asset Management API
+  // Would need external Manufacturers API with CRUD endpoints
   addManufacturer: (name) => {
     const newId = `manufacturer-${Date.now()}`;
     set((state) => ({
@@ -551,7 +560,9 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  // Add new category
+  // TODO-HANDOFF: POST /v1/categories
+  // Request: CreateCategoryModel { name: string }
+  // Response: ReadCategoryModel (201 Created)
   addCategory: (name, parentId) => {
     const newId = `category-${Date.now()}`;
     set((state) => {
@@ -583,7 +594,9 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     return newId;
   },
 
-  // Edit category name
+  // TODO-HANDOFF: PATCH /v1/categories/{categoryId}
+  // Request: UpdateCategoryModel { name?: string }
+  // Response: ReadCategoryModel (200 OK)
   editCategory: (categoryId, name) => {
     set((state) => {
       const categories = state.categories.map((cat) =>
@@ -594,7 +607,8 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  // Delete category
+  // TODO-HANDOFF: Category deletion not available in Asset Management API
+  // Would need: DELETE /v1/categories/{categoryId} endpoint
   deleteCategory: (categoryId) => {
     set((state) => {
       const category = state.categories.find((c) => c.id === categoryId);
@@ -624,12 +638,18 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
     });
   },
 
-  // Asset actions
+  // TODO-HANDOFF: POST /v1/assets
+  // Request: CreateAssetModel { siteId, categoryId, reference?, location?, barcode?, manufacturer?, model?, etc. }
+  // Response: StringPostResponse { id } (201 Created)
   addAsset: (asset) => {
     set((state) => ({
       assets: [...state.assets, asset],
     }));
   },
+
+  // TODO-HANDOFF: PATCH /v1/assets/{assetId}
+  // Request: UpdateAssetModel { siteId?, categoryId?, reference?, location?, condition?, status?, etc. }
+  // Response: 204 No Content
   updateAsset: (assetId, updates) => {
     set((state) => ({
       assets: state.assets.map((asset) =>
@@ -637,6 +657,9 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       ),
     }));
   },
+
+  // TODO-HANDOFF: DELETE /v1/assets/{assetId}
+  // Response: 204 No Content (soft delete)
   deleteAsset: (assetId) => {
     set((state) => ({
       assets: state.assets.filter((asset) => asset.id !== assetId),
