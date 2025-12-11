@@ -175,6 +175,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Smooth transitions for dark/light mode switching - mimics dimming lights */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+    transition-duration: 500ms !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
 }
 
 
