@@ -330,14 +330,14 @@ function LinesBadge({
 }) {
   if (isPartial && selected !== undefined) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)]">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
         <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
       </div>
     );
   }
   if (isInactive) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)]">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)] w-fit">
         <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
       </div>
     );
@@ -378,7 +378,7 @@ function LevelOfDetailSelect({
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
               {showOverrideTag && <OverrideTag />}
@@ -429,7 +429,7 @@ function UniversalLevelOfDetailSelect({
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
             <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
             <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
@@ -474,7 +474,7 @@ function DateSelect({
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center gap-1.5 w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-1.5 w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
             <Calendar className="h-5 w-5 text-[#0B2642]" />
             <span className="flex-1 text-left text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
               {formatDisplayDate(value)}
@@ -514,7 +514,7 @@ function BankAccountSelect({
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Bank account</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left min-w-[247px] max-w-[247px]">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[220px]">
             <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
               {selected.label} ({selected.last4})
             </span>
@@ -560,7 +560,7 @@ function CurrencySelect({
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Currency</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[247px]">
             <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
               <span className="font-semibold">{selected.symbol}</span> {selected.label}
             </span>
@@ -610,7 +610,7 @@ function GenericSelect({
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[220px]">
             <span className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">{selected.label}</span>
             <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
@@ -1683,21 +1683,22 @@ export function BulkInvoiceCreation() {
       const rightCol = rightColRef.current;
       if (!rightCol) return;
 
-      // Find all potential scrolling containers
-      const appMain = rightCol.closest('main[class*="overflow"]') as HTMLElement;
-      const flexContainer = rightCol.parentElement;
-      const computedStyle = window.getComputedStyle(rightCol);
-      const rightColRect = rightCol.getBoundingClientRect();
+      // Find the sticky inner div
+      const stickyInner = rightCol.querySelector('[class*="sticky"]') as HTMLElement;
       const windowScrollY = window.scrollY;
       const windowInnerHeight = window.innerHeight;
 
-      // Check containing block
-      let containingBlock = rightCol.offsetParent as HTMLElement;
-      const containingBlockRect = containingBlock?.getBoundingClientRect();
+      if (stickyInner) {
+        const stickyRect = stickyInner.getBoundingClientRect();
+        const rightColRect = rightCol.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(stickyInner);
+        const containingBlock = stickyInner.offsetParent as HTMLElement;
+        const containingBlockRect = containingBlock?.getBoundingClientRect();
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BulkInvoiceCreation.tsx:useEffect-sticky',message:'Sticky behavior detailed check',data:{rightColTop:rightColRect.top,rightColBottom:rightColRect.bottom,rightColOffsetTop:rightCol.offsetTop,windowScrollY,windowInnerHeight,computedPosition:computedStyle.position,computedTop:computedStyle.top,computedBottom:computedStyle.bottom,appMainScrollTop:appMain?.scrollTop || 0,appMainScrollHeight:appMain?.scrollHeight || 0,appMainClientHeight:appMain?.clientHeight || 0,containingBlockTag:containingBlock?.tagName,containingBlockTop:containingBlockRect?.top,containingBlockHeight:containingBlock?.offsetHeight,flexContainerTag:flexContainer?.tagName,flexContainerHeight:flexContainer?.clientHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BulkInvoiceCreation.tsx:useEffect-sticky',message:'Sticky behavior after fix',data:{stickyTop:stickyRect.top,stickyBottom:stickyRect.bottom,rightColTop:rightColRect.top,rightColBottom:rightColRect.bottom,windowScrollY,windowInnerHeight,computedPosition:computedStyle.position,computedTop:computedStyle.top,shouldBeStuck:stickyRect.top <= 77 && stickyRect.top >= 77 - 5,containingBlockTag:containingBlock?.tagName,containingBlockTop:containingBlockRect?.top},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+      }
     };
 
     // Check on mount and scroll
@@ -1768,27 +1769,25 @@ export function BulkInvoiceCreation() {
 
           {/* Right Column - Settings & Overview (Sticky) */}
           <div ref={rightColRef} className="w-[380px] shrink-0 self-start">
-            <div className="sticky top-[77px] h-fit z-10">
-              <div className="space-y-4 text-left">
-                <UniversalSettingsPanel
-                  levelOfDetail={universalLevelOfDetail}
-                  onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
-                  breakdownLevel={universalStructure}
-                  onBreakdownChange={handleBreakdownChange}
-                  department={department}
-                  nominalCode={nominalCode}
-                  onDepartmentChange={setDepartment}
-                  onNominalCodeChange={setNominalCode}
-                />
-                
-                <OverviewPanel
-                  subtotal={summary.subtotal}
-                  vatAmount={summary.vatAmount}
-                  total={summary.total}
-                  invoiceCount={invoiceCards.length}
-                  onPreview={() => handlePreviewInvoice()}
-                />
-              </div>
+            <div className="sticky top-[77px] h-fit z-10 space-y-4 text-left">
+              <UniversalSettingsPanel
+                levelOfDetail={universalLevelOfDetail}
+                onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
+                breakdownLevel={universalStructure}
+                onBreakdownChange={handleBreakdownChange}
+                department={department}
+                nominalCode={nominalCode}
+                onDepartmentChange={setDepartment}
+                onNominalCodeChange={setNominalCode}
+              />
+              
+              <OverviewPanel
+                subtotal={summary.subtotal}
+                vatAmount={summary.vatAmount}
+                total={summary.total}
+                invoiceCount={invoiceCards.length}
+                onPreview={() => handlePreviewInvoice()}
+              />
             </div>
           </div>
         </div>

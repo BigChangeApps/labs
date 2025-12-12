@@ -197,14 +197,14 @@ function LinesBadge({
 }) {
   if (isPartial && selected !== undefined) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)]">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
         <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
       </div>
     );
   }
   if (isInactive) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)]">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)] w-fit">
         <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
       </div>
     );
@@ -645,6 +645,7 @@ function LineDetailFieldAutocomplete({
 }) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const availableFields = LINE_DETAIL_FIELDS.filter(
     (field) => !selectedFields.includes(field.key)
@@ -664,38 +665,62 @@ function LineDetailFieldAutocomplete({
     }
     setSearchValue("");
     setOpen(false);
+    // Reset input focus after selection
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    if (!open && value) {
+      setOpen(true);
+    }
+  };
+
+  const handleInputFocus = () => {
+    setOpen(true);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filteredFields.length > 0) {
+      // Select the first filtered field on Enter
+      handleSelect(filteredFields[0].key);
+      e.preventDefault();
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setSearchValue("");
+    }
   };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="relative w-full">
-          <div
-            className="relative cursor-pointer"
-            onClick={() => setOpen(true)}
-          >
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Add field..."
-              value={searchValue}
-              onChange={(e) => {
-                setSearchValue(e.target.value);
-                if (!open) setOpen(true);
-              }}
-              onFocus={() => setOpen(true)}
-              className="pl-8 h-9"
-              readOnly={false}
-            />
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none" />
-          </div>
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none z-10" />
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder="Add field..."
+            value={searchValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onKeyDown={handleInputKeyDown}
+            className="pl-8 pr-8 h-9 cursor-text"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!open) setOpen(true);
+            }}
+          />
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none z-10" />
         </div>
       </PopoverTrigger>
       <PopoverContent
         className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
       >
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search fields..."
             value={searchValue}
