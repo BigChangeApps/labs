@@ -1,11 +1,24 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, Paperclip, FileText } from "lucide-react";
+import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
-import { Textarea } from "@/registry/ui/textarea";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/registry/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/registry/ui/popover";
 import { formatCurrency } from "../lib/mock-data";
 import { markJobsAsInvoiced } from "../lib/invoice-utils";
+import { cn } from "@/registry/lib/utils";
 
 // Types
 interface JobWithLines {
@@ -18,6 +31,12 @@ interface JobWithLines {
   jobCategory: string;
   isGroupJob: boolean;
   childJobs?: JobWithLines[];
+  site?: string;
+  engineerName?: string;
+  jobStartDate?: string;
+  time?: string;
+  resource?: string;
+  vehicle?: string;
 }
 
 interface Attachment {
@@ -26,6 +45,8 @@ interface Attachment {
   size: number;
   type: string;
 }
+
+type LevelOfDetail = "summary" | "partial" | "detailed";
 
 interface InvoiceData {
   id: string;
@@ -42,7 +63,51 @@ interface InvoiceData {
   currency: string;
   notes: string;
   attachments: Attachment[];
+  levelOfDetail?: LevelOfDetail; // Level of detail for invoice rendering
+  selectedJobIds?: Set<string> | string[]; // Selected job IDs for partial view
+  selectedGroupLines?: Set<string> | string[]; // Selected group line IDs
+  selectedLineDetailFields?: string[]; // Selected line detail fields to display
 }
+
+// Line detail field definitions
+interface LineDetailField {
+  key: string;
+  label: string;
+  getValue: (job: JobWithLines) => string | undefined;
+}
+
+const LINE_DETAIL_FIELDS: LineDetailField[] = [
+  {
+    key: "name",
+    label: "Name",
+    getValue: (job) => job.engineerName,
+  },
+  {
+    key: "jobSite",
+    label: "Job Site",
+    getValue: (job) => job.site,
+  },
+  {
+    key: "jobStartDate",
+    label: "Job Start Date",
+    getValue: (job) => job.jobStartDate,
+  },
+  {
+    key: "time",
+    label: "Time",
+    getValue: (job) => job.time,
+  },
+  {
+    key: "resource",
+    label: "Resource",
+    getValue: (job) => job.resource,
+  },
+  {
+    key: "vehicle",
+    label: "Vehicle",
+    getValue: (job) => job.vehicle,
+  },
+];
 
 // Mock line items for the preview
 interface LineItem {
@@ -95,11 +160,387 @@ function generateLineItems(jobs: JobWithLines[]): LineItem[] {
 function formatDisplayDate(dateStr: string): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", {
+  const today = new Date();
+  const isToday = date.toDateString() === today.toDateString();
+  const formatted = date.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+  return isToday ? `${formatted} (Today)` : formatted;
+}
+
+// Resource avatar component
+function ResourceAvatar({ initials = "LB" }: { initials?: string }) {
+  return (
+    <div className="relative size-[18px]">
+      <div className="absolute inset-0 rounded-full bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.45px_1.8px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+        <div className="absolute inset-[5%] rounded-full bg-[#F8F9FC] flex items-center justify-center">
+          <span className="text-[8px] font-semibold text-[#73777D] leading-none">{initials}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Lines selection badge
+function LinesBadge({ 
+  total, 
+  selected, 
+  isPartial = false,
+  isInactive = false,
+}: { 
+  total: number; 
+  selected?: number; 
+  isPartial?: boolean;
+  isInactive?: boolean;
+}) {
+  if (isPartial && selected !== undefined) {
+    return (
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)]">
+        <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
+      </div>
+    );
+  }
+  if (isInactive) {
+    return (
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)]">
+        <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)] w-fit">
+      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
+    </div>
+  );
+}
+
+// Job type badge
+function JobTypeBadge({ type }: { type: string }) {
+  return (
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{type}</span>
+    </div>
+  );
+}
+
+// Stacked layers icon for group jobs
+function StacksIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 2.5L2.5 6.25L10 10L17.5 6.25L10 2.5Z" stroke="#475467" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2.5 13.75L10 17.5L17.5 13.75" stroke="#475467" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2.5 10L10 13.75L17.5 10" stroke="#475467" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Single job card
+function JobCard({ 
+  job, 
+  showPartial = false,
+  selectedLineDetailFields = [],
+}: { 
+  job: JobWithLines; 
+  showPartial?: boolean;
+  selectedLineDetailFields?: string[];
+}) {
+  const isPartial = showPartial && job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
+  
+  // Get field values for selected fields
+  const fieldValues = useMemo(() => {
+    return selectedLineDetailFields
+      .map((fieldKey) => {
+        const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
+        if (!field) return null;
+        const value = field.getValue(job);
+        if (!value) return null;
+        return { label: field.label, value };
+      })
+      .filter((item): item is { label: string; value: string } => item !== null);
+  }, [job, selectedLineDetailFields]);
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+            <ResourceAvatar initials={job.jobCategory === "Internal" ? "CS" : "LB"} />
+          </div>
+          {fieldValues.length > 0 && (
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              {fieldValues.map(({ label, value }) => (
+                <span key={label} className="text-xs text-[#73777D] tracking-[-0.14px]">
+                  {label}: {value}
+                </span>
+              ))}
+            </div>
+          )}
+          <LinesBadge 
+            total={job.linesCount} 
+            selected={isPartial ? job.selectedLinesCount : undefined}
+            isPartial={isPartial}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(job.leftToInvoice)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Nested job card (read-only for preview)
+function NestedJobCardPreview({ 
+  job,
+  selectedLineDetailFields = [],
+}: { 
+  job: JobWithLines;
+  selectedLineDetailFields?: string[];
+}) {
+  const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
+  
+  // Get field values for selected fields
+  const fieldValues = useMemo(() => {
+    return selectedLineDetailFields
+      .map((fieldKey) => {
+        const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
+        if (!field) return null;
+        const value = field.getValue(job);
+        if (!value) return null;
+        return { label: field.label, value };
+      })
+      .filter((item): item is { label: string; value: string } => item !== null);
+  }, [job, selectedLineDetailFields]);
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+            <ResourceAvatar initials={job.jobCategory === "Internal" ? "CS" : "LB"} />
+          </div>
+          {fieldValues.length > 0 && (
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              {fieldValues.map(({ label, value }) => (
+                <span key={label} className="text-xs text-[#73777D] tracking-[-0.14px]">
+                  {label}: {value}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <LinesBadge 
+              total={job.linesCount} 
+              selected={isPartial ? job.selectedLinesCount : undefined}
+              isPartial={isPartial}
+            />
+            <JobTypeBadge type={job.jobCategory} />
+          </div>
+        </div>
+        <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
+          {formatCurrency(job.leftToInvoice)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Summary view - single condensed line
+function SummaryJobView({ jobs, totalValue }: { jobs: JobWithLines[]; totalValue: number }) {
+  const totalLines = jobs.reduce((sum, job) => {
+    if (job.isGroupJob && job.childJobs) {
+      return sum + job.childJobs.reduce((s, c) => s + c.linesCount, 0);
+    }
+    return sum + job.linesCount;
+  }, 0);
+
+  const firstJob = jobs[0];
+  
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "EXT/12345"}</span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
+            <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
+          </div>
+          <LinesBadge total={totalLines} />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Category dot indicator for detailed view
+function CategoryDot({ category }: { category: "blue" | "orange" | "purple" }) {
+  const colors = {
+    blue: "bg-[#086DFF]",
+    orange: "bg-[#F59E0B]",
+    purple: "bg-[#8B5CF6]",
+  };
+  return <div className={cn("w-2 h-2 rounded-full", colors[category])} />;
+}
+
+// Detailed view - table with line items (read-only for preview)
+function DetailedJobView({ 
+  lineItems,
+}: { 
+  lineItems: LineItem[];
+}) {
+  return (
+    <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
+      {/* Table Header */}
+      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
+        <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Description</span>
+        <span className="w-16 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-center">Qty</span>
+        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Unit price</span>
+        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Total</span>
+      </div>
+      
+      {/* Table Body */}
+      <div className="divide-y divide-[rgba(26,28,46,0.08)]">
+        {lineItems.map((item) => {
+          // Determine category color based on item index
+          const categoryIndex = parseInt(item.id.split('-').pop() || '0') % 3;
+          const category = categoryIndex === 0 ? "blue" : categoryIndex === 1 ? "orange" : "purple";
+          
+          return (
+            <div key={item.id} className="flex items-center gap-3 px-4 py-3 bg-white">
+              <div className="flex-1 flex items-center gap-2">
+                <CategoryDot category={category} />
+                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{item.description}</span>
+              </div>
+              <span className="w-16 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-center">{item.quantity.toFixed(1)}</span>
+              <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.unitPrice)}</span>
+              <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.total)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Group job card (read-only for preview)
+function GroupJobCardPreview({ 
+  groupJob,
+  childJobs,
+  selectedJobIds,
+  selectedGroupLines,
+  showPartial = false,
+  selectedLineDetailFields = [],
+}: { 
+  groupJob: JobWithLines;
+  childJobs: JobWithLines[];
+  selectedJobIds?: Set<string> | string[];
+  selectedGroupLines?: Set<string> | string[];
+  showPartial?: boolean;
+  selectedLineDetailFields?: string[];
+}) {
+  const groupLinesValue = 1000;
+  
+  // Convert arrays to Sets if needed
+  const selectedJobIdsSet = selectedJobIds instanceof Set 
+    ? selectedJobIds 
+    : selectedJobIds ? new Set(selectedJobIds) : new Set<string>();
+  const selectedGroupLinesSet = selectedGroupLines instanceof Set 
+    ? selectedGroupLines 
+    : selectedGroupLines ? new Set(selectedGroupLines) : new Set<string>();
+  
+  const groupLinesSelected = selectedGroupLinesSet.has(groupJob.id);
+  
+  // Calculate value based on selections if partial view
+  const childJobsValue = showPartial
+    ? childJobs.reduce((sum, job) => 
+        selectedJobIdsSet.has(job.id) ? sum + job.leftToInvoice : sum, 0
+      )
+    : childJobs.reduce((sum, job) => sum + job.leftToInvoice, 0);
+  
+  const totalValue = childJobsValue + (groupLinesSelected ? groupLinesValue : (showPartial ? 0 : groupLinesValue));
+
+  // Get field values for selected fields on group job
+  const groupFieldValues = useMemo(() => {
+    return selectedLineDetailFields
+      .map((fieldKey) => {
+        const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
+        if (!field) return null;
+        const value = field.getValue(groupJob);
+        if (!value) return null;
+        return { label: field.label, value };
+      })
+      .filter((item): item is { label: string; value: string } => item !== null);
+  }, [groupJob, selectedLineDetailFields]);
+
+  return (
+    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] px-3 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1.5 flex-1">
+            <div className="flex items-center gap-2">
+              <StacksIcon />
+              <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{groupJob.jobRef}</span>
+              <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">21 May - 3 June 2025</span>
+            </div>
+            {groupFieldValues.length > 0 && (
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                {groupFieldValues.map(({ label, value }) => (
+                  <span key={label} className="text-xs text-[#73777D] tracking-[-0.14px]">
+                    {label}: {value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-4 space-y-3">
+        {/* Group-level lines */}
+        {(groupLinesSelected || !showPartial) && (
+          <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <div className="flex-1 flex flex-col gap-1.5">
+                <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Group-level lines</span>
+                <LinesBadge total={10} />
+              </div>
+              <span className={cn(
+                "text-sm font-bold tracking-[-0.14px]",
+                groupLinesSelected || !showPartial ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)] line-through"
+              )}>
+                {formatCurrency(groupLinesValue)}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {childJobs.map((childJob) => {
+          const isSelected = showPartial ? selectedJobIdsSet.has(childJob.id) : true;
+          if (showPartial && !isSelected) return null;
+          
+          return (
+            <NestedJobCardPreview
+              key={childJob.id}
+              job={childJob}
+              selectedLineDetailFields={selectedLineDetailFields}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // Attachment Uploader Component
@@ -110,6 +551,8 @@ function AttachmentUploader({
   attachments: Attachment[];
   onAttachmentsChange: (attachments: Attachment[]) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -122,6 +565,11 @@ function AttachmentUploader({
     }));
 
     onAttachmentsChange([...attachments, ...newAttachments]);
+    
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleRemove = (id: string) => {
@@ -137,11 +585,11 @@ function AttachmentUploader({
   return (
     <div className="space-y-2">
       <input
+        ref={fileInputRef}
         type="file"
         multiple
         onChange={handleFileSelect}
         className="hidden"
-        id="attachment-upload"
         accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
       />
 
@@ -175,15 +623,101 @@ function AttachmentUploader({
 
       {/* Upload button */}
       <Button
-        variant="outline"
+        variant="secondary"
         size="sm"
         className="gap-1.5"
-        onClick={() => document.getElementById("attachment-upload")?.click()}
+        onClick={() => fileInputRef.current?.click()}
       >
         <Paperclip className="h-4 w-4" />
         Upload attachments
       </Button>
     </div>
+  );
+}
+
+// Line Detail Field Autocomplete Component
+function LineDetailFieldAutocomplete({
+  selectedFields,
+  onFieldsChange,
+}: {
+  selectedFields: string[];
+  onFieldsChange: (fields: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const availableFields = LINE_DETAIL_FIELDS.filter(
+    (field) => !selectedFields.includes(field.key)
+  );
+
+  const filteredFields = useMemo(() => {
+    if (!searchValue) return availableFields;
+    const lowerSearch = searchValue.toLowerCase();
+    return availableFields.filter((field) =>
+      field.label.toLowerCase().includes(lowerSearch)
+    );
+  }, [availableFields, searchValue]);
+
+  const handleSelect = (fieldKey: string) => {
+    if (!selectedFields.includes(fieldKey)) {
+      onFieldsChange([...selectedFields, fieldKey]);
+    }
+    setSearchValue("");
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div className="relative w-full">
+          <div
+            className="relative cursor-pointer"
+            onClick={() => setOpen(true)}
+          >
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Add field..."
+              value={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+                if (!open) setOpen(true);
+              }}
+              onFocus={() => setOpen(true)}
+              className="pl-8 h-9"
+              readOnly={false}
+            />
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D] pointer-events-none" />
+          </div>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
+        <Command>
+          <CommandInput
+            placeholder="Search fields..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
+          <CommandList>
+            <CommandEmpty>No fields found.</CommandEmpty>
+            <CommandGroup>
+              {filteredFields.map((field) => (
+                <CommandItem
+                  key={field.key}
+                  value={field.key}
+                  onSelect={() => handleSelect(field.key)}
+                >
+                  {field.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -193,7 +727,10 @@ export function InvoicePreview() {
 
   // Get invoice data from navigation state
   const locationState = (location.state || {}) as {
-    invoiceData?: InvoiceData;
+    invoiceData?: InvoiceData; // Legacy support
+    allInvoices?: InvoiceData[]; // New: all invoices
+    totalInvoiceCount?: number;
+    currentInvoiceIndex?: number;
   };
 
   // Default invoice data for testing
@@ -234,53 +771,217 @@ export function InvoicePreview() {
     currency: "gbp",
     notes: "",
     attachments: [],
+    levelOfDetail: "partial",
   };
 
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>(
-    locationState.invoiceData || defaultInvoiceData
-  );
+  // Determine if we have multiple invoices
+  const hasMultipleInvoices = locationState.allInvoices && locationState.allInvoices.length > 1;
+  const allInvoices = locationState.allInvoices || (locationState.invoiceData ? [locationState.invoiceData] : [defaultInvoiceData]);
+  
+  // Track current invoice index (0-based)
+  const [currentInvoiceIndex, setCurrentInvoiceIndex] = useState<number>(() => {
+    if (locationState.currentInvoiceIndex !== undefined) {
+      return Math.max(0, Math.min(locationState.currentInvoiceIndex, allInvoices.length - 1));
+    }
+    return 0;
+  });
 
-  // Generate line items
-  const lineItems = useMemo(
-    () => generateLineItems(invoiceData.jobs),
-    [invoiceData.jobs]
-  );
+  // Track sent invoice IDs
+  const [sentInvoiceIds, setSentInvoiceIds] = useState<Set<string>>(new Set());
 
-  // Group line items by job
-  const lineItemsByJob = useMemo(() => {
-    const grouped: Record<string, LineItem[]> = {};
-    lineItems.forEach((item) => {
-      if (!grouped[item.jobRef]) {
-        grouped[item.jobRef] = [];
+  // Get current invoice from array (memoized to prevent unnecessary recalculations)
+  const currentInvoice = useMemo(() => {
+    return allInvoices[currentInvoiceIndex] || allInvoices[0] || defaultInvoiceData;
+  }, [allInvoices, currentInvoiceIndex]);
+
+  // Initialize invoice data state with current invoice
+  const [invoiceData, setInvoiceData] = useState<InvoiceData>(() => {
+    const data = currentInvoice;
+    // Ensure selectedLineDetailFields is initialized
+    if (!data.selectedLineDetailFields) {
+      return { ...data, selectedLineDetailFields: [] };
+    }
+    return data;
+  });
+
+  // Update invoice data when current invoice changes
+  useEffect(() => {
+    const data = currentInvoice;
+    if (!data.selectedLineDetailFields) {
+      setInvoiceData({ ...data, selectedLineDetailFields: [] });
+    } else {
+      setInvoiceData(data);
+    }
+  }, [currentInvoice]);
+
+  const totalInvoiceCount = allInvoices.length;
+
+  // Line level detail fields
+  const selectedLineDetailFields = invoiceData.selectedLineDetailFields || [];
+  
+  const handleLineDetailFieldsChange = (fields: string[]) => {
+    setInvoiceData((prev) => ({ ...prev, selectedLineDetailFields: fields }));
+  };
+
+  const handleRemoveField = (fieldKey: string) => {
+    handleLineDetailFieldsChange(selectedLineDetailFields.filter((f) => f !== fieldKey));
+  };
+
+  // Get level of detail, default to "partial" if not specified
+  const levelOfDetail: LevelOfDetail = invoiceData.levelOfDetail || "partial";
+  
+  // Convert selection arrays to Sets if needed
+  const selectedJobIdsSet = useMemo(() => {
+    if (!invoiceData.selectedJobIds) return new Set<string>();
+    return invoiceData.selectedJobIds instanceof Set 
+      ? invoiceData.selectedJobIds 
+      : new Set(invoiceData.selectedJobIds);
+  }, [invoiceData.selectedJobIds]);
+  
+  const selectedGroupLinesSet = useMemo(() => {
+    if (!invoiceData.selectedGroupLines) return new Set<string>();
+    return invoiceData.selectedGroupLines instanceof Set 
+      ? invoiceData.selectedGroupLines 
+      : new Set(invoiceData.selectedGroupLines);
+  }, [invoiceData.selectedGroupLines]);
+
+  // Group jobs by category for display
+  const jobsByCategory = useMemo(() => {
+    const groups: Record<string, JobWithLines[]> = {
+      "External": [],
+      "Internal": [],
+      "External, Internal": [],
+    };
+    
+    invoiceData.jobs.forEach((job) => {
+      if (groups[job.jobCategory]) {
+        groups[job.jobCategory].push(job);
       }
-      grouped[item.jobRef].push(item);
     });
-    return grouped;
-  }, [lineItems]);
+    
+    return groups;
+  }, [invoiceData.jobs]);
 
-  // Calculate totals
-  const { subtotal, total } = useMemo(() => {
-    const sub = lineItems.reduce((sum, item) => sum + item.total, 0);
-    return { subtotal: sub, total: sub };
-  }, [lineItems]);
+  // Calculate total value for summary view
+  const totalValue = useMemo(() => {
+    return invoiceData.jobs.reduce((sum, job) => {
+      if (job.isGroupJob && job.childJobs) {
+        return sum + job.childJobs.reduce((s, c) => s + c.leftToInvoice, 0) + 1000;
+      }
+      return sum + job.leftToInvoice;
+    }, 0);
+  }, [invoiceData.jobs]);
 
-  const handleClose = () => {
-    navigate(-1);
+  // Generate line items for detailed view
+  const lineItems = useMemo(() => generateLineItems(invoiceData.jobs), [invoiceData.jobs]);
+
+  // Calculate totals based on level of detail and selections
+  const { subtotal, vatAmount, total } = useMemo(() => {
+    let sub = 0;
+    
+    if (levelOfDetail === "detailed") {
+      // For detailed view, sum all line items
+      lineItems.forEach(item => {
+        sub += item.total;
+      });
+    } else if (levelOfDetail === "summary") {
+      // For summary view, include all jobs
+      invoiceData.jobs.forEach(job => {
+        if (job.isGroupJob && job.childJobs) {
+          job.childJobs.forEach(child => {
+            sub += child.leftToInvoice;
+          });
+          sub += 1000; // Group lines value
+        } else {
+          sub += job.leftToInvoice;
+        }
+      });
+    } else {
+      // For partial view, sum based on selected jobs and group lines
+      invoiceData.jobs.forEach(job => {
+        if (job.isGroupJob && job.childJobs) {
+          job.childJobs.forEach(child => {
+            if (selectedJobIdsSet.has(child.id)) {
+              sub += child.leftToInvoice;
+            }
+          });
+          if (selectedGroupLinesSet.has(job.id)) {
+            sub += 1000; // Group lines value
+          }
+        } else {
+          sub += job.leftToInvoice;
+        }
+      });
+    }
+    
+    const vatRate = 0.20;
+    const vat = sub * vatRate;
+    const total = sub + vat;
+    return { subtotal: sub, vatAmount: vat, total };
+  }, [invoiceData.jobs, levelOfDetail, selectedJobIdsSet, selectedGroupLinesSet, lineItems]);
+
+
+  // Navigation functions
+  const handleNext = () => {
+    if (currentInvoiceIndex < allInvoices.length - 1) {
+      setCurrentInvoiceIndex(currentInvoiceIndex + 1);
+    }
   };
 
-  const handleNext = () => {
+  const handlePrevious = () => {
+    if (currentInvoiceIndex > 0) {
+      setCurrentInvoiceIndex(currentInvoiceIndex - 1);
+    }
+  };
+
+  // Find next unsent invoice index
+  const findNextUnsentInvoice = (startIndex: number): number => {
+    for (let i = startIndex + 1; i < allInvoices.length; i++) {
+      if (!sentInvoiceIds.has(allInvoices[i].id)) {
+        return i;
+      }
+    }
+    // If no unsent invoice found after startIndex, check from beginning
+    for (let i = 0; i < startIndex; i++) {
+      if (!sentInvoiceIds.has(allInvoices[i].id)) {
+        return i;
+      }
+    }
+    return -1; // All invoices sent
+  };
+
+  const handleSendInvoice = () => {
+    // Mark current invoice as sent
+    setSentInvoiceIds(prev => new Set([...prev, invoiceData.id]));
+    
     // Mark jobs as invoiced if originalJobIds are available
     if (invoiceData.originalJobIds && invoiceData.originalJobIds.length > 0) {
       markJobsAsInvoiced(invoiceData.originalJobIds);
     }
     
-    // Navigate to send/confirm page or send the invoice
-    navigate("/bulk-invoicing/v1", {
-      state: {
-        success: true,
-        message: `Successfully sent invoice for ${formatCurrency(total)}`,
-      },
-    });
+    // If multiple invoices, auto-advance to next unsent invoice
+    if (hasMultipleInvoices) {
+      const nextIndex = findNextUnsentInvoice(currentInvoiceIndex);
+      if (nextIndex !== -1) {
+        setCurrentInvoiceIndex(nextIndex);
+        return;
+      }
+      // All invoices sent - navigate back to jobs list
+      navigate("/bulk-invoicing/v1", {
+        state: {
+          success: true,
+          message: `Successfully sent ${allInvoices.length} invoice${allInvoices.length > 1 ? 's' : ''}`,
+        },
+      });
+    } else {
+      // Single invoice - navigate back to jobs list
+      navigate("/bulk-invoicing/v1", {
+        state: {
+          success: true,
+          message: `Successfully sent invoice for ${formatCurrency(total)}`,
+        },
+      });
+    }
   };
 
   const updateInvoiceField = (field: keyof InvoiceData, value: string) => {
@@ -288,38 +989,56 @@ export function InvoicePreview() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-screen bg-[#F8F9FC] flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[rgba(26,28,46,0.12)]">
-        <h1 className="text-lg font-bold text-[#0B2642]">
-          Invoice {invoiceData.invoiceNumber}
-        </h1>
-        <button
-          onClick={handleClose}
-          className="p-2 hover:bg-[#F8F9FC] rounded-md transition-colors"
-        >
-          <X className="h-5 w-5 text-[#0B2642]" />
-        </button>
+      <header className="flex items-center justify-between px-6 py-4 border-b border-[rgba(26,28,46,0.12)] shrink-0">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold text-[#0B2642]">
+            Invoice {currentInvoiceIndex + 1} of {totalInvoiceCount}
+          </h1>
+          {sentInvoiceIds.has(invoiceData.id) && (
+            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
+              <Check className="h-3.5 w-3.5 text-[#22c55e]" />
+              <span className="text-xs font-medium text-[#22c55e]">Sent</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {hasMultipleInvoices && (
+            <>
+              <button
+                onClick={handlePrevious}
+                disabled={currentInvoiceIndex === 0}
+                className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                aria-label="Previous invoice"
+              >
+                <ChevronLeft className="h-5 w-5 text-[#0B2642]" />
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentInvoiceIndex === allInvoices.length - 1}
+                className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                aria-label="Next invoice"
+              >
+                <ChevronRight className="h-5 w-5 text-[#0B2642]" />
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => navigate("/bulk-invoicing/v1/create")}
+            className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors"
+            aria-label="Close and return to create invoice"
+          >
+            <X className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Form */}
-        <div className="w-[400px] border-r border-[rgba(26,28,46,0.12)] overflow-auto">
+        <div className="w-[400px] bg-white border-r border-[rgba(26,28,46,0.12)] overflow-auto">
           <div className="p-8 space-y-6">
-            {/* Send to */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Send to
-              </label>
-              <Input
-                type="email"
-                value="JohnLewis@gmail.com"
-                className="h-10"
-                readOnly
-              />
-            </div>
-
             {/* Invoice title */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#0B2642]">
@@ -331,6 +1050,14 @@ export function InvoicePreview() {
                 onChange={(e) => updateInvoiceField("title", e.target.value)}
                 className="h-10"
               />
+            </div>
+
+            {/* Nominal code */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#0B2642]">
+                Nominal code
+              </label>
+              <Input type="text" value="5001" className="h-10" readOnly />
             </div>
 
             {/* Invoice number */}
@@ -346,81 +1073,6 @@ export function InvoicePreview() {
               />
             </div>
 
-            {/* Reference */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Reference
-              </label>
-              <Input
-                type="text"
-                value={invoiceData.reference}
-                onChange={(e) => updateInvoiceField("reference", e.target.value)}
-                className="h-10"
-                placeholder="Enter reference..."
-              />
-            </div>
-
-            {/* Issue Date */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Issue Date
-              </label>
-              <Input
-                type="date"
-                value={invoiceData.issueDate}
-                onChange={(e) => updateInvoiceField("issueDate", e.target.value)}
-                className="h-10"
-              />
-            </div>
-
-            {/* Due Date */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Due Date
-              </label>
-              <Input
-                type="date"
-                value={invoiceData.dueDate}
-                onChange={(e) => updateInvoiceField("dueDate", e.target.value)}
-                className="h-10"
-              />
-            </div>
-
-            {/* Bill To Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Bill To Name
-              </label>
-              <Input
-                type="text"
-                value={invoiceData.name}
-                onChange={(e) => updateInvoiceField("name", e.target.value)}
-                className="h-10"
-                placeholder="Enter name..."
-              />
-            </div>
-
-            {/* Bill To Address */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Bill To Address
-              </label>
-              <Textarea
-                value={invoiceData.address}
-                onChange={(e) => updateInvoiceField("address", e.target.value)}
-                placeholder="Enter address..."
-                className="min-h-[80px] resize-none"
-              />
-            </div>
-
-            {/* Nominal code */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Nominal code
-              </label>
-              <Input type="text" value="5001" className="h-10" readOnly />
-            </div>
-
             {/* Department code */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#0B2642]">
@@ -429,15 +1081,55 @@ export function InvoicePreview() {
               <Input type="text" value="67800" className="h-10" readOnly />
             </div>
 
-            {/* Notes */}
+            {/* Send to */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">Notes</label>
-              <Textarea
-                value={invoiceData.notes}
-                onChange={(e) => updateInvoiceField("notes", e.target.value)}
-                placeholder="Add notes..."
-                className="min-h-[100px] resize-none"
+              <label className="text-sm font-medium text-[#0B2642]">
+                Send to
+              </label>
+              <Input
+                type="email"
+                value="JohnLewis@gmail.com"
+                className="h-10"
+                readOnly
               />
+            </div>
+
+            {/* Line Level Detail Section */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#0B2642]">
+                Line level detail
+              </label>
+              <div className="space-y-2">
+                {/* Autocomplete field selector */}
+                <LineDetailFieldAutocomplete
+                  selectedFields={selectedLineDetailFields}
+                  onFieldsChange={handleLineDetailFieldsChange}
+                />
+                
+                {/* Selected field tags */}
+                {selectedLineDetailFields.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedLineDetailFields.map((fieldKey) => {
+                      const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
+                      if (!field) return null;
+                      return (
+                        <div
+                          key={fieldKey}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md text-sm text-[#0B2642]"
+                        >
+                          <span>{field.label}</span>
+                          <button
+                            onClick={() => handleRemoveField(fieldKey)}
+                            className="hover:bg-[rgba(11,38,66,0.08)] rounded p-0.5 transition-colors"
+                          >
+                            <X className="h-3 w-3 text-[#73777D]" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Attachments */}
@@ -447,6 +1139,18 @@ export function InvoicePreview() {
                 setInvoiceData((prev) => ({ ...prev, attachments }))
               }
             />
+
+            {/* Send Invoice Button */}
+            <div className="pt-4">
+              <Button 
+                variant="default" 
+                onClick={handleSendInvoice}
+                className="w-full"
+                disabled={sentInvoiceIds.has(invoiceData.id)}
+              >
+                {sentInvoiceIds.has(invoiceData.id) ? "Already Sent" : "Send invoice"}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -468,10 +1172,13 @@ export function InvoicePreview() {
                     HS/{invoiceData.invoiceNumber.toString().padStart(4, "0")}
                   </p>
                   <p className="text-[#73777D] mt-2">
-                    Issue Date: {formatDisplayDate(invoiceData.issueDate)}
+                    Issue Date {formatDisplayDate(invoiceData.issueDate)}
                   </p>
                   <p className="text-[#73777D]">
-                    Due Date: {formatDisplayDate(invoiceData.dueDate)}
+                    Due Date {formatDisplayDate(invoiceData.dueDate)}
+                  </p>
+                  <p className="text-[#73777D] mt-2">
+                    Reference {invoiceData.reference || "-"}
                   </p>
                   <p className="text-[#73777D] mt-2">
                     Reference: {invoiceData.reference || "-"}
@@ -496,66 +1203,48 @@ export function InvoicePreview() {
               <p className="font-bold text-[#0B2642]">{invoiceData.title}</p>
             </div>
 
-            {/* Line Items Table */}
-            <div className="px-8 py-4">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[rgba(26,28,46,0.12)]">
-                    <th className="text-left py-2 font-medium text-[#73777D]">
-                      Description
-                    </th>
-                    <th className="text-right py-2 font-medium text-[#73777D] w-16">
-                      Quantity
-                    </th>
-                    <th className="text-right py-2 font-medium text-[#73777D] w-20">
-                      Unit Price
-                    </th>
-                    <th className="text-right py-2 font-medium text-[#73777D] w-20">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(lineItemsByJob).map(([jobRef, items]) => (
-                    <>
-                      {/* Job Header */}
-                      <tr key={`header-${jobRef}`}>
-                        <td
-                          colSpan={4}
-                          className="pt-4 pb-1 font-medium text-[#0B2642]"
-                        >
-                          {jobRef}
-                          <span className="font-normal text-[#73777D] text-xs ml-2">
-                            Completed:{" "}
-                            {items[0]?.jobDate || ""}
-                          </span>
-                        </td>
-                      </tr>
-                      {/* Line Items */}
-                      {items.map((item) => (
-                        <tr
-                          key={item.id}
-                          className="border-b border-[rgba(26,28,46,0.04)]"
-                        >
-                          <td className="py-2 pl-4 text-[#555D66]">
-                            <span className="inline-block w-2 h-2 rounded-full bg-[#086DFF] mr-2" />
-                            {item.description}
-                          </td>
-                          <td className="py-2 text-right text-[#555D66]">
-                            {item.quantity}
-                          </td>
-                          <td className="py-2 text-right text-[#555D66]">
-                            {formatCurrency(item.unitPrice)}
-                          </td>
-                          <td className="py-2 text-right font-medium text-[#0B2642]">
-                            {formatCurrency(item.total)}
-                          </td>
-                        </tr>
-                      ))}
-                    </>
-                  ))}
-                </tbody>
-              </table>
+            {/* Job Details (Read-only Preview) */}
+            <div className="px-8 py-4 space-y-6">
+              {levelOfDetail === "summary" && (
+                <SummaryJobView 
+                  jobs={invoiceData.jobs} 
+                  totalValue={totalValue}
+                />
+              )}
+              
+              {levelOfDetail === "detailed" && (
+                <DetailedJobView lineItems={lineItems} />
+              )}
+              
+              {levelOfDetail === "partial" && (
+                <>
+                  {Object.entries(jobsByCategory).map(([category, jobs]) => {
+                    if (jobs.length === 0) return null;
+                    
+                    return (
+                      <div key={category} className="space-y-2">
+                        <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{category}</p>
+                        {jobs.map(job => {
+                          if (job.isGroupJob && job.childJobs) {
+                            return (
+                              <GroupJobCardPreview
+                                key={job.id}
+                                groupJob={job}
+                                childJobs={job.childJobs}
+                                selectedJobIds={selectedJobIdsSet}
+                                selectedGroupLines={selectedGroupLinesSet}
+                                showPartial={true}
+                                selectedLineDetailFields={selectedLineDetailFields}
+                              />
+                            );
+                          }
+                          return <JobCard key={job.id} job={job} showPartial={true} selectedLineDetailFields={selectedLineDetailFields} />;
+                        })}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
 
             {/* Totals */}
@@ -566,6 +1255,12 @@ export function InvoicePreview() {
                     <span className="text-[#73777D]">Subtotal</span>
                     <span className="text-[#0B2642]">
                       {formatCurrency(subtotal)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#73777D]">VAT (Rate)</span>
+                    <span className="text-[#0B2642]">
+                      {formatCurrency(vatAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm font-bold pt-2 border-t border-[rgba(26,28,46,0.08)]">
@@ -581,15 +1276,6 @@ export function InvoicePreview() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgba(26,28,46,0.12)] bg-white">
-        <Button variant="outline" onClick={handleClose}>
-          Close
-        </Button>
-        <Button variant="default" onClick={handleNext}>
-          Next
-        </Button>
-      </footer>
     </div>
   );
 }

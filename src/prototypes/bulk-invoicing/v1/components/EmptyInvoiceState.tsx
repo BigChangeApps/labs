@@ -43,7 +43,7 @@ export function EmptyInvoiceState() {
             </div>
             <DraftBadge />
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="bg-white">
             Save as draft
           </Button>
         </div>

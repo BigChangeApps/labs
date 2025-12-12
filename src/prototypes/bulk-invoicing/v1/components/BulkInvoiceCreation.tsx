@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
   ChevronRight, 
@@ -14,7 +14,6 @@ import {
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
 import { Input } from "@/registry/ui/input";
-import { Textarea } from "@/registry/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -294,7 +293,7 @@ function AttachmentUploader({
       <Button 
         variant="outline" 
         size="sm" 
-        className="gap-1.5"
+        className="gap-1.5 bg-white"
         onClick={() => fileInputRef.current?.click()}
       >
         <Paperclip className="h-4 w-4" />
@@ -344,7 +343,7 @@ function LinesBadge({
     );
   }
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)] w-fit">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
     </div>
   );
@@ -511,11 +510,11 @@ function BankAccountSelect({
   const selected = bankAccountOptions.find(b => b.id === value) || bankAccountOptions[0];
 
   return (
-    <div className="flex flex-col gap-1.5 flex-1">
+    <div className="flex flex-col gap-1.5 w-fit">
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Bank account</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left min-w-[247px] max-w-[247px]">
             <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
               {selected.label} ({selected.last4})
             </span>
@@ -1055,11 +1054,11 @@ function InvoiceCard({
           <div className="flex gap-4">
             <div className="flex flex-col gap-1.5 flex-1">
               <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Reference (optional)</span>
-              <Input
+              <input
                 type="text"
                 value={invoiceData.reference}
                 onChange={(e) => onInvoiceDataChange(invoiceData.id, { reference: e.target.value })}
-                className="h-9"
+                className="flex items-center w-full h-8 px-2 py-1.5 rounded-md bg-transparent text-sm font-normal text-[#0B2642] tracking-[-0.14px] outline-none border-0"
               />
             </div>
             <DateSelect
@@ -1083,17 +1082,6 @@ function InvoiceCard({
             <CurrencySelect
               value={invoiceData.currency}
               onChange={(value) => onInvoiceDataChange(invoiceData.id, { currency: value })}
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Notes</span>
-            <Textarea
-              value={invoiceData.notes}
-              onChange={(e) => onInvoiceDataChange(invoiceData.id, { notes: e.target.value })}
-              placeholder=""
-              className="min-h-[66px] resize-y"
             />
           </div>
 
@@ -1179,14 +1167,13 @@ function InvoiceCard({
           
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <a 
-              href="/bulk-invoicing/v1/preview"
-              className="flex-1 h-8 px-3 border rounded-md bg-white text-sm font-medium hover:bg-gray-50 flex items-center justify-center"
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={onPreview}
             >
               Preview invoice
-            </a>
-            <Button variant="default" size="sm" className="flex-1">
-              Send Invoice
             </Button>
           </div>
         </div>
@@ -1229,7 +1216,7 @@ function UniversalSettingsPanel({
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
-      <div className="px-5 py-5 space-y-5">
+      <div className="px-5 pt-5 pb-5 space-y-5">
         <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">Universal Settings</h3>
         
         <UniversalLevelOfDetailSelect
@@ -1273,14 +1260,12 @@ function OverviewPanel({
   subtotal,
   vatAmount,
   total,
-  onSend,
   invoiceCount,
   onPreview,
 }: { 
   subtotal: number;
   vatAmount: number;
   total: number;
-  onSend: () => void;
   invoiceCount: number;
   onPreview?: () => void;
 }) {
@@ -1324,19 +1309,13 @@ function OverviewPanel({
         </div>
         
         <div className="flex flex-col gap-2">
-          <a 
-            href="/bulk-invoicing/v1/preview"
-            className="w-full h-9 px-4 py-2 border rounded-md bg-white text-sm font-medium hover:bg-gray-50 flex items-center justify-center text-center"
-          >
-            Preview invoice
-          </a>
           <Button 
             variant="default" 
             size="default" 
             className="w-full"
-            onClick={onSend}
+            onClick={onPreview}
           >
-            {isSingleInvoice ? "Send Invoice" : "Send All Invoices"}
+            Preview invoice
           </Button>
         </div>
       </div>
@@ -1352,6 +1331,7 @@ export function BulkInvoiceCreation() {
   const locationState = (location.state || {}) as { 
     selectedJobs?: Job[]; 
     breakdownLevel?: BreakdownLevel;
+    levelOfDetail?: LevelOfDetail;
   };
   
   // Use demo jobs if none selected (for testing)
@@ -1364,14 +1344,14 @@ export function BulkInvoiceCreation() {
   // If selectedJobs is explicitly provided (even if empty), use it; otherwise use demoJobs for testing
   const selectedJobs = locationState.selectedJobs !== undefined ? locationState.selectedJobs : demoJobs;
   const breakdownLevel = locationState.breakdownLevel || "contact" as BreakdownLevel;
+  const initialLevelOfDetail = locationState.levelOfDetail || "partial" as LevelOfDetail;
 
   // Universal controls state
-  const [universalLevelOfDetail, setUniversalLevelOfDetail] = useState<LevelOfDetail>("partial");
+  const [universalLevelOfDetail, setUniversalLevelOfDetail] = useState<LevelOfDetail>(initialLevelOfDetail);
   const [universalStructure, setUniversalStructure] = useState<BreakdownLevel>(breakdownLevel);
   const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
   const [department, setDepartment] = useState("hs49301");
   const [nominalCode, setNominalCode] = useState("5001");
-  
   
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(() => {
     const ids = new Set<string>();
@@ -1542,11 +1522,12 @@ export function BulkInvoiceCreation() {
     setBreakdownModalOpen(true);
   }, []);
 
-  const handleBreakdownConfirm = useCallback((confirmedStructure: BreakdownLevel) => {
+  const handleBreakdownConfirm = useCallback((confirmedStructure: BreakdownLevel, confirmedLevelOfDetail: LevelOfDetail) => {
     setUniversalStructure(confirmedStructure);
+    setUniversalLevelOfDetail(confirmedLevelOfDetail);
     
-    // Regenerate invoice cards based on new breakdown level
-    const newCards = generateInvoiceCards(selectedJobs, confirmedStructure, universalLevelOfDetail);
+    // Regenerate invoice cards based on new breakdown level and level of detail
+    const newCards = generateInvoiceCards(selectedJobs, confirmedStructure, confirmedLevelOfDetail);
     setInvoiceCards(newCards);
     
     // Reset selections for the new cards
@@ -1561,7 +1542,7 @@ export function BulkInvoiceCreation() {
     setSelectedGroupLines(newGroupLines);
     
     setBreakdownModalOpen(false);
-  }, [generateInvoiceCards, selectedJobs, universalLevelOfDetail]);
+  }, [generateInvoiceCards, selectedJobs]);
 
   const handleInvoiceDataChange = useCallback((id: string, updates: Partial<InvoiceCardData>) => {
     setInvoiceCards(prev => prev.map(card => {
@@ -1660,34 +1641,75 @@ export function BulkInvoiceCreation() {
     return { subtotal, vatAmount, total };
   }, [invoiceCards, selectedJobIds, selectedGroupLines, lineItems]);
 
-  const handleSendInvoices = () => {
-    navigate("/bulk-invoicing/v1", { 
-      state: { 
-        success: true, 
-        message: `Successfully created invoice totaling ${formatCurrency(summary.total)}` 
-      } 
-    });
-  };
-
   // Handle preview invoice - navigate to preview page
   const handlePreviewInvoice = useCallback((invoiceId?: string) => {
-    console.log("handlePreviewInvoice called", { invoiceId, invoiceCards });
     // If invoiceId is provided, preview that specific invoice
     // Otherwise, preview the first (or only) invoice
     const idToPreview = invoiceId || invoiceCards[0]?.id;
     const invoiceToPreview = invoiceCards.find(card => card.id === idToPreview);
-    
-    console.log("Invoice to preview:", invoiceToPreview);
+    const invoiceIndex = invoiceCards.findIndex(card => card.id === idToPreview);
     
     if (invoiceToPreview) {
-      console.log("Navigating to preview page...");
+      // Prepare all invoices with selection state for preview
+      const allInvoices = invoiceCards.map(card => ({
+        ...card,
+        selectedJobIds: Array.from(selectedJobIds),
+        selectedGroupLines: Array.from(selectedGroupLines),
+      }));
+      
+      // Also include single invoice data for backward compatibility
+      const previewData = {
+        ...invoiceToPreview,
+        selectedJobIds: Array.from(selectedJobIds),
+        selectedGroupLines: Array.from(selectedGroupLines),
+      };
+      
       navigate("/bulk-invoicing/v1/preview", {
-        state: { invoiceData: invoiceToPreview }
+        state: { 
+          invoiceData: previewData, // Legacy support
+          allInvoices: allInvoices, // New: all invoices
+          totalInvoiceCount: invoiceCards.length,
+          currentInvoiceIndex: invoiceIndex
+        }
       });
-    } else {
-      console.log("No invoice found to preview");
     }
-  }, [invoiceCards, navigate]);
+  }, [invoiceCards, navigate, selectedJobIds, selectedGroupLines]);
+
+  // Monitor sticky behavior
+  const rightColRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkStickyBehavior = () => {
+      const rightCol = rightColRef.current;
+      if (!rightCol) return;
+
+      // Find all potential scrolling containers
+      const appMain = rightCol.closest('main[class*="overflow"]') as HTMLElement;
+      const flexContainer = rightCol.parentElement;
+      const computedStyle = window.getComputedStyle(rightCol);
+      const rightColRect = rightCol.getBoundingClientRect();
+      const windowScrollY = window.scrollY;
+      const windowInnerHeight = window.innerHeight;
+
+      // Check containing block
+      let containingBlock = rightCol.offsetParent as HTMLElement;
+      const containingBlockRect = containingBlock?.getBoundingClientRect();
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BulkInvoiceCreation.tsx:useEffect-sticky',message:'Sticky behavior detailed check',data:{rightColTop:rightColRect.top,rightColBottom:rightColRect.bottom,rightColOffsetTop:rightCol.offsetTop,windowScrollY,windowInnerHeight,computedPosition:computedStyle.position,computedTop:computedStyle.top,computedBottom:computedStyle.bottom,appMainScrollTop:appMain?.scrollTop || 0,appMainScrollHeight:appMain?.scrollHeight || 0,appMainClientHeight:appMain?.clientHeight || 0,containingBlockTag:containingBlock?.tagName,containingBlockTop:containingBlockRect?.top,containingBlockHeight:containingBlock?.offsetHeight,flexContainerTag:flexContainer?.tagName,flexContainerHeight:flexContainer?.clientHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+    };
+
+    // Check on mount and scroll
+    setTimeout(checkStickyBehavior, 0);
+    window.addEventListener('scroll', checkStickyBehavior, { passive: true });
+    window.addEventListener('resize', checkStickyBehavior);
+
+    return () => {
+      window.removeEventListener('scroll', checkStickyBehavior);
+      window.removeEventListener('resize', checkStickyBehavior);
+    };
+  }, [invoiceCards]);
 
   if (selectedJobs.length === 0) {
     navigate("/bulk-invoicing/v1/empty", { replace: true });
@@ -1712,7 +1734,7 @@ export function BulkInvoiceCreation() {
             </div>
             <DraftBadge />
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="bg-white">
             Save as draft
           </Button>
         </div>
@@ -1722,47 +1744,52 @@ export function BulkInvoiceCreation() {
       <main className="px-6 py-5">
         <div className="flex gap-6 items-start justify-center max-w-[1240px] mx-auto">
           {/* Left Column - Invoice Cards */}
-          <div className="w-[820px] shrink-0 space-y-4">
-            {invoiceCards.map((invoiceData) => (
-              <InvoiceCard
-                key={invoiceData.id}
-                invoiceData={invoiceData}
-                selectedJobIds={selectedJobIds}
-                selectedGroupLines={selectedGroupLines}
-                onJobSelectionChange={handleJobSelectionChange}
-                onGroupLinesSelectionChange={handleGroupLinesSelectionChange}
-                onInvoiceDataChange={handleInvoiceDataChange}
-                universalLevelOfDetail={universalLevelOfDetail}
-                lineItems={lineItems}
-                onLineItemToggle={handleLineItemToggle}
-                onSelectAllLineItems={handleSelectAllLineItems}
-                totalInvoiceCount={invoiceCards.length}
-                onPreview={() => handlePreviewInvoice(invoiceData.id)}
-              />
-            ))}
+          <div className="w-[820px] shrink-0 self-start">
+            <div className="space-y-4">
+              {invoiceCards.map((invoiceData) => (
+                <InvoiceCard
+                  key={invoiceData.id}
+                  invoiceData={invoiceData}
+                  selectedJobIds={selectedJobIds}
+                  selectedGroupLines={selectedGroupLines}
+                  onJobSelectionChange={handleJobSelectionChange}
+                  onGroupLinesSelectionChange={handleGroupLinesSelectionChange}
+                  onInvoiceDataChange={handleInvoiceDataChange}
+                  universalLevelOfDetail={universalLevelOfDetail}
+                  lineItems={lineItems}
+                  onLineItemToggle={handleLineItemToggle}
+                  onSelectAllLineItems={handleSelectAllLineItems}
+                  totalInvoiceCount={invoiceCards.length}
+                  onPreview={() => handlePreviewInvoice(invoiceData.id)}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Right Column - Settings & Overview (Sticky) */}
-          <div className="w-[380px] shrink-0 space-y-4 sticky top-[100px] self-start h-fit z-10">
-            <UniversalSettingsPanel
-              levelOfDetail={universalLevelOfDetail}
-              onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
-              breakdownLevel={universalStructure}
-              onBreakdownChange={handleBreakdownChange}
-              department={department}
-              nominalCode={nominalCode}
-              onDepartmentChange={setDepartment}
-              onNominalCodeChange={setNominalCode}
-            />
-            
-            <OverviewPanel
-              subtotal={summary.subtotal}
-              vatAmount={summary.vatAmount}
-              total={summary.total}
-              onSend={handleSendInvoices}
-              invoiceCount={invoiceCards.length}
-              onPreview={() => handlePreviewInvoice()}
-            />
+          <div ref={rightColRef} className="w-[380px] shrink-0 self-start">
+            <div className="sticky top-[77px] h-fit z-10">
+              <div className="space-y-4 text-left">
+                <UniversalSettingsPanel
+                  levelOfDetail={universalLevelOfDetail}
+                  onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
+                  breakdownLevel={universalStructure}
+                  onBreakdownChange={handleBreakdownChange}
+                  department={department}
+                  nominalCode={nominalCode}
+                  onDepartmentChange={setDepartment}
+                  onNominalCodeChange={setNominalCode}
+                />
+                
+                <OverviewPanel
+                  subtotal={summary.subtotal}
+                  vatAmount={summary.vatAmount}
+                  total={summary.total}
+                  invoiceCount={invoiceCards.length}
+                  onPreview={() => handlePreviewInvoice()}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -1773,7 +1800,8 @@ export function BulkInvoiceCreation() {
         onOpenChange={setBreakdownModalOpen}
         selectedJobs={selectedJobs}
         onCreateInvoice={handleBreakdownConfirm}
-        currentBreakdownLevel={universalStructure}
+        currentBreakdownLevel={(universalStructure === "job" ? "contact" : universalStructure) as "contact" | "site"}
+        currentLevelOfDetail={universalLevelOfDetail}
       />
 
     </div>

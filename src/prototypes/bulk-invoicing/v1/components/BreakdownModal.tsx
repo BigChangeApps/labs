@@ -1,23 +1,23 @@
 import { useState, useMemo, useEffect } from "react";
-import { User, Building2, Briefcase } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
 import { cn } from "@/registry/lib/utils";
 import { type Job, formatCurrency } from "../lib/mock-data";
 
-type BreakdownLevel = "contact" | "site" | "job";
+type BreakdownLevel = "contact" | "site";
+type LevelOfDetail = "summary" | "partial" | "detailed";
 
 interface BreakdownModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedJobs: Job[];
-  onCreateInvoice: (breakdownLevel: BreakdownLevel) => void;
+  onCreateInvoice: (breakdownLevel: BreakdownLevel, levelOfDetail: LevelOfDetail) => void;
   currentBreakdownLevel?: BreakdownLevel;
+  currentLevelOfDetail?: LevelOfDetail;
 }
 
 function StatusBadge({ count, label, variant }: { count: number; label: string; variant: "scheduled" | "progress" | "complete" }) {
@@ -34,15 +34,19 @@ function StatusBadge({ count, label, variant }: { count: number; label: string; 
   );
 }
 
-export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoice, currentBreakdownLevel = "contact" }: BreakdownModalProps) {
+export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoice, currentBreakdownLevel = "contact", currentLevelOfDetail = "partial" }: BreakdownModalProps) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [breakdownLevel, setBreakdownLevel] = useState<BreakdownLevel>(currentBreakdownLevel);
+  const [levelOfDetail, setLevelOfDetail] = useState<LevelOfDetail>(currentLevelOfDetail);
   
-  // Update internal state when modal opens with the current breakdown level
+  // Update internal state when modal opens
   useEffect(() => {
     if (open) {
       setBreakdownLevel(currentBreakdownLevel);
+      setLevelOfDetail(currentLevelOfDetail);
+      setStep(1);
     }
-  }, [open, currentBreakdownLevel]);
+  }, [open, currentBreakdownLevel, currentLevelOfDetail]);
 
   // Calculate summary data from selected jobs
   const summary = useMemo(() => {
@@ -80,8 +84,6 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
         return summary.parentContacts.length;
       case "site":
         return summary.siteCount;
-      case "job":
-        return summary.totalJobs;
       default:
         return 1;
     }
@@ -102,58 +104,104 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
   const breakdownOptions = [
     {
       id: "contact" as BreakdownLevel,
-      icon: User,
       title: "Contact Level",
-      description: `${summary.parentContacts.length} invoice${summary.parentContacts.length !== 1 ? "s" : ""} (Merged totals)`,
+      description: summary.parentContacts.length === 1 
+        ? "1 Overall invoice with merged totals."
+        : `${summary.parentContacts.length} Overall invoices with merged totals.`,
     },
     {
       id: "site" as BreakdownLevel,
-      icon: Building2,
-      title: "Site Level",
-      description: `${summary.siteCount} Invoice${summary.siteCount !== 1 ? "s" : ""}, (1 per every site)`,
-    },
-    {
-      id: "job" as BreakdownLevel,
-      icon: Briefcase,
-      title: "Job Level",
-      description: `${summary.totalJobs} invoice${summary.totalJobs !== 1 ? "s" : ""} (1 invoice for each job)`,
+      title: "Site level",
+      description: `${summary.siteCount} invoice${summary.siteCount !== 1 ? "s" : ""} (1 per site)`,
     },
   ];
 
+  const levelOfDetailOptions = [
+    {
+      id: "summary" as LevelOfDetail,
+      title: "Summary",
+      description: "1 Line for all jobs (combined totals)",
+    },
+    {
+      id: "partial" as LevelOfDetail,
+      title: "Partial",
+      description: "Separate lines for labour vs materials per job",
+    },
+    {
+      id: "detailed" as LevelOfDetail,
+      title: "Detailed",
+      description: "Every line from every job",
+    },
+  ];
+
+  const handleNext = () => {
+    if (step === 1) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+    }
+  };
+
+  const handleCreate = () => {
+    onCreateInvoice(breakdownLevel, levelOfDetail);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[680px] max-w-[680px] h-[590px] p-0 gap-0 overflow-hidden rounded-xl border border-[rgba(26,28,46,0.12)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_8px_24px_-4px_rgba(11,38,66,0.16)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
+      <DialogContent className="w-[680px] max-w-[680px] h-[555px] p-0 gap-0 overflow-hidden !rounded-[8px] sm:!rounded-[8px] border border-[rgba(26,28,46,0.12)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
         {/* Sticky Header */}
-        <DialogHeader className="px-6 py-4 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] shrink-0">
-          <DialogTitle className="text-base font-normal text-[#0B2642] tracking-[-0.16px]">
-            Select your breakdown
-          </DialogTitle>
-        </DialogHeader>
+        <div className="px-6 py-4 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] shrink-0 flex flex-row items-start justify-between gap-2.5">
+          <div className="flex flex-col gap-2.5 flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <img 
+                src="/brain-icon.png" 
+                alt="" 
+                className="size-4 shrink-0"
+              />
+              <p className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">
+                Step {step}/2
+              </p>
+            </div>
+            <h2 className="text-base font-normal text-[#0B2642] tracking-[-0.16px]">
+              {step === 1 ? "Select your grouping" : "Select your structure"}
+            </h2>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="size-6 shrink-0 flex items-center justify-center rounded-[8px] bg-white border border-[rgba(3,7,18,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors"
+          >
+            <X className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           {/* Summary Section */}
           <div className="px-6 py-5">
-            <div className="bg-[#F8F9FC] rounded-lg p-4">
+            <div className="bg-[#F8F9FC] rounded-[8px] p-5">
               {/* Stats Row */}
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">Total jobs selected</p>
-                  <p className="text-sm font-bold text-[#0B2642] mt-0.5">{summary.totalJobs}</p>
+                  <p className="text-sm font-bold text-[#0B2642] mt-1">{summary.totalJobs}</p>
                 </div>
                 <div>
                   <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">Left to invoice</p>
-                  <p className="text-sm font-bold text-[#0B2642] mt-0.5">{formatCurrency(summary.leftToInvoice)}</p>
+                  <p className="text-sm font-bold text-[#0B2642] mt-1">{formatCurrency(summary.leftToInvoice)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">Parent contacts</p>
-                  <p className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] mt-0.5 truncate" title={summary.parentContacts.join(", ")}>
+                  <p className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] mt-1 truncate" title={summary.parentContacts.join(", ")}>
                     {parentContactsDisplay}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">Sites</p>
-                  <p className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] mt-0.5">{summary.siteCount}</p>
+                  <p className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] mt-1">{summary.siteCount}</p>
                 </div>
               </div>
 
@@ -172,52 +220,136 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
             </div>
           </div>
 
-          {/* Breakdown Options */}
-          <div className="px-6 pb-5">
-            <p className="text-sm font-normal text-[#0B2642] mb-3 tracking-[-0.14px]">Choose your invoice structure</p>
-            <div className="space-y-2">
-              {breakdownOptions.map((option) => {
-                const isSelected = breakdownLevel === option.id;
-                const IconComponent = option.icon;
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => setBreakdownLevel(option.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left",
-                      isSelected
-                        ? "border-2 border-[#086DFF] bg-[rgba(8,109,255,0.08)]"
-                        : "border border-[rgba(26,28,46,0.12)] bg-[#fcfcfd] shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] hover:border-[rgba(26,28,46,0.24)]"
-                    )}
-                  >
-                    <div className="flex items-center justify-center size-8 rounded-lg shrink-0 bg-white border border-[rgba(26,28,46,0.12)]">
-                      <IconComponent className="h-5 w-5 text-[#0B2642]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium tracking-[-0.14px] text-[#0B2642]">
-                        {option.title}
-                      </p>
-                      <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">{option.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
+          {/* Step 1: Breakdown Options */}
+          {step === 1 && (
+            <div className="px-6 pb-5">
+              <p className="text-sm font-normal text-[#0B2642] mb-4 tracking-[-0.14px]">How should we group your Invoices?</p>
+              <div className="flex gap-4">
+                {breakdownOptions.map((option) => {
+                  const isSelected = breakdownLevel === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setBreakdownLevel(option.id)}
+                      className={cn(
+                        "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                        isSelected
+                          ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
+                          : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
+                      )}
+                    >
+                      <div className={cn(
+                        "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
+                        isSelected
+                          ? "border-[rgba(2,136,209,0.2)]"
+                          : "border-[#E5E5E5] bg-white"
+                      )}>
+                        {isSelected && (
+                          <div className="size-2 rounded-full bg-[#086DFF]" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                        <p className={cn(
+                          "text-sm font-medium tracking-[-0.14px]",
+                          isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
+                        )}>
+                          {option.title}
+                        </p>
+                        <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+                          {option.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Step 2: Level of Detail Options */}
+          {step === 2 && (
+            <div className="px-6 pb-5">
+              <div className="flex flex-col gap-4">
+                <p className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">Choose your invoice structure</p>
+                <div className="flex gap-4">
+                  {levelOfDetailOptions.map((option) => {
+                    const isSelected = levelOfDetail === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => setLevelOfDetail(option.id)}
+                        className={cn(
+                          "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                          isSelected
+                            ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
+                            : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
+                        )}
+                      >
+                        <div className={cn(
+                          "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
+                          isSelected
+                            ? "border-[rgba(2,136,209,0.2)]"
+                            : "border-[rgba(26,28,46,0.12)] bg-white"
+                        )}>
+                          {isSelected && (
+                            <div className="size-2 rounded-full bg-[#086DFF]" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                          <p className={cn(
+                            "text-sm font-medium tracking-[-0.14px]",
+                            isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
+                          )}>
+                            {option.title}
+                          </p>
+                          <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+                            {option.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sticky Footer */}
         <div className="px-6 py-4 border-t border-[rgba(26,28,46,0.12)] flex items-center justify-between bg-[#F8F9FC] shrink-0">
-          <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
-            This will create {invoiceCount} invoice{invoiceCount !== 1 ? "s" : ""}
-          </p>
-          <Button 
-            variant="default" 
-            size="sm"
-            onClick={() => onCreateInvoice(breakdownLevel)}
-          >
-            Create
-          </Button>
+          {step === 1 ? (
+            <>
+              <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+                This will create {invoiceCount} invoice{invoiceCount !== 1 ? "s" : ""}
+              </p>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleNext}
+              >
+                Next step
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleBack}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleCreate}
+              >
+                Create invoice
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

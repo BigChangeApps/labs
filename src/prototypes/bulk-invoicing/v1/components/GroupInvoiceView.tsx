@@ -71,16 +71,22 @@ function DraftBadge() {
 // Split button component matching Figma design
 function SplitButton({ label, onClick }: { label: string; onClick?: () => void }) {
   return (
-    <div className="flex items-start rounded-md shadow-[0px_0px_0px_1px_rgba(7,98,229,0.8)] overflow-hidden">
-      <button 
-        className="flex items-center justify-center gap-1 px-2 py-1.5 bg-[#086dff] hover:bg-[#0761e6] transition-colors"
+    <div className="flex items-start rounded-[var(--hw-radius-button,0.375rem)] shadow-[0_0_0_1px_rgba(7,98,229,0.8)] overflow-hidden">
+      <Button 
+        variant="default"
+        size="sm"
+        className="rounded-r-none"
         onClick={onClick}
       >
-        <span className="text-sm font-medium text-white tracking-[-0.14px]">{label}</span>
-      </button>
-      <button className="flex items-center justify-center px-1 py-1.5 bg-[#086dff] hover:bg-[#0761e6] border-l border-[rgba(255,255,255,0.2)] transition-colors">
-        <ChevronDown className="h-5 w-5 text-white" />
-      </button>
+        {label}
+      </Button>
+      <Button 
+        variant="default"
+        size="sm"
+        className="rounded-l-none border-l border-white/20 px-1"
+      >
+        <ChevronDown className="h-5 w-5" />
+      </Button>
     </div>
   );
 }
@@ -116,7 +122,7 @@ function LinesBadge({
     );
   }
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)] w-fit">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
     </div>
   );
@@ -801,7 +807,7 @@ export function GroupInvoiceView() {
           </div>
 
           {/* Actions */}
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="bg-white">
             Save as draft
           </Button>
         </div>

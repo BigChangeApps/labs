@@ -430,7 +430,7 @@ export function JobsReadyToInvoice() {
   const allPaginatedSelected = paginatedJobs.length > 0 && paginatedJobs.every(job => selectedJobs.has(job.id));
   const somePaginatedSelected = paginatedJobs.some(job => selectedJobs.has(job.id)) && !allPaginatedSelected;
 
-  const handleCreateInvoice = (breakdownLevel: "contact" | "site" | "job") => {
+  const handleCreateInvoice = (breakdownLevel: "contact" | "site", levelOfDetail: "summary" | "partial" | "detailed") => {
     setBreakdownModalOpen(false);
     
     // Navigate to the invoice creation page with selected jobs data
@@ -438,6 +438,7 @@ export function JobsReadyToInvoice() {
       state: {
         selectedJobs: selectedJobsData,
         breakdownLevel,
+        levelOfDetail,
       },
     });
   };
@@ -451,32 +452,34 @@ export function JobsReadyToInvoice() {
             <h1 className="text-lg font-bold text-[#0B2642]">
               Jobs to invoice
             </h1>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                Apply for payment
-              </Button>
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={() => {
-                  // Select all jobs and navigate to empty state screen
-                  const allJobIds = new Set(filteredJobs.map((job) => job.id));
-                  const allJobsData = filteredJobs;
-                  setSelectedJobs(allJobIds);
-                  // Navigate to empty state screen
-                  navigate("/bulk-invoicing/v1/empty", {
-                    state: {
-                      selectedJobs: allJobsData,
-                    },
-                  });
-                }}
-              >
-                Create invoice
-              </Button>
-              <button className="flex items-center justify-center size-8 rounded-md hover:bg-gray-100">
-                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-              </button>
-            </div>
+            {!breakdownModalOpen && (
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm">
+                  Apply for payment
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => {
+                    // Select all jobs and navigate to empty state screen
+                    const allJobIds = new Set(filteredJobs.map((job) => job.id));
+                    const allJobsData = filteredJobs;
+                    setSelectedJobs(allJobIds);
+                    // Navigate to empty state screen
+                    navigate("/bulk-invoicing/v1/empty", {
+                      state: {
+                        selectedJobs: allJobsData,
+                      },
+                    });
+                  }}
+                >
+                  Create invoice
+                </Button>
+                <button className="flex items-center justify-center size-8 rounded-md hover:bg-gray-100">
+                  <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -580,6 +583,7 @@ export function JobsReadyToInvoice() {
                   <Checkbox
                     checked={allPaginatedSelected || (somePaginatedSelected ? "indeterminate" : false)}
                     onCheckedChange={toggleAllSelection}
+                    disabled={breakdownModalOpen}
                   />
                 </TableHead>
                 <TableHead className="w-12 h-11 px-2"></TableHead>
@@ -662,6 +666,7 @@ export function JobsReadyToInvoice() {
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleJobSelection(job.id)}
+                          disabled={breakdownModalOpen}
                         />
                       </TableCell>
                       <TableCell className="px-2 py-3">
@@ -775,7 +780,7 @@ export function JobsReadyToInvoice() {
       </main>
 
       {/* Multi-Select Action Bar */}
-      {selectedJobs.size > 0 && (
+      {selectedJobs.size > 0 && !breakdownModalOpen && (
         <TooltipProvider>
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
             <div className="flex items-center gap-3 px-4 py-3 bg-[#101929] rounded-lg shadow-[0px_8px_24px_rgba(0,0,0,0.24)]">
@@ -792,9 +797,9 @@ export function JobsReadyToInvoice() {
               <div className="w-px h-6 bg-white/20" />
               <div className="flex items-center gap-2">
                 <Button 
-                  variant="outline" 
+                  variant="secondary" 
                   size="sm"
-                  className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white"
+                  className="bg-[#1d2939] border-transparent text-white hover:bg-[#2a3a4d] shadow-[0_0_0_1px_rgba(11,38,66,0.08)]"
                 >
                   Apply for payment
                 </Button>

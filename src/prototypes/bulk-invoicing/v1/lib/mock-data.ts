@@ -9,6 +9,11 @@ export interface Job {
   leftToInvoice: number;
   progress: number; // 0-100
   jobType: "home_repair" | "stacks";
+  engineerName?: string;
+  jobStartDate?: string;
+  time?: string;
+  resource?: string;
+  vehicle?: string;
 }
 
 export const mockJobs: Job[] = [
@@ -23,6 +28,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 1000.0,
     progress: 85,
     jobType: "home_repair",
+    engineerName: "John Smith",
+    jobStartDate: "15 Mar 2024",
+    time: "09:30 AM",
+    resource: "Engineer Team A",
+    vehicle: "Van-123",
   },
   {
     id: "2",
@@ -35,6 +45,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 500.0,
     progress: 95,
     jobType: "stacks",
+    engineerName: "Sarah Johnson",
+    jobStartDate: "5 Mar 2024",
+    time: "08:00 AM",
+    resource: "Engineer Team B",
+    vehicle: "Van-456",
   },
   {
     id: "3",
@@ -47,6 +62,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 1200.0,
     progress: 55,
     jobType: "stacks",
+    engineerName: "Mike Williams",
+    jobStartDate: "15 Jan 2024",
+    time: "10:15 AM",
+    resource: "Engineer Team C",
+    vehicle: "Van-789",
   },
   {
     id: "4",
@@ -59,6 +79,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 1200.0,
     progress: 55,
     jobType: "stacks",
+    engineerName: "Emma Brown",
+    jobStartDate: "15 Jan 2024",
+    time: "11:00 AM",
+    resource: "Engineer Team A",
+    vehicle: "Van-123",
   },
   {
     id: "5",
@@ -71,6 +96,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 1200.0,
     progress: 55,
     jobType: "stacks",
+    engineerName: "David Lee",
+    jobStartDate: "15 Jan 2024",
+    time: "02:30 PM",
+    resource: "Engineer Team B",
+    vehicle: "Van-456",
   },
   {
     id: "6",
@@ -83,6 +113,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 0.0,
     progress: 100,
     jobType: "stacks",
+    engineerName: "Lisa Anderson",
+    jobStartDate: "20 Feb 2024",
+    time: "09:00 AM",
+    resource: "Engineer Team C",
+    vehicle: "Van-789",
   },
   {
     id: "7",
@@ -95,6 +130,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 5200.0,
     progress: 0,
     jobType: "home_repair",
+    engineerName: "Tom Wilson",
+    jobStartDate: "12 Apr 2024",
+    time: "08:45 AM",
+    resource: "Engineer Team A",
+    vehicle: "Van-123",
   },
   {
     id: "8",
@@ -107,6 +147,11 @@ export const mockJobs: Job[] = [
     leftToInvoice: 3500.0,
     progress: 72,
     jobType: "stacks",
+    engineerName: "Rachel Green",
+    jobStartDate: "1 Mar 2024",
+    time: "10:00 AM",
+    resource: "Engineer Team B",
+    vehicle: "Van-456",
   },
   {
     id: "9",
