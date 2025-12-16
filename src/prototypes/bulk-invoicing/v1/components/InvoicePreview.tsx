@@ -1,8 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
+import { Calendar } from "@/registry/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -19,6 +21,22 @@ import {
 import { formatCurrency } from "../lib/mock-data";
 import { markJobsAsInvoiced } from "../lib/invoice-utils";
 import { cn } from "@/registry/lib/utils";
+import {
+  initializeInvoiceSelection,
+  getInvoiceSelection,
+  toggleLineItem,
+  toggleJob,
+  toggleCategory,
+  getLineCounts,
+  calculateTotals as calculateTotalsFromState,
+  updateJobLineItems,
+  setViewMode,
+  getViewMode,
+  type LineItem as StateLineItem,
+  type ViewMode as StateViewMode,
+} from "../lib/invoice-state";
+import { JobLineDetailModal } from "./JobLineDetailModal";
+import { Checkbox } from "@/registry/ui/checkbox";
 
 // Types
 interface JobWithLines {
@@ -352,29 +370,60 @@ function NestedJobCardPreview({
 }
 
 // Summary view - single condensed line
-function SummaryJobView({ jobs, totalValue }: { jobs: JobWithLines[]; totalValue: number }) {
-  const totalLines = jobs.reduce((sum, job) => {
+function SummaryJobView({ 
+  jobs, 
+  totalValue,
+  invoiceId,
+}: { 
+  jobs: JobWithLines[]; 
+  totalValue: number;
+  invoiceId: string;
+}) {
+  // Calculate total and included lines from state
+  let totalLines = 0;
+  let includedLines = 0;
+  
+  jobs.forEach((job) => {
     if (job.isGroupJob && job.childJobs) {
-      return sum + job.childJobs.reduce((s, c) => s + c.linesCount, 0);
+      job.childJobs.forEach((child) => {
+        const counts = getLineCounts(invoiceId, child.id);
+        totalLines += counts.total;
+        includedLines += counts.included;
+      });
+    } else {
+      const counts = getLineCounts(invoiceId, job.id);
+      totalLines += counts.total;
+      includedLines += counts.included;
     }
-    return sum + job.linesCount;
-  }, 0);
+  });
 
   const firstJob = jobs[0];
   
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "EXT/12345"}</span>
-            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
-            <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
+    <div className="space-y-4">
+      {/* Service heading */}
+      <h3 className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
+        Fire Extinguisher Servicing
+      </h3>
+      
+      {/* Job card */}
+      <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+        <div className="flex items-center justify-between pl-4 pr-3 py-3">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "INT/12345"}</span>
+              <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
+              <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
+            </div>
+            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+              <span className="text-sm font-medium tracking-[-0.14px] text-[#0288D1]">
+                {includedLines} of {totalLines} lines
+              </span>
+            </div>
           </div>
-          <LinesBadge total={totalLines} />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+          <div className="flex items-center">
+            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -391,16 +440,24 @@ function CategoryDot({ category }: { category: "blue" | "orange" | "purple" }) {
   return <div className={cn("w-2 h-2 rounded-full", colors[category])} />;
 }
 
-// Detailed view - table with line items (read-only for preview)
+// Detailed view - table with line items (interactive for preview)
 function DetailedJobView({ 
   lineItems,
+  invoiceId,
+  onLineItemToggle,
 }: { 
   lineItems: LineItem[];
+  invoiceId: string;
+  onLineItemToggle?: (jobId: string, lineId: string) => void;
 }) {
+  // Get state line items to check selection status
+  const state = getInvoiceSelection(invoiceId);
+  
   return (
     <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
       {/* Table Header */}
       <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
+        <span className="w-10"></span>
         <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Description</span>
         <span className="w-16 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-center">Qty</span>
         <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Unit price</span>
@@ -414,8 +471,19 @@ function DetailedJobView({
           const categoryIndex = parseInt(item.id.split('-').pop() || '0') % 3;
           const category = categoryIndex === 0 ? "blue" : categoryIndex === 1 ? "orange" : "purple";
           
+          // Extract jobId from line item id (format: jobId-line-X)
+          const jobId = item.id.split('-line-')[0];
+          const stateLineItem = state?.jobSelections.get(jobId)?.lineItems.find(l => l.id === item.id);
+          const isSelected = stateLineItem?.selected ?? true;
+          
           return (
-            <div key={item.id} className="flex items-center gap-3 px-4 py-3 bg-white">
+            <div key={item.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-[#F8F9FC] transition-colors">
+              {onLineItemToggle && (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onLineItemToggle(jobId, item.id)}
+                />
+              )}
               <div className="flex-1 flex items-center gap-2">
                 <CategoryDot category={category} />
                 <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{item.description}</span>
@@ -635,6 +703,54 @@ function AttachmentUploader({
   );
 }
 
+// Date Picker Component
+function DatePicker({
+  label,
+  date,
+  onDateChange,
+}: {
+  label: string;
+  date: Date | undefined;
+  onDateChange: (date: Date | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center justify-between w-full h-8 px-2 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left",
+              !date && "text-[rgba(11,38,66,0.4)]"
+            )}
+          >
+            <span className={cn(
+              "text-sm tracking-[-0.14px]",
+              date ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)]"
+            )}>
+              {date ? format(date, "dd/MM/yyyy") : "DD/MM/YYYY"}
+            </span>
+            <CalendarIcon className="h-5 w-5 text-[#0B2642]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(newDate) => {
+              onDateChange(newDate);
+              setOpen(false);
+            }}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 // Line Detail Field Autocomplete Component
 function LineDetailFieldAutocomplete({
   selectedFields,
@@ -814,6 +930,15 @@ export function InvoicePreview() {
   // Track sent invoice IDs
   const [sentInvoiceIds, setSentInvoiceIds] = useState<Set<string>>(new Set());
 
+  // State for line detail modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedJobForModal, setSelectedJobForModal] = useState<{
+    jobId: string;
+    jobRef: string;
+    jobDate?: string;
+    lineItems: StateLineItem[];
+  } | null>(null);
+
   // Get current invoice from array (memoized to prevent unnecessary recalculations)
   const currentInvoice = useMemo(() => {
     return allInvoices[currentInvoiceIndex] || allInvoices[0] || defaultInvoiceData;
@@ -828,6 +953,49 @@ export function InvoicePreview() {
     }
     return data;
   });
+
+  // Get level of detail, default to "partial" if not specified
+  // (must be defined before the useEffect that uses it)
+  const levelOfDetail: LevelOfDetail = invoiceData.levelOfDetail || "partial";
+
+  // Initialize state management for invoice selections
+  useEffect(() => {
+    if (invoiceData.id) {
+      // Convert jobs to line items format for state management
+      const jobsWithLineItems = invoiceData.jobs.map((job) => {
+        // Generate line items for this job
+        const jobLineItems: StateLineItem[] = [];
+        const categories: Array<"labour" | "materials" | "other"> = ["labour", "materials", "other"];
+        
+        for (let i = 0; i < job.linesCount; i++) {
+          jobLineItems.push({
+            id: `${job.id}-line-${i}`,
+            jobId: job.id,
+            category: categories[i % 3],
+            description: `Line item ${i + 1}`,
+            quantity: 1,
+            unitPrice: job.leftToInvoice / job.linesCount,
+            total: job.leftToInvoice / job.linesCount,
+            selected: job.selectedLinesCount > i,
+          });
+        }
+        
+        return {
+          id: job.id,
+          lineItems: jobLineItems,
+        };
+      });
+
+      // Initialize if not already initialized
+      if (!getInvoiceSelection(invoiceData.id)) {
+        initializeInvoiceSelection(
+          invoiceData.id,
+          jobsWithLineItems,
+          levelOfDetail
+        );
+      }
+    }
+  }, [invoiceData.id, invoiceData.jobs, levelOfDetail]);
 
   // Update invoice data when current invoice changes
   useEffect(() => {
@@ -851,9 +1019,6 @@ export function InvoicePreview() {
   const handleRemoveField = (fieldKey: string) => {
     handleLineDetailFieldsChange(selectedLineDetailFields.filter((f) => f !== fieldKey));
   };
-
-  // Get level of detail, default to "partial" if not specified
-  const levelOfDetail: LevelOfDetail = invoiceData.levelOfDetail || "partial";
   
   // Convert selection arrays to Sets if needed
   const selectedJobIdsSet = useMemo(() => {
@@ -900,8 +1065,15 @@ export function InvoicePreview() {
   // Generate line items for detailed view
   const lineItems = useMemo(() => generateLineItems(invoiceData.jobs), [invoiceData.jobs]);
 
-  // Calculate totals based on level of detail and selections
+  // Calculate totals based on level of detail and selections using state management
   const { subtotal, vatAmount, total } = useMemo(() => {
+    // Try to use state management first
+    const state = getInvoiceSelection(invoiceData.id);
+    if (state) {
+      return calculateTotalsFromState(invoiceData.id);
+    }
+    
+    // Fallback to old calculation if state not initialized
     let sub = 0;
     
     if (levelOfDetail === "detailed") {
@@ -943,7 +1115,7 @@ export function InvoicePreview() {
     const vat = sub * vatRate;
     const total = sub + vat;
     return { subtotal: sub, vatAmount: vat, total };
-  }, [invoiceData.jobs, levelOfDetail, selectedJobIdsSet, selectedGroupLinesSet, lineItems]);
+  }, [invoiceData.id, invoiceData.jobs, levelOfDetail, selectedJobIdsSet, selectedGroupLinesSet, lineItems]);
 
 
   // Navigation functions
@@ -1014,231 +1186,602 @@ export function InvoicePreview() {
   };
 
   return (
-    <div className="h-screen bg-[#F8F9FC] flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#FCFCFD] flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[rgba(26,28,46,0.12)] shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold text-[#0B2642]">
-            Invoice {currentInvoiceIndex + 1} of {totalInvoiceCount}
-          </h1>
+      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-[rgba(26,28,46,0.12)] shrink-0">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-[#73777D]">Jobs ready to invoice</span>
+          <ChevronRight className="h-4 w-4 text-[#73777D]" />
+          <span className="font-medium text-[#0B2642]">Invoice/{invoiceData.invoiceNumber.toString().padStart(4, "0")}</span>
+          <div className="ml-2 px-2 py-0.5 bg-[#F8F9FC] rounded text-xs font-medium text-[#73777D]">Default</div>
           {sentInvoiceIds.has(invoiceData.id) && (
-            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
+            <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
               <Check className="h-3.5 w-3.5 text-[#22c55e]" />
               <span className="text-xs font-medium text-[#22c55e]">Sent</span>
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {hasMultipleInvoices && (
-            <>
-              <button
-                onClick={handlePrevious}
-                disabled={currentInvoiceIndex === 0}
-                className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                aria-label="Previous invoice"
-              >
-                <ChevronLeft className="h-5 w-5 text-[#0B2642]" />
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentInvoiceIndex === allInvoices.length - 1}
-                className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                aria-label="Next invoice"
-              >
-                <ChevronRight className="h-5 w-5 text-[#0B2642]" />
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => navigate("/bulk-invoicing/v1/create")}
-            className="p-1.5 rounded-md hover:bg-[rgba(11,38,66,0.08)] transition-colors"
-            aria-label="Close and return to create invoice"
-          >
-            <X className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </div>
+        <Button 
+          variant="secondary" 
+          size="sm"
+          onClick={() => navigate("/bulk-invoicing/v1/create")}
+        >
+          Save as draft
+        </Button>
       </header>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Form */}
-        <div className="w-[400px] bg-white border-r border-[rgba(26,28,46,0.12)] overflow-auto">
-          <div className="p-8 space-y-6">
-            {/* Invoice title */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Invoice title
-              </label>
+        <div className="bg-white border-r border-[rgba(26,28,46,0.12)] overflow-auto">
+          <div className="px-[46px] py-[32px] space-y-10 w-[780px]">
+            {/* Header Row: Back link + Pagination */}
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={() => navigate("/bulk-invoicing/v1/create")}
+                className="flex items-center gap-1.5 text-sm font-medium text-[#73777D] hover:underline"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to create invoice
+              </button>
+              
+              {/* Pagination */}
+              {totalInvoiceCount > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentInvoiceIndex === 0}
+                    className="p-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Previous invoice"
+                  >
+                    <ChevronLeft className="h-6 w-6 text-[#0B2642]" />
+                  </button>
+                  <span className="text-base text-[#0B2642]">
+                    <span className="font-medium">{currentInvoiceIndex + 1}</span>
+                    <span className="text-[#73777D]"> of {totalInvoiceCount}</span>
+                  </span>
+                  <button
+                    onClick={handleNext}
+                    disabled={currentInvoiceIndex === allInvoices.length - 1}
+                    className="p-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Next invoice"
+                  >
+                    <ChevronRight className="h-6 w-6 text-[#0B2642]" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Invoice title - editable */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Invoice title</label>
               <Input
                 type="text"
                 value={invoiceData.title}
                 onChange={(e) => updateInvoiceField("title", e.target.value)}
-                className="h-10"
+                placeholder="Enter invoice title..."
+                className="h-8 max-w-[302px]"
               />
             </div>
 
-            {/* Nominal code */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Nominal code
-              </label>
-              <Input type="text" value="5001" className="h-10" readOnly />
-            </div>
-
-            {/* Invoice number */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Invoice number
-              </label>
-              <Input
-                type="text"
-                value={`HS/${invoiceData.invoiceNumber.toString().padStart(4, "0")}`}
-                className="h-10"
-                readOnly
-              />
-            </div>
-
-            {/* Department code */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Department code
-              </label>
-              <Input type="text" value="67800" className="h-10" readOnly />
-            </div>
-
-            {/* Send to */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Send to
-              </label>
-              <Input
-                type="email"
-                value="JohnLewis@gmail.com"
-                className="h-10"
-                readOnly
-              />
-            </div>
-
-            {/* Line Level Detail Section */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#0B2642]">
-                Line level detail
-              </label>
-              <div className="space-y-2">
-                {/* Autocomplete field selector */}
-                <LineDetailFieldAutocomplete
-                  selectedFields={selectedLineDetailFields}
-                  onFieldsChange={handleLineDetailFieldsChange}
-                />
-                
-                {/* Selected field tags */}
-                {selectedLineDetailFields.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedLineDetailFields.map((fieldKey) => {
-                      const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
-                      if (!field) return null;
-                      return (
-                        <div
-                          key={fieldKey}
-                          className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md text-sm text-[#0B2642]"
-                        >
-                          <span>{field.label}</span>
-                          <button
-                            onClick={() => handleRemoveField(fieldKey)}
-                            className="hover:bg-[rgba(11,38,66,0.08)] rounded p-0.5 transition-colors"
-                          >
-                            <X className="h-3 w-3 text-[#73777D]" />
-                          </button>
-                        </div>
-                      );
-                    })}
+            {/* Form Section */}
+            <div className="space-y-8">
+              {/* Form grid - 2 columns with specific widths */}
+              <div className="flex gap-[114px]">
+                {/* Left column - 302px */}
+                <div className="w-[302px] space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Invoice number</label>
+                    <Input
+                      type="text"
+                      value={`HS/${invoiceData.invoiceNumber.toString().padStart(4, "0")}`}
+                      className="h-8"
+                      readOnly
+                    />
                   </div>
-                )}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Contact</label>
+                    <Input
+                      type="text"
+                      value={invoiceData.name}
+                      className="h-8"
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* Right column - 240px */}
+                <div className="w-[240px] space-y-4">
+                  <DatePicker
+                    label="Issue Date"
+                    date={invoiceData.issueDate ? new Date(invoiceData.issueDate) : undefined}
+                    onDateChange={(date) => {
+                      if (date) {
+                        updateInvoiceField("issueDate", format(date, "yyyy-MM-dd"));
+                      }
+                    }}
+                  />
+                  <DatePicker
+                    label="Due Date"
+                    date={invoiceData.dueDate ? new Date(invoiceData.dueDate) : undefined}
+                    onDateChange={(date) => {
+                      if (date) {
+                        updateInvoiceField("dueDate", format(date, "yyyy-MM-dd"));
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Attachments */}
-            <AttachmentUploader
-              attachments={invoiceData.attachments}
-              onAttachmentsChange={(attachments) =>
-                setInvoiceData((prev) => ({ ...prev, attachments }))
-              }
-            />
+              {/* Reference field */}
+              <div className="w-[302px] space-y-1.5">
+                <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Reference</label>
+                <Input
+                  type="text"
+                  value={invoiceData.reference}
+                  onChange={(e) => updateInvoiceField("reference", e.target.value)}
+                  placeholder="Enter reference..."
+                  className="h-8"
+                />
+              </div>
 
-            {/* Send Invoice Button */}
-            <div className="pt-4">
-              <Button 
-                variant="default" 
-                onClick={handleSendInvoice}
-                className="w-full"
-                disabled={sentInvoiceIds.has(invoiceData.id)}
-              >
-                {sentInvoiceIds.has(invoiceData.id) ? "Already Sent" : "Send invoice"}
-              </Button>
+              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+
+              {/* Nominal and Department codes */}
+              <div className="w-[302px] space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Nominal code</label>
+                  <Input type="text" value="5001" className="h-8 text-[#73777D]" readOnly />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Department code</label>
+                  <Input type="text" value="67800" className="h-8 text-[#73777D]" readOnly />
+                </div>
+              </div>
+
+              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+
+              {/* Line Level Detail Section */}
+              <div className="w-[302px] space-y-2">
+                <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
+                  Line level detail
+                </label>
+                <div className="space-y-2">
+                  {/* Autocomplete field selector */}
+                  <LineDetailFieldAutocomplete
+                    selectedFields={selectedLineDetailFields}
+                    onFieldsChange={handleLineDetailFieldsChange}
+                  />
+                  
+                  {/* Selected field tags */}
+                  {selectedLineDetailFields.length > 0 && (
+                    <div className="flex flex-wrap gap-[7px]">
+                      {selectedLineDetailFields.map((fieldKey) => {
+                        const field = LINE_DETAIL_FIELDS.find((f) => f.key === fieldKey);
+                        if (!field) return null;
+                        return (
+                          <div
+                            key={fieldKey}
+                            className="inline-flex items-center gap-1 px-1 h-5 bg-[#F8F9FC] rounded-md"
+                          >
+                            <span className="text-xs text-[#73777D] tracking-[-0.12px]">{field.label}</span>
+                            <button
+                              onClick={() => handleRemoveField(fieldKey)}
+                              className="hover:bg-[rgba(11,38,66,0.08)] rounded transition-colors"
+                            >
+                              <X className="h-3 w-3 text-[#0B2642]" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+
+              {/* Notes Section */}
+              <div className="w-[302px] space-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Notes</label>
+                  <textarea
+                    value={invoiceData.notes}
+                    onChange={(e) => setInvoiceData((prev) => ({ ...prev, notes: e.target.value }))}
+                    className="w-full h-[66px] px-2 py-2.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] resize-none text-sm text-[#0B2642] placeholder:text-[rgba(11,38,66,0.4)] focus:outline-none focus:ring-1 focus:ring-[#086DFF]"
+                    placeholder="Add notes..."
+                  />
+                </div>
+                
+                {/* Attachments */}
+                <AttachmentUploader
+                  attachments={invoiceData.attachments}
+                  onAttachmentsChange={(attachments) =>
+                    setInvoiceData((prev) => ({ ...prev, attachments }))
+                  }
+                />
+              </div>
+
+              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+
+              {/* Site Title Header */}
+              <div className="flex items-center gap-1">
+                <Building2 className="h-6 w-6 text-[#0B2642]" />
+                <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px] leading-5">
+                  {invoiceData.name} ({invoiceData.jobs.length}) – {formatCurrency(totalValue)}
+                </span>
+              </div>
+
+              {/* Jobs Section */}
+              <div className="flex flex-col gap-4">
+                
+                {/* Job Detail View Selector - horizontal cards */}
+                <div className="flex gap-4 h-[91px]">
+                  <button
+                    onClick={() => {
+                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "summary" }));
+                      setViewMode(invoiceData.id, "summary");
+                    }}
+                    className={cn(
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
+                      levelOfDetail === "summary"
+                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                        : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
+                      levelOfDetail === "summary" 
+                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
+                    )}>
+                      {levelOfDetail === "summary" && (
+                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className={cn(
+                        "text-sm font-medium tracking-[-0.14px] leading-5",
+                        levelOfDetail === "summary" ? "text-[#086DFF]" : "text-[#1A1C2E]"
+                      )}>Summary</span>
+                      <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">1 Line for all jobs (combined totals)</p>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "partial" }));
+                      setViewMode(invoiceData.id, "partial");
+                    }}
+                    className={cn(
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
+                      levelOfDetail === "partial"
+                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                        : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
+                      levelOfDetail === "partial" 
+                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
+                    )}>
+                      {levelOfDetail === "partial" && (
+                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className={cn(
+                        "text-sm font-medium tracking-[-0.14px] leading-5",
+                        levelOfDetail === "partial" ? "text-[#086DFF]" : "text-[#1A1C2E]"
+                      )}>Partial</span>
+                      <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">Separate lines for labour vs materials per job</p>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "detailed" }));
+                      setViewMode(invoiceData.id, "detailed");
+                    }}
+                    className={cn(
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
+                      levelOfDetail === "partial"
+                        ? "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
+                        : levelOfDetail === "detailed"
+                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                        : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
+                      levelOfDetail === "detailed" 
+                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
+                    )}>
+                      {levelOfDetail === "detailed" && (
+                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className={cn(
+                        "text-sm font-medium tracking-[-0.14px] leading-5",
+                        levelOfDetail === "detailed" ? "text-[#086DFF]" : "text-[#1A1C2E]"
+                      )}>Detailed</span>
+                      <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">Every line from every job</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Job List */}
+              <div className="space-y-2">
+              {levelOfDetail === "summary" ? (
+                // Summary mode: show single consolidated job card
+                (() => {
+                  const firstJob = invoiceData.jobs[0];
+                  // Calculate totals across all jobs
+                  let totalLines = 0;
+                  let includedLines = 0;
+                  let totalValue = 0;
+                  invoiceData.jobs.forEach((job) => {
+                    const counts = getLineCounts(invoiceData.id, job.id);
+                    totalLines += counts.total;
+                    includedLines += counts.included;
+                    totalValue += job.leftToInvoice;
+                  });
+                  
+                  return (
+                    <div className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg">
+                      <div className="flex-1 flex flex-col gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "INT/12345"}</span>
+                          <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
+                          <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
+                        </div>
+                        <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+                          <span className="text-sm font-medium tracking-[-0.14px] text-[#0288D1]">
+                            {includedLines} of {totalLines} lines
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
+                          {formatCurrency(totalValue)}
+                        </span>
+                        <button className="p-0 hover:bg-[rgba(11,38,66,0.08)] rounded transition-colors">
+                          <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : invoiceData.jobs.map((job) => {
+                const lineCounts = getLineCounts(invoiceData.id, job.id);
+                const isJobSelected = selectedJobIdsSet.has(job.id);
+                
+                // Get line items for this job from state
+                const state = getInvoiceSelection(invoiceData.id);
+                const jobState = state?.jobSelections.get(job.id);
+                const jobLineItems = jobState?.lineItems || [];
+
+                if (levelOfDetail === "partial") {
+                  return (
+                    <div
+                      key={job.id}
+                      className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg h-[70px]"
+                    >
+                      <Checkbox
+                        checked={isJobSelected}
+                        onCheckedChange={(checked) => {
+                          toggleJob(invoiceData.id, job.id, checked as boolean);
+                          const newSelected = new Set(selectedJobIdsSet);
+                          if (checked) {
+                            newSelected.add(job.id);
+                          } else {
+                            newSelected.delete(job.id);
+                          }
+                          setInvoiceData((prev) => ({
+                            ...prev,
+                            selectedJobIds: Array.from(newSelected),
+                          }));
+                        }}
+                      />
+                      <div className="flex-1 flex flex-col gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+                          <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
+                            isJobSelected 
+                              ? "bg-[rgba(8,109,255,0.08)] border-[rgba(2,136,209,0.2)]"
+                              : "bg-[rgba(26,28,46,0.05)] border-[rgba(26,28,46,0.12)]"
+                          )}>
+                            <span className={cn(
+                              "text-sm font-medium tracking-[-0.14px]",
+                              isJobSelected ? "text-[#0288D1]" : "text-[#73777D]"
+                            )}>
+                              {lineCounts.included} lines
+                            </span>
+                          </div>
+                          {job.jobCategory && (
+                            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+                              <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.jobCategory}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
+                        {formatCurrency(job.leftToInvoice)}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Detailed view
+                return (
+                  <div
+                    key={job.id}
+                    className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg h-[70px]"
+                  >
+                    <Checkbox
+                      checked={isJobSelected}
+                      onCheckedChange={(checked) => {
+                        toggleJob(invoiceData.id, job.id, checked as boolean);
+                        const newSelected = new Set(selectedJobIdsSet);
+                        if (checked) {
+                          newSelected.add(job.id);
+                        } else {
+                          newSelected.delete(job.id);
+                        }
+                        setInvoiceData((prev) => ({
+                          ...prev,
+                          selectedJobIds: Array.from(newSelected),
+                        }));
+                      }}
+                    />
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+                        <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
+                          isJobSelected 
+                            ? "bg-[rgba(8,109,255,0.08)] border-[rgba(2,136,209,0.2)]"
+                            : "bg-[rgba(26,28,46,0.05)] border-[rgba(26,28,46,0.12)]"
+                        )}>
+                          <span className={cn(
+                            "text-sm font-medium tracking-[-0.14px]",
+                            isJobSelected ? "text-[#0288D1]" : "text-[#73777D]"
+                          )}>
+                            {lineCounts.included} lines
+                          </span>
+                        </div>
+                        {job.jobCategory && (
+                          <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+                            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.jobCategory}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
+                      {formatCurrency(job.leftToInvoice)}
+                    </div>
+                  </div>
+                );
+              })}
+              </div>
+
+              {/* Send Invoice Split Button */}
+              <div className="pt-8">
+                <div className="flex items-stretch w-full rounded-md overflow-hidden shadow-[0_0_0_1px_rgba(7,98,229,0.8)]">
+                  <button 
+                    className="flex-1 flex items-center justify-center px-4 py-[6px] bg-[#086DFF] hover:bg-[#0752cc] text-white text-sm font-medium transition-colors disabled:opacity-50"
+                    onClick={handleSendInvoice}
+                    disabled={sentInvoiceIds.has(invoiceData.id)}
+                  >
+                    {sentInvoiceIds.has(invoiceData.id) ? "Already Sent" : "Send Invoice"}
+                  </button>
+                  <button 
+                    className="flex items-center justify-center px-1 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#1A1C2E] disabled:opacity-50 transition-colors"
+                    disabled={sentInvoiceIds.has(invoiceData.id)}
+                  >
+                    <ChevronDown className="h-5 w-5 text-white" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Panel - PDF Preview */}
-        <div className="flex-1 bg-[#F0F2F5] overflow-auto p-8">
-          <div className="bg-white rounded-lg shadow-[0px_2px_8px_rgba(0,0,0,0.08)] max-w-[600px] mx-auto">
+        <div className="flex-1 bg-[#F9FAFD] overflow-auto flex flex-col items-center py-[46px] gap-6">
+          {/* Site Title Header */}
+          <div className="w-[592px] flex items-center justify-center gap-1">
+            <Building2 className="h-4 w-4 text-[#73777D]" />
+            <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px] leading-4">
+              {invoiceData.name} ({invoiceData.jobs.length}) – {formatCurrency(totalValue)}
+            </span>
+          </div>
+
+          {/* Invoice Preview Card */}
+          <div className="bg-white w-[592px] shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] relative">
+            {/* Inner border effect */}
+            <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_0px_0px_1px_white,inset_0px_0px_0px_2px_rgba(229,231,235,0.4)]" />
+            
             {/* Invoice Header */}
-            <div className="px-8 py-6 border-b border-[rgba(26,28,46,0.08)]">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-xl font-bold text-[#0B2642]">Invoice</h2>
-                  <p className="text-sm text-[#73777D] mt-1">BigChange Ltd</p>
-                  <p className="text-sm text-[#73777D]">123 Business Street</p>
-                  <p className="text-sm text-[#73777D]">Leeds, LS1 1AA</p>
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-start gap-10">
+                {/* Left side - Company info */}
+                <div className="flex-1 space-y-2">
+                  <h2 className="text-2xl font-extrabold text-[#0F172B] tracking-[-0.24px]">Invoice</h2>
+                  <p className="text-sm font-bold text-[#0F172B]">BigChange Ltd</p>
+                  <p className="text-xs text-[#62748E]">123 Business Street</p>
                 </div>
-                <div className="text-right text-sm">
-                  <p className="text-[#73777D]">Invoice Number</p>
-                  <p className="font-bold text-[#0B2642]">
-                    HS/{invoiceData.invoiceNumber.toString().padStart(4, "0")}
-                  </p>
-                  <p className="text-[#73777D] mt-2">
-                    Issue Date {formatDisplayDate(invoiceData.issueDate)}
-                  </p>
-                  <p className="text-[#73777D]">
-                    Due Date {formatDisplayDate(invoiceData.dueDate)}
-                  </p>
-                  <p className="text-[#73777D] mt-2">
-                    Reference {invoiceData.reference || "-"}
-                  </p>
-                  <p className="text-[#73777D] mt-2">
-                    Reference: {invoiceData.reference || "-"}
-                  </p>
+                
+                {/* Right side - Invoice details */}
+                <div className="w-[204px] space-y-6">
+                  <div className="text-right">
+                    <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Invoice Number</p>
+                    <p className="text-sm font-medium text-[#0F172B] tracking-[-0.14px]">
+                      HS/{invoiceData.invoiceNumber.toString().padStart(4, "0")}
+                    </p>
+                  </div>
+                  <div className="space-y-2 text-right">
+                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
+                      <span className="text-[#73777D]">Issue Date:</span>
+                      <span className="text-[#0B2642]">Today ({formatDisplayDate(invoiceData.issueDate)})</span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
+                      <span className="text-[#73777D]">Due Date:</span>
+                      <span className="text-[#0B2642]">Today ({formatDisplayDate(invoiceData.dueDate)})</span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
+                      <span className="text-[#73777D]">Reference:</span>
+                      <span className="text-[#0B2642]">{invoiceData.reference || "24155643"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bill To */}
+              <div className="opacity-80 space-y-[7px]">
+                <p className="text-xs font-medium text-[#0F172B] tracking-[-0.12px]">Bill To:</p>
+                <div className="text-[8px] text-[#73777D] leading-[13px]">
+                  <p>{invoiceData.name}</p>
+                  <p>{invoiceData.address}</p>
                 </div>
               </div>
             </div>
 
-            {/* Bill To */}
-            <div className="px-8 py-4 border-b border-[rgba(26,28,46,0.08)]">
-              <p className="text-xs font-medium text-[#73777D] uppercase tracking-wider mb-1">
-                Bill To:
-              </p>
-              <p className="text-sm font-medium text-[#0B2642]">
-                {invoiceData.name}
-              </p>
-              <p className="text-sm text-[#73777D]">{invoiceData.address}</p>
-            </div>
-
             {/* Invoice Title */}
-            <div className="px-8 py-4 border-b border-[rgba(26,28,46,0.08)]">
-              <p className="font-bold text-[#0B2642]">{invoiceData.title}</p>
+            <div className="px-6">
+              <p className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{invoiceData.title || "Fire Extinguisher Servicing"}</p>
             </div>
 
             {/* Job Details (Read-only Preview) */}
-            <div className="px-8 py-4 space-y-6">
+            <div className="p-6 space-y-6">
               {levelOfDetail === "summary" && (
                 <SummaryJobView 
                   jobs={invoiceData.jobs} 
                   totalValue={totalValue}
+                  invoiceId={invoiceData.id}
                 />
               )}
               
               {levelOfDetail === "detailed" && (
-                <DetailedJobView lineItems={lineItems} />
+                <DetailedJobView 
+                  lineItems={lineItems}
+                  invoiceId={invoiceData.id}
+                  onLineItemToggle={(jobId, lineId) => {
+                    toggleLineItem(invoiceData.id, jobId, lineId);
+                    setInvoiceData((prev) => ({ ...prev }));
+                  }}
+                />
               )}
               
               {levelOfDetail === "partial" && (
@@ -1248,7 +1791,6 @@ export function InvoicePreview() {
                     
                     return (
                       <div key={category} className="space-y-2">
-                        <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{category}</p>
                         {jobs.map(job => {
                           if (job.isGroupJob && job.childJobs) {
                             return (
@@ -1273,35 +1815,107 @@ export function InvoicePreview() {
             </div>
 
             {/* Totals */}
-            <div className="px-8 py-4 border-t border-[rgba(26,28,46,0.12)]">
-              <div className="flex justify-end">
-                <div className="w-48 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[#73777D]">Subtotal</span>
-                    <span className="text-[#0B2642]">
-                      {formatCurrency(subtotal)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-[#73777D]">VAT (Rate)</span>
-                    <span className="text-[#0B2642]">
-                      {formatCurrency(vatAmount)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm font-bold pt-2 border-t border-[rgba(26,28,46,0.08)]">
-                    <span className="text-[#0B2642]">Total</span>
-                    <span className="text-[#0B2642]">
-                      {formatCurrency(total)}
-                    </span>
+            <div className="px-6 pb-6">
+              {/* Subtotal row */}
+              <div className="flex justify-between items-center py-3 border-t border-[rgba(16,25,41,0.1)]">
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Subtotal</span>
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(subtotal)}</span>
+              </div>
+              {/* VAT row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">VAT (Rate)</span>
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
+              </div>
+              {/* Total row */}
+              <div className="flex justify-between items-center py-[10px] border-t border-[rgba(16,25,41,0.1)]">
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Total</span>
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(total)}</span>
+              </div>
+              {/* Amount due row */}
+              <div className="flex justify-between items-center py-3 border-t border-[rgba(16,25,41,0.1)]">
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Amount due</span>
+                <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
+              </div>
+            </div>
+
+            {/* Notes Section on Preview */}
+            {invoiceData.notes && (
+              <div className="px-6 pb-6">
+                <div className="border-t border-[rgba(16,25,41,0.1)] pt-4">
+                  <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Notes</p>
+                  <p className="text-sm text-[#0B2642] tracking-[-0.14px] whitespace-pre-wrap">{invoiceData.notes}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Attachments Section on Preview */}
+            {invoiceData.attachments.length > 0 && (
+              <div className="px-6 pb-6">
+                <div className={cn(
+                  "pt-4",
+                  !invoiceData.notes && "border-t border-[rgba(16,25,41,0.1)]"
+                )}>
+                  <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Attachments</p>
+                  <div className="flex flex-wrap gap-2">
+                    {invoiceData.attachments.map((attachment) => (
+                      <div
+                        key={attachment.id}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md border border-[rgba(26,28,46,0.08)]"
+                      >
+                        <Paperclip className="h-3 w-3 text-[#73777D]" />
+                        <span className="text-xs text-[#0B2642] tracking-[-0.12px]">{attachment.name}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+          
+          {/* Page Pagination */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <button
+              className="p-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-6 w-6 text-[#0B2642]" />
+            </button>
+            <span className="text-base text-[#0B2642]">
+              <span className="font-medium">Page 1</span>
+              <span className="text-[#73777D]"> of 2</span>
+            </span>
+            <button
+              className="p-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors"
+              aria-label="Next page"
+            >
+              <ChevronRight className="h-6 w-6 text-[#0B2642]" />
+            </button>
           </div>
         </div>
       </div>
 
+      {/* Job Line Detail Modal */}
+      {selectedJobForModal && (
+        <JobLineDetailModal
+          jobId={selectedJobForModal.jobId}
+          jobRef={selectedJobForModal.jobRef}
+          jobDate={selectedJobForModal.jobDate}
+          lineItems={selectedJobForModal.lineItems}
+          onLineItemsChange={(updatedLineItems) => {
+            updateJobLineItems(
+              invoiceData.id,
+              selectedJobForModal.jobId,
+              updatedLineItems
+            );
+            // Force re-render
+            setInvoiceData((prev) => ({ ...prev }));
+          }}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+        />
+      )}
     </div>
   );
 }
+
 

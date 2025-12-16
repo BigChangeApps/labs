@@ -834,12 +834,6 @@ export function JobsReadyToInvoice() {
                   </Tooltip>
                 )}
               </div>
-              <button 
-                onClick={() => setSelectedJobs(new Set())}
-                className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
-              >
-                <X className="h-4 w-4 text-white/60" />
-              </button>
             </div>
           </div>
         </TooltipProvider>

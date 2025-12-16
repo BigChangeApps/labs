@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
-import { Input } from "@/registry/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -83,11 +82,6 @@ const bankAccountOptions = [
   { id: "lloyds", label: "Lloyds", last4: "9012" },
 ];
 
-const currencyOptions = [
-  { id: "gbp", label: "British Pound", symbol: "£" },
-  { id: "usd", label: "US Dollar", symbol: "$" },
-  { id: "eur", label: "Euro", symbol: "€" },
-];
 
 // Helper to generate today's date in YYYY-MM-DD format
 function getToday(): string {
@@ -155,7 +149,7 @@ function InvoiceTitleBadge({
 
   if (isEditing) {
     return (
-      <div className="inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)]">
+      <div className="inline-flex w-fit items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)]">
         <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{invoiceNumber}</span>
         <FileText className="h-4 w-4 text-[#73777D]" />
         <input
@@ -174,7 +168,7 @@ function InvoiceTitleBadge({
   return (
     <button
       onClick={handleClick}
-      className="inline-flex items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-[rgba(8,109,255,0.12)] transition-colors cursor-pointer"
+      className="inline-flex w-fit items-center gap-1.5 px-1.5 py-1 rounded-md bg-[rgba(8,109,255,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-[rgba(8,109,255,0.12)] transition-colors cursor-pointer"
     >
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{invoiceNumber}</span>
       <FileText className="h-4 w-4 text-[#73777D]" />
@@ -203,14 +197,6 @@ function DraftBadge() {
   );
 }
 
-// Override tag
-function OverrideTag() {
-  return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)]">
-      <span className="text-xs font-normal text-[#0288d1] tracking-[-0.12px]">Override</span>
-    </div>
-  );
-}
 
 
 // Attachment Uploader Component
@@ -358,56 +344,6 @@ function JobTypeBadge({ type }: { type: string }) {
   );
 }
 
-// Level of Detail Select with Override tag
-function LevelOfDetailSelect({ 
-  value, 
-  onChange, 
-  showOverrideTag = false,
-}: { 
-  value: LevelOfDetail; 
-  onChange: (value: LevelOfDetail) => void;
-  showOverrideTag?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="flex flex-col gap-1.5 w-[220px]">
-      <div className="flex items-center gap-1">
-        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Level of detail</span>
-        <HelpCircle className="h-4 w-4 text-[#73777D]" />
-      </div>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
-              {showOverrideTag && <OverrideTag />}
-            </div>
-            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-          {levelOfDetailOptions.map((option) => (
-            <button
-              key={option}
-              onClick={() => {
-                onChange(option);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
-                value === option ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
-              )}
-            >
-              <span>{levelOfDetailLabels[option]}</span>
-              {value === option && <Check className="h-4 w-4 text-[#086DFF]" />}
-            </button>
-          ))}
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
 
 // Universal Level of Detail Select (full width)
 function UniversalLevelOfDetailSelect({ 
@@ -429,7 +365,7 @@ function UniversalLevelOfDetailSelect({
       </div>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{levelOfDetailLabels[value]}</span>
             <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
@@ -457,138 +393,6 @@ function UniversalLevelOfDetailSelect({
   );
 }
 
-// Date Select
-function DateSelect({ 
-  label, 
-  value, 
-  onChange,
-}: { 
-  label: string;
-  value: string; 
-  onChange: (value: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="flex flex-col gap-1.5 flex-1">
-      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button className="flex items-center gap-1.5 w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors max-w-[220px]">
-            <Calendar className="h-5 w-5 text-[#0B2642]" />
-            <span className="flex-1 text-left text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
-              {formatDisplayDate(value)}
-            </span>
-            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" align="start">
-          <Input
-            type="date"
-            value={value}
-            onChange={(e) => {
-              onChange(e.target.value);
-              setOpen(false);
-            }}
-            className="h-9"
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
-
-// Bank Account Select
-function BankAccountSelect({ 
-  value, 
-  onChange,
-}: { 
-  value: string; 
-  onChange: (value: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const selected = bankAccountOptions.find(b => b.id === value) || bankAccountOptions[0];
-
-  return (
-    <div className="flex flex-col gap-1.5 w-fit">
-      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Bank account</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[220px]">
-            <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
-              {selected.label} ({selected.last4})
-            </span>
-            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-          {bankAccountOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => {
-                onChange(option.id);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
-                value === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
-              )}
-            >
-              <span>{option.label} ({option.last4})</span>
-              {value === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
-            </button>
-          ))}
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
-
-// Currency Select
-function CurrencySelect({ 
-  value, 
-  onChange,
-}: { 
-  value: string; 
-  onChange: (value: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const selected = currencyOptions.find(c => c.id === value) || currencyOptions[0];
-
-  return (
-    <div className="flex flex-col gap-1.5 flex-1">
-      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Currency</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[247px]">
-            <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">
-              <span className="font-semibold">{selected.symbol}</span> {selected.label}
-            </span>
-            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-          {currencyOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => {
-                onChange(option.id);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center justify-between px-2 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
-                value === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
-              )}
-            >
-              <span><span className="font-semibold">{option.symbol}</span> {option.label}</span>
-              {value === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
-            </button>
-          ))}
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
 
 // Generic Select dropdown
 function GenericSelect({ 
@@ -610,7 +414,7 @@ function GenericSelect({
       <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left max-w-[220px]">
+          <button className="flex items-center justify-between w-full px-2 py-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors text-left">
             <span className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">{selected.label}</span>
             <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
@@ -638,150 +442,8 @@ function GenericSelect({
   );
 }
 
-// Mock line items for detailed view
-interface LineItem {
-  id: string;
-  name: string;
-  qty: number;
-  unitPrice: number;
-  total: number;
-  category: "blue" | "orange" | "purple";
-  selected: boolean;
-}
 
-const mockLineItems: LineItem[] = [
-  { id: "1", name: "Smoke Alarm Testing", qty: 2.0, unitPrice: 100, total: 100, category: "blue", selected: true },
-  { id: "2", name: "Emergency Light Check", qty: 3.0, unitPrice: 150, total: 150, category: "orange", selected: true },
-  { id: "3", name: "First Aid Kit Restock", qty: 4.0, unitPrice: 200, total: 200, category: "purple", selected: true },
-  { id: "4", name: "Health and Safety Audit", qty: 5.0, unitPrice: 300, total: 300, category: "orange", selected: true },
-  { id: "5", name: "Electrical Safety Inspection", qty: 6.0, unitPrice: 1200, total: 1200, category: "blue", selected: true },
-  { id: "6", name: "Fire Safety Training", qty: 7.0, unitPrice: 3000, total: 3000, category: "blue", selected: true },
-  { id: "7", name: "Building Security Review", qty: 8.0, unitPrice: 2000, total: 2000, category: "orange", selected: true },
-  { id: "8", name: "Hazardous Material Handling", qty: 9.0, unitPrice: 1500, total: 1500, category: "blue", selected: true },
-  { id: "9", name: "Workplace Ergonomic Assessment", qty: 10.0, unitPrice: 1000, total: 1000, category: "purple", selected: true },
-  { id: "10", name: "Annual Compliance Review", qty: 11.0, unitPrice: 2000, total: 2000, category: "blue", selected: true },
-];
 
-// Category dot indicator
-function CategoryDot({ category }: { category: "blue" | "orange" | "purple" }) {
-  const colors = {
-    blue: "bg-[#086DFF]",
-    orange: "bg-[#F59E0B]",
-    purple: "bg-[#8B5CF6]",
-  };
-  return <div className={cn("w-2 h-2 rounded-full", colors[category])} />;
-}
-
-// Single job card
-function JobCard({ job }: { job: JobWithLines }) {
-  const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
-  
-  return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
-            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
-            <ResourceAvatar initials={job.jobCategory === "Internal" ? "CS" : "LB"} />
-          </div>
-          <LinesBadge 
-            total={job.linesCount} 
-            selected={isPartial ? job.selectedLinesCount : undefined}
-            isPartial={isPartial}
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(job.leftToInvoice)}</span>
-          <button className="p-0.5 hover:bg-gray-100 rounded">
-            <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Summary view - single condensed line
-function SummaryJobView({ jobs, totalValue }: { jobs: JobWithLines[]; totalValue: number }) {
-  const totalLines = jobs.reduce((sum, job) => {
-    if (job.isGroupJob && job.childJobs) {
-      return sum + job.childJobs.reduce((s, c) => s + c.linesCount, 0);
-    }
-    return sum + job.linesCount;
-  }, 0);
-
-  const firstJob = jobs[0];
-  
-  return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "EXT/12345"}</span>
-            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
-            <ResourceAvatar />
-          </div>
-          <LinesBadge total={totalLines} />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-[#0B2642] tracking-[-0.14px]">{formatCurrency(totalValue)}</span>
-          <button className="p-0.5 hover:bg-gray-100 rounded">
-            <MoreVertical className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Detailed view - table with line items
-function DetailedJobView({ 
-  lineItems, 
-  onLineItemToggle,
-  onSelectAll,
-  allSelected,
-}: { 
-  lineItems: LineItem[];
-  onLineItemToggle: (id: string) => void;
-  onSelectAll: () => void;
-  allSelected: boolean;
-}) {
-  return (
-    <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
-      {/* Table Header */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
-        <Checkbox 
-          checked={allSelected}
-          onCheckedChange={onSelectAll}
-        />
-        <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Name</span>
-        <span className="w-16 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-center">Qty</span>
-        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Unit price</span>
-        <span className="w-24 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">Total</span>
-      </div>
-      
-      {/* Table Body */}
-      <div className="divide-y divide-[rgba(26,28,46,0.08)]">
-        {lineItems.map((item) => (
-          <div key={item.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-[#F8F9FC] transition-colors">
-            <Checkbox 
-              checked={item.selected}
-              onCheckedChange={() => onLineItemToggle(item.id)}
-            />
-            <div className="flex-1 flex items-center gap-2">
-              <CategoryDot category={item.category} />
-              <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{item.name}</span>
-            </div>
-            <span className="w-16 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-center">{item.qty.toFixed(1)}</span>
-            <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.unitPrice)}</span>
-            <span className="w-24 text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatCurrency(item.total)}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // Nested job card with checkbox
 function NestedJobCard({ 
@@ -913,11 +575,6 @@ function InvoiceCard({
   onJobSelectionChange,
   onGroupLinesSelectionChange,
   onInvoiceDataChange,
-  universalLevelOfDetail,
-  lineItems,
-  onLineItemToggle,
-  onSelectAllLineItems,
-  totalInvoiceCount,
   onPreview,
 }: { 
   invoiceData: InvoiceCardData;
@@ -926,263 +583,260 @@ function InvoiceCard({
   onJobSelectionChange: (jobId: string, checked: boolean) => void;
   onGroupLinesSelectionChange: (groupJobId: string, checked: boolean) => void;
   onInvoiceDataChange: (id: string, updates: Partial<InvoiceCardData>) => void;
-  universalLevelOfDetail: LevelOfDetail;
-  lineItems: LineItem[];
   onPreview: () => void;
-  onLineItemToggle: (id: string) => void;
-  onSelectAllLineItems: () => void;
-  totalInvoiceCount: number;
 }) {
-  // Group jobs by category
-  const jobsByCategory = useMemo(() => {
-    const groups: Record<string, JobWithLines[]> = {
-      "External": [],
-      "Internal": [],
-      "External, Internal": [],
-    };
-    
-    invoiceData.jobs.forEach((job) => {
-      if (groups[job.jobCategory]) {
-        groups[job.jobCategory].push(job);
-      }
-    });
-    
-    return groups;
-  }, [invoiceData.jobs]);
+  const [jobsExpanded, setJobsExpanded] = useState(false);
 
-  // Calculate total value for summary view
-  const totalValue = useMemo(() => {
-    return invoiceData.jobs.reduce((sum, job) => {
-      if (job.isGroupJob && job.childJobs) {
-        return sum + job.childJobs.reduce((s, c) => s + c.leftToInvoice, 0);
-      }
-      return sum + job.leftToInvoice;
-    }, 0);
-  }, [invoiceData.jobs]);
-
-  // Calculate per-card totals based on level of detail
+  // Calculate per-card totals based on selected jobs
   const { cardSubtotal, cardVat, cardTotal } = useMemo(() => {
     let subtotal = 0;
-    const levelOfDetail = invoiceData.levelOfDetail;
     
-    if (levelOfDetail === "detailed") {
-      // For detailed view, sum selected line items
-      lineItems.forEach(item => {
-        if (item.selected) {
-          subtotal += item.total;
-        }
-      });
-    } else if (levelOfDetail === "summary") {
-      // For summary view, include all jobs
-      invoiceData.jobs.forEach(job => {
-        if (job.isGroupJob && job.childJobs) {
-          job.childJobs.forEach(child => {
+    invoiceData.jobs.forEach(job => {
+      if (job.isGroupJob && job.childJobs) {
+        job.childJobs.forEach(child => {
+          if (selectedJobIds.has(child.id)) {
             subtotal += child.leftToInvoice;
-          });
-          if (selectedGroupLines.has(job.id)) {
-            subtotal += job.leftToInvoice;
           }
-        } else {
+        });
+        if (selectedGroupLines.has(job.id)) {
           subtotal += job.leftToInvoice;
         }
-      });
-    } else {
-      // For partial view, sum based on selected jobs and group lines
-      invoiceData.jobs.forEach(job => {
-        if (job.isGroupJob && job.childJobs) {
-          job.childJobs.forEach(child => {
-            if (selectedJobIds.has(child.id)) {
-              subtotal += child.leftToInvoice;
-            }
-          });
-          if (selectedGroupLines.has(job.id)) {
-            subtotal += job.leftToInvoice;
-          }
-        } else {
+      } else {
+        if (selectedJobIds.has(job.id)) {
           subtotal += job.leftToInvoice;
         }
-      });
-    }
+      }
+    });
     
     const vatRate = 0.20;
     const vat = subtotal * vatRate;
     const total = subtotal + vat;
     
     return { cardSubtotal: subtotal, cardVat: vat, cardTotal: total };
-  }, [invoiceData.jobs, invoiceData.levelOfDetail, selectedJobIds, selectedGroupLines, lineItems]);
+  }, [invoiceData.jobs, selectedJobIds, selectedGroupLines]);
 
-  const handleLevelOfDetailChange = (value: LevelOfDetail) => {
-    // Update the invoice card's level of detail
-    onInvoiceDataChange(invoiceData.id, { 
-      levelOfDetail: value,
-      isLevelOfDetailOverridden: value !== universalLevelOfDetail,
+  // Get all non-group jobs and child jobs for the list
+  const allSelectableJobs = useMemo(() => {
+    const jobs: JobWithLines[] = [];
+    invoiceData.jobs.forEach(job => {
+      if (job.isGroupJob && job.childJobs) {
+        // Group job - will be handled separately
+      } else {
+        jobs.push(job);
+      }
     });
-  };
+    return jobs;
+  }, [invoiceData.jobs]);
 
-  const allLineItemsSelected = lineItems.every(item => item.selected);
+  // Get group jobs
+  const groupJobs = useMemo(() => {
+    return invoiceData.jobs.filter(job => job.isGroupJob && job.childJobs);
+  }, [invoiceData.jobs]);
+
+  const selected = bankAccountOptions.find(b => b.id === invoiceData.bankAccount) || bankAccountOptions[0];
 
   return (
     <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
-      {/* Invoice Header & Settings */}
-      <div className="px-6 pt-5 pb-6 space-y-6">
-        {/* Invoice Title Badge with Number */}
-        <InvoiceTitleBadge 
-          invoiceNumber={invoiceData.invoiceNumber}
-          title={invoiceData.title}
-          onChange={(newTitle) => onInvoiceDataChange(invoiceData.id, { title: newTitle })}
-        />
-
-        {/* Level of Detail */}
-        <LevelOfDetailSelect
-          value={invoiceData.levelOfDetail}
-          onChange={handleLevelOfDetailChange}
-          showOverrideTag={invoiceData.isLevelOfDetailOverridden}
-        />
-
-        {/* Contact Info */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{invoiceData.name}</span>
-            <span className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">Change</span>
-          </div>
-          <p className="text-sm font-normal text-[#555D66] tracking-[-0.14px]">{invoiceData.address}</p>
-        </div>
-
-        {/* Form Fields */}
-        <div className="space-y-4">
-          {/* Row 1: Reference, Issue Date, Due Date */}
-          <div className="flex gap-4">
-            <div className="flex flex-col gap-1.5 flex-1">
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Reference (optional)</span>
-              <input
-                type="text"
-                value={invoiceData.reference}
-                onChange={(e) => onInvoiceDataChange(invoiceData.id, { reference: e.target.value })}
-                className="flex items-center w-full h-8 px-2 py-1.5 rounded-md bg-transparent text-sm font-normal text-[#0B2642] tracking-[-0.14px] outline-none border-0"
-              />
+      {/* Invoice Header */}
+      <div className="px-6 pt-6 pb-0">
+        {/* Top row: Invoice badge, dates, bank account, reference, menu */}
+        <div className="flex items-start justify-between gap-4">
+          {/* Left side: Invoice badge + Contact */}
+          <div className="flex flex-col gap-4 flex-1">
+            <InvoiceTitleBadge 
+              invoiceNumber={invoiceData.invoiceNumber}
+              title={invoiceData.title}
+              onChange={(newTitle) => onInvoiceDataChange(invoiceData.id, { title: newTitle })}
+            />
+            
+            {/* Contact Info */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{invoiceData.name}</span>
+                <button className="text-sm font-normal text-[#086DFF] hover:underline tracking-[-0.14px]">Change</button>
+              </div>
+              <p className="text-sm font-normal text-[#555D66] tracking-[-0.14px] whitespace-pre-line">{invoiceData.address.split(", ").join(",\n")}</p>
             </div>
-            <DateSelect
-              label="Issue date"
-              value={invoiceData.issueDate}
-              onChange={(value) => onInvoiceDataChange(invoiceData.id, { issueDate: value })}
-            />
-            <DateSelect
-              label="Due date"
-              value={invoiceData.dueDate}
-              onChange={(value) => onInvoiceDataChange(invoiceData.id, { dueDate: value })}
-            />
           </div>
-
-          {/* Row 2: Bank Account, Currency */}
-          <div className="flex gap-4">
-            <BankAccountSelect
-              value={invoiceData.bankAccount}
-              onChange={(value) => onInvoiceDataChange(invoiceData.id, { bankAccount: value })}
-            />
-            <CurrencySelect
-              value={invoiceData.currency}
-              onChange={(value) => onInvoiceDataChange(invoiceData.id, { currency: value })}
-            />
+          
+          {/* Right side: Dates, Bank, Reference */}
+          <div className="flex flex-col gap-4 items-end">
+            {/* Row 1: Issue date, Due date, Menu */}
+            <div className="flex items-start gap-6">
+              <div className="flex flex-col gap-0.5 min-w-[125px]">
+                <div className="flex items-center justify-end gap-1.5">
+                  <Calendar className="h-4 w-4 text-[#73777D]" />
+                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Issue date</span>
+                </div>
+                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatDisplayDate(invoiceData.issueDate)}</span>
+              </div>
+              
+              <div className="flex flex-col gap-0.5 min-w-[125px]">
+                <div className="flex items-center justify-end gap-1.5">
+                  <Calendar className="h-4 w-4 text-[#73777D]" />
+                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Due date</span>
+                </div>
+                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatDisplayDate(invoiceData.dueDate)}</span>
+              </div>
+              
+              <button className="p-0.5 hover:bg-gray-100 rounded mt-0.5">
+                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+              </button>
+            </div>
+            
+            {/* Row 2: Bank account, Reference */}
+            <div className="flex items-start gap-6">
+              <div className="flex flex-col gap-0.5 min-w-[125px]">
+                <div className="flex items-center gap-1.5">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1.33325 6.00004L7.99992 2.66671L14.6666 6.00004L7.99992 9.33337L1.33325 6.00004Z" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3.33325 7.33337V11.3334C3.33325 11.3334 5.33325 13.3334 7.99992 13.3334C10.6666 13.3334 12.6666 11.3334 12.6666 11.3334V7.33337" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Bank account</span>
+                </div>
+                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{selected.label} ({selected.last4})</span>
+              </div>
+              
+              <div className="flex flex-col gap-0.5 min-w-[125px]">
+                <div className="flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-[#73777D]" />
+                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Reference</span>
+                </div>
+                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{invoiceData.reference || "Heating Upgrade"}</span>
+              </div>
+              
+              <button className="p-0.5 hover:bg-gray-100 rounded mt-0.5">
+                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+              </button>
+            </div>
           </div>
-
-          {/* Upload Attachments */}
-          <AttachmentUploader
-            attachments={invoiceData.attachments}
-            onAttachmentsChange={(attachments) => onInvoiceDataChange(invoiceData.id, { attachments })}
-          />
         </div>
       </div>
+
+      {/* View/Hide Jobs Toggle */}
+      <div className="px-6 py-4">
+        <button
+          onClick={() => setJobsExpanded(!jobsExpanded)}
+          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-md bg-[#F8F9FC] hover:bg-[#EEF1F6] transition-colors text-[#086DFF]"
+        >
+          {jobsExpanded ? (
+            <>
+              <ChevronDown className="h-5 w-5 rotate-180" />
+              <span className="text-sm font-medium tracking-[-0.14px]">Hide jobs</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-5 w-5" />
+              <span className="text-sm font-medium tracking-[-0.14px]">View jobs</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Expandable Job Details Section */}
+      {jobsExpanded && (
+        <div className="px-6 pb-4 space-y-3">
+          {/* Regular jobs */}
+          {allSelectableJobs.map(job => {
+            const isSelected = selectedJobIds.has(job.id);
+            const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
+            
+            return (
+              <div key={job.id} className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <Checkbox 
+                    checked={isSelected}
+                    onCheckedChange={(checked) => onJobSelectionChange(job.id, checked as boolean)}
+                  />
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{job.jobRef}</span>
+                      <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.completed}</span>
+                      <ResourceAvatar />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <LinesBadge 
+                        total={job.linesCount} 
+                        selected={isPartial ? job.selectedLinesCount : undefined}
+                        isPartial={isPartial && isSelected}
+                        isInactive={!isSelected}
+                      />
+                      <JobTypeBadge type={job.jobCategory} />
+                    </div>
+                  </div>
+                  <span className={cn(
+                    "text-sm font-bold tracking-[-0.14px]",
+                    isSelected ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)] line-through"
+                  )}>
+                    {formatCurrency(job.leftToInvoice)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          
+          {/* Group jobs */}
+          {groupJobs.map(groupJob => (
+            <GroupJobCard
+              key={groupJob.id}
+              groupJob={groupJob}
+              childJobs={groupJob.childJobs || []}
+              selectedChildIds={selectedJobIds}
+              onChildSelectionChange={onJobSelectionChange}
+              groupLinesSelected={selectedGroupLines.has(groupJob.id)}
+              onGroupLinesSelectionChange={(checked) => onGroupLinesSelectionChange(groupJob.id, checked as boolean)}
+            />
+          ))}
+          
+          {/* Helper text */}
+          <div className="flex items-center gap-1.5 pt-2">
+            <HelpCircle className="h-4 w-4 text-[#73777D]" />
+            <span className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+              Job selection only, line level detail can be toggled in the preview
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Divider */}
       <div className="h-px bg-[rgba(26,28,46,0.12)] mx-6" />
 
-      {/* Job Details Section */}
-      <div className="px-6 py-6 space-y-6">
-        <h3 className="text-base font-medium text-[#0B2642] tracking-[-0.16px]">Job Details</h3>
-        
-        {/* Render based on level of detail */}
-        <div key={`job-details-${invoiceData.levelOfDetail}`}>
-          {invoiceData.levelOfDetail === "summary" && (
-            <SummaryJobView jobs={invoiceData.jobs} totalValue={totalValue} />
-          )}
-          
-          {invoiceData.levelOfDetail === "detailed" && (
-            <DetailedJobView 
-              lineItems={lineItems}
-              onLineItemToggle={onLineItemToggle}
-              onSelectAll={onSelectAllLineItems}
-              allSelected={allLineItemsSelected}
-            />
-          )}
-          
-          {invoiceData.levelOfDetail === "partial" && (
-            <div className="space-y-6">
-              {Object.entries(jobsByCategory).map(([category, jobs]) => {
-                if (jobs.length === 0) return null;
-                
-                return (
-                  <div key={category} className="space-y-2">
-                    <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{category}</p>
-                    {jobs.map(job => {
-                      if (job.isGroupJob && job.childJobs) {
-                        return (
-                          <GroupJobCard
-                            key={job.id}
-                            groupJob={job}
-                            childJobs={job.childJobs}
-                            selectedChildIds={selectedJobIds}
-                            onChildSelectionChange={onJobSelectionChange}
-                            groupLinesSelected={selectedGroupLines.has(job.id)}
-                            onGroupLinesSelectionChange={(checked) => onGroupLinesSelectionChange(job.id, checked as boolean)}
-                          />
-                        );
-                      }
-                      return <JobCard key={job.id} job={job} />;
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      {/* Totals Section */}
+      <div className="px-6 py-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Subtotal</span>
+          <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardSubtotal)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">VAT (Rate)</span>
+          <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardVat)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Total</span>
+          <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardSubtotal + cardVat)}</span>
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t border-[rgba(16,25,41,0.1)]">
+          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Amount due</span>
+          <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(cardTotal)}</span>
         </div>
       </div>
 
-      {/* Invoice Totals Section - Only show if multiple invoices */}
-      {totalInvoiceCount > 1 && (
-        <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-6 py-4 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Subtotal</span>
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardSubtotal)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">VAT (Rate)</span>
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardVat)}</span>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-[rgba(16,25,41,0.1)]">
-              <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Total</span>
-              <span className="text-lg font-bold text-[#0B2642] tracking-[-0.18px]">{formatCurrency(cardTotal)}</span>
-            </div>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex-1"
-              onClick={onPreview}
-            >
-              Preview invoice
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Preview Button */}
+      <div className="px-6 pb-6">
+        <Button 
+          variant="secondary" 
+          size="default" 
+          className="w-full"
+          onClick={onPreview}
+        >
+          Preview invoice
+        </Button>
+      </div>
     </div>
   );
 }
 
-// Universal Settings Panel
+// Combined Overview & Settings Panel
 function UniversalSettingsPanel({ 
   levelOfDetail,
   onLevelOfDetailChange,
@@ -1190,8 +844,19 @@ function UniversalSettingsPanel({
   onBreakdownChange,
   department,
   nominalCode,
+  currency,
+  bankAccount,
   onDepartmentChange,
   onNominalCodeChange,
+  onCurrencyChange,
+  onBankAccountChange,
+  subtotal,
+  vatAmount,
+  total,
+  contactName,
+  sites,
+  referenceNumber,
+  onPreviewAll,
 }: { 
   levelOfDetail: LevelOfDetail;
   onLevelOfDetailChange: (value: LevelOfDetail) => void;
@@ -1199,8 +864,19 @@ function UniversalSettingsPanel({
   onBreakdownChange: () => void;
   department: string;
   nominalCode: string;
+  currency: string;
+  bankAccount: string;
   onDepartmentChange: (value: string) => void;
   onNominalCodeChange: (value: string) => void;
+  onCurrencyChange: (value: string) => void;
+  onBankAccountChange: (value: string) => void;
+  subtotal: number;
+  vatAmount: number;
+  total: number;
+  contactName: string;
+  sites: string[];
+  referenceNumber: string;
+  onPreviewAll: () => void;
 }) {
   const departmentOptions = [
     { id: "hs49301", label: "HS/49301" },
@@ -1214,109 +890,127 @@ function UniversalSettingsPanel({
     { id: "5003", label: "5003" },
   ];
 
+  const currencySelectOptions = [
+    { id: "gbp", label: "Great British Pounds (GBP)" },
+    { id: "usd", label: "US Dollar (USD)" },
+    { id: "eur", label: "Euro (EUR)" },
+  ];
+
+  const bankAccountSelectOptions = [
+    { id: "barclays", label: "Barclays 1234" },
+    { id: "hsbc", label: "HSBC 5678" },
+    { id: "lloyds", label: "Lloyds 9012" },
+  ];
+
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
-      <div className="px-5 pt-5 pb-5 space-y-5">
-        <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">Universal Settings</h3>
-        
-        <UniversalLevelOfDetailSelect
-          value={levelOfDetail}
-          onChange={onLevelOfDetailChange}
-        />
-        
-        <GenericSelect
-          label="Default department"
-          value={department}
-          onChange={onDepartmentChange}
-          options={departmentOptions}
-        />
-        
-        <GenericSelect
-          label="Default nominal code"
-          value={nominalCode}
-          onChange={onNominalCodeChange}
-          options={nominalCodeOptions}
-        />
-        
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{structureLabels[breakdownLevel]}</span>
-            <HelpCircle className="h-4 w-4 text-[#73777D]" />
-          </div>
-          <button 
-            onClick={onBreakdownChange}
-            className="text-sm font-normal text-[#086DFF] hover:underline tracking-[-0.14px]"
-          >
-            Change
-          </button>
+    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] overflow-hidden">
+      {/* Overview Header */}
+      <div className="px-5 pt-5 space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-extrabold text-[#0B2642] tracking-[-0.2px]">Overview</h2>
+          <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{referenceNumber}</p>
+        </div>
+        <p className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{contactName}</p>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-[#E5E7EB] mx-0 my-4" />
+
+      {/* Sites Section */}
+      <div className="px-5 space-y-2">
+        <p className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Sites</p>
+        <div className="space-y-1">
+          {sites.map((site, index) => (
+            <p key={index} className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{site}</p>
+          ))}
         </div>
       </div>
-    </div>
-  );
-}
 
-// Overview Panel
-function OverviewPanel({ 
-  subtotal,
-  vatAmount,
-  total,
-  invoiceCount,
-  onPreview,
-}: { 
-  subtotal: number;
-  vatAmount: number;
-  total: number;
-  invoiceCount: number;
-  onPreview?: () => void;
-}) {
-  const isSingleInvoice = invoiceCount === 1;
-  
-  return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
-      {/* Header */}
-      <div className="px-5 pt-5 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <h3 className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">Overview</h3>
-            <p className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">
-              Invoice - 1234
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <DraftBadge />
-            <button className="p-0.5 hover:bg-gray-100 rounded">
-              <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+      {/* Divider */}
+      <div className="h-px bg-[#E5E7EB] mx-0 my-4" />
+
+      {/* Settings Section */}
+      <div className="px-5 pb-4 space-y-4">
+        <p className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Settings</p>
+        
+        <div className="space-y-3">
+          <UniversalLevelOfDetailSelect
+            value={levelOfDetail}
+            onChange={onLevelOfDetailChange}
+          />
+          
+          <GenericSelect
+            label="Default department"
+            value={department}
+            onChange={onDepartmentChange}
+            options={departmentOptions}
+          />
+          
+          <GenericSelect
+            label="Default nominal code"
+            value={nominalCode}
+            onChange={onNominalCodeChange}
+            options={nominalCodeOptions}
+          />
+
+          <GenericSelect
+            label="Currency"
+            value={currency}
+            onChange={onCurrencyChange}
+            options={currencySelectOptions}
+          />
+
+          <GenericSelect
+            label="Bank Account"
+            value={bankAccount}
+            onChange={onBankAccountChange}
+            options={bankAccountSelectOptions}
+          />
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{structureLabels[breakdownLevel]}</span>
+              <HelpCircle className="h-4 w-4 text-[#73777D]" />
+            </div>
+            <button 
+              onClick={onBreakdownChange}
+              className="text-sm font-normal text-[#086DFF] hover:underline tracking-[-0.14px]"
+            >
+              Change
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Totals */}
+
+      {/* Footer with Totals */}
       <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-5 py-4 space-y-4">
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Subtotal</span>
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Sub-total</span>
             <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">VAT (Rate)</span>
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">VAT (Rate)</span>
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">24%</span>
           </div>
-          <div className="flex items-center justify-between pt-3 border-t border-[rgba(16,25,41,0.1)]">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{isSingleInvoice ? "Total" : "Group Total"}</span>
-            <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Group total</span>
+            <span className="text-base font-bold text-[#0B2642] tracking-[-0.16px]">{formatCurrency(total)}</span>
           </div>
         </div>
         
-        <div className="flex flex-col gap-2">
+        <div className="flex items-stretch w-full rounded-[var(--hw-radius-button,0.375rem)] shadow-[0_0_0_1px_rgba(7,98,229,0.8)] overflow-hidden">
           <Button 
             variant="default" 
             size="default" 
-            className="w-full"
-            onClick={onPreview}
+            className="flex-1 rounded-r-none shadow-none"
+            onClick={onPreviewAll}
           >
-            Preview invoice
+            Preview all invoices
           </Button>
+          <button className="flex items-center justify-center px-2 bg-[#086dff] hover:bg-[#0752cc] border-l border-white/20">
+            <ChevronDown className="h-5 w-5 text-white" />
+          </button>
         </div>
       </div>
     </div>
@@ -1352,19 +1046,23 @@ export function BulkInvoiceCreation() {
   const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
   const [department, setDepartment] = useState("hs49301");
   const [nominalCode, setNominalCode] = useState("5001");
+  const [universalCurrency, setUniversalCurrency] = useState("gbp");
+  const [universalBankAccount, setUniversalBankAccount] = useState("barclays");
   
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(() => {
     const ids = new Set<string>();
     const uniqueParents = [...new Set(selectedJobs.map(j => j.parent))];
     uniqueParents.forEach((_, groupIndex) => {
+      // Select non-group jobs
+      ids.add(`${groupIndex}-ext-1`);
+      ids.add(`${groupIndex}-int-1`);
+      // Select group child jobs
       ids.add(`${groupIndex}-group-child-1`);
       ids.add(`${groupIndex}-group-child-2`);
     });
     return ids;
   });
 
-  // Line items state for detailed view
-  const [lineItems, setLineItems] = useState<LineItem[]>(mockLineItems);
   
   // Group lines selection state
   const [selectedGroupLines, setSelectedGroupLines] = useState<Set<string>>(() => {
@@ -1534,6 +1232,10 @@ export function BulkInvoiceCreation() {
     const newJobIds = new Set<string>();
     const newGroupLines = new Set<string>();
     newCards.forEach((_, groupIndex) => {
+      // Select non-group jobs
+      newJobIds.add(`${groupIndex}-ext-1`);
+      newJobIds.add(`${groupIndex}-int-1`);
+      // Select group child jobs
       newJobIds.add(`${groupIndex}-group-child-1`);
       newJobIds.add(`${groupIndex}-group-child-2`);
       newGroupLines.add(`${groupIndex}-group`);
@@ -1563,17 +1265,6 @@ export function BulkInvoiceCreation() {
     setSelectedJobIds(newSelected);
   };
 
-  const handleLineItemToggle = useCallback((id: string) => {
-    setLineItems(prev => prev.map(item => 
-      item.id === id ? { ...item, selected: !item.selected } : item
-    ));
-  }, []);
-
-  const handleSelectAllLineItems = useCallback(() => {
-    const allSelected = lineItems.every(item => item.selected);
-    setLineItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
-  }, [lineItems]);
-
   const handleGroupLinesSelectionChange = useCallback((groupJobId: string, checked: boolean) => {
     const newSelected = new Set(selectedGroupLines);
     if (checked) {
@@ -1584,54 +1275,29 @@ export function BulkInvoiceCreation() {
     setSelectedGroupLines(newSelected);
   }, [selectedGroupLines]);
 
-  // Calculate totals dynamically based on level of detail and selections
+  // Calculate totals dynamically based on selections
   const summary = useMemo(() => {
     let subtotal = 0;
     
     invoiceCards.forEach(card => {
-      const levelOfDetail = card.levelOfDetail;
-      
-      if (levelOfDetail === "detailed") {
-        // For detailed view, sum selected line items
-        lineItems.forEach(item => {
-          if (item.selected) {
-            subtotal += item.total;
-          }
-        });
-      } else if (levelOfDetail === "summary") {
-        // For summary view, include all jobs
-        card.jobs.forEach(job => {
-          if (job.isGroupJob && job.childJobs) {
-            job.childJobs.forEach(child => {
+      card.jobs.forEach(job => {
+        if (job.isGroupJob && job.childJobs) {
+          // Add selected child jobs
+          job.childJobs.forEach(child => {
+            if (selectedJobIds.has(child.id)) {
               subtotal += child.leftToInvoice;
-            });
-            // Add group-level lines if selected
-            if (selectedGroupLines.has(job.id)) {
-              subtotal += job.leftToInvoice;
             }
-          } else {
+          });
+          // Add group-level lines if selected
+          if (selectedGroupLines.has(job.id)) {
             subtotal += job.leftToInvoice;
           }
-        });
-      } else {
-        // For partial view, sum based on selected jobs and group lines
-        card.jobs.forEach(job => {
-          if (job.isGroupJob && job.childJobs) {
-            // Add selected child jobs
-            job.childJobs.forEach(child => {
-              if (selectedJobIds.has(child.id)) {
-                subtotal += child.leftToInvoice;
-              }
-            });
-            // Add group-level lines if selected
-            if (selectedGroupLines.has(job.id)) {
-              subtotal += job.leftToInvoice;
-            }
-          } else {
+        } else {
+          if (selectedJobIds.has(job.id)) {
             subtotal += job.leftToInvoice;
           }
-        });
-      }
+        }
+      });
     });
     
     const vatRate = 0.20; // 20% VAT
@@ -1639,7 +1305,7 @@ export function BulkInvoiceCreation() {
     const total = subtotal + vatAmount;
     
     return { subtotal, vatAmount, total };
-  }, [invoiceCards, selectedJobIds, selectedGroupLines, lineItems]);
+  }, [invoiceCards, selectedJobIds, selectedGroupLines]);
 
   // Handle preview invoice - navigate to preview page
   const handlePreviewInvoice = useCallback((invoiceId?: string) => {
@@ -1756,11 +1422,6 @@ export function BulkInvoiceCreation() {
                   onJobSelectionChange={handleJobSelectionChange}
                   onGroupLinesSelectionChange={handleGroupLinesSelectionChange}
                   onInvoiceDataChange={handleInvoiceDataChange}
-                  universalLevelOfDetail={universalLevelOfDetail}
-                  lineItems={lineItems}
-                  onLineItemToggle={handleLineItemToggle}
-                  onSelectAllLineItems={handleSelectAllLineItems}
-                  totalInvoiceCount={invoiceCards.length}
                   onPreview={() => handlePreviewInvoice(invoiceData.id)}
                 />
               ))}
@@ -1769,7 +1430,7 @@ export function BulkInvoiceCreation() {
 
           {/* Right Column - Settings & Overview (Sticky) */}
           <div ref={rightColRef} className="w-[380px] shrink-0 self-start">
-            <div className="sticky top-[77px] h-fit z-10 space-y-4 text-left">
+            <div className="sticky top-[77px] h-fit z-10 text-left">
               <UniversalSettingsPanel
                 levelOfDetail={universalLevelOfDetail}
                 onLevelOfDetailChange={handleUniversalLevelOfDetailChange}
@@ -1777,16 +1438,19 @@ export function BulkInvoiceCreation() {
                 onBreakdownChange={handleBreakdownChange}
                 department={department}
                 nominalCode={nominalCode}
+                currency={universalCurrency}
+                bankAccount={universalBankAccount}
                 onDepartmentChange={setDepartment}
                 onNominalCodeChange={setNominalCode}
-              />
-              
-              <OverviewPanel
+                onCurrencyChange={setUniversalCurrency}
+                onBankAccountChange={setUniversalBankAccount}
                 subtotal={summary.subtotal}
                 vatAmount={summary.vatAmount}
                 total={summary.total}
-                invoiceCount={invoiceCards.length}
-                onPreview={() => handlePreviewInvoice()}
+                contactName={invoiceCards[0]?.name || ""}
+                sites={[...new Set(invoiceCards.map(card => card.name))]}
+                referenceNumber="AFP/0001"
+                onPreviewAll={() => handlePreviewInvoice()}
               />
             </div>
           </div>
