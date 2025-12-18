@@ -4,9 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Import Highway tokens FIRST so CSS variables are available for utilities */
-@import "@simpro-group/highway-tokens/dist/highway.css";
-
 @utility container {
   margin-inline: auto;
   padding-inline: 2rem;
@@ -18,39 +15,7 @@
   }
 }
 
-/* Custom rounded utilities - using direct Highway token references */
-@utility rounded-button {
-  border-radius: var(--hw-radius-button, 0.375rem);
-}
-
-@utility rounded-input {
-  border-radius: var(--hw-radius-input, 0.375rem);
-}
-
-@utility rounded-card {
-  border-radius: var(--hw-radius-card, 0.5rem);
-}
-
-@utility rounded-modal {
-  border-radius: var(--hw-radius-modal, 0.75rem);
-}
-
-/* Custom shadow utilities - using direct Highway token references */
-@utility shadow-button {
-  box-shadow: var(--hw-shadow-button, 0 1px 2px 0 rgb(0 0 0 / 0.05));
-}
-
-@utility shadow-input {
-  box-shadow: var(--hw-shadow-input, 0 1px 2px 0 rgb(0 0 0 / 0.05));
-}
-
-@utility shadow-card {
-  box-shadow: var(--hw-shadow-card, 0 1px 3px 0 rgb(0 0 0 / 0.1));
-}
-
-@utility shadow-modal {
-  box-shadow: var(--hw-shadow-modal, 0 10px 15px -3px rgb(0 0 0 / 0.1));
-}
+@import "@simpro-group/highway-tokens/dist/highway.css";
 
 
 /* Map Highway (hw) semantic tokens to Tailwind utilities */

@@ -64,33 +64,6 @@ export const prototypes: PrototypeMetadata[] = [
       },
     ],
   },
-  {
-    id: "group-invoicing",
-    title: "Group Invoicing",
-    description:
-      "Select multiple jobs, choose grouping method, and generate invoices in one flow. Jobs ready to invoice with multi-select table.",
-    thumbnail: "/thumbnails/group-invoicing.png",
-    deviceType: "desktop",
-    visibility: "public",
-    versions: [
-      {
-        id: "v1",
-        title: "Version 1",
-        description:
-          "Select multiple jobs, choose grouping method, and generate invoices in one flow. Jobs ready to invoice with multi-select table.",
-        path: "/group-invoicing/v1",
-        createdAt: "2025-01-27",
-      },
-      {
-        id: "v2",
-        title: "Version 2",
-        description:
-          "Enhanced invoice preview with job selection, PDF/Print actions, and improved level of detail options.",
-        path: "/group-invoicing/v2",
-        createdAt: "2025-12-17",
-      },
-    ],
-  },
   // Add more prototypes here as they are created
 ];
 
