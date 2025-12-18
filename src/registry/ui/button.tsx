@@ -9,24 +9,24 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border border-transparent bg-hw-brand shadow-button ring-1 ring-hw-brand text-hw-brand-foreground hover:bg-hw-brand-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
+        default: "border border-transparent bg-[#086dff] shadow-[0_0_0_1px_rgba(7,98,229,0.8)] text-white hover:bg-[#0752cc] focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-[var(--hw-radius-button,0.375rem)]",
         destructive:
-          "border border-transparent bg-hw-critical shadow-button ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical/80 focus-visible:ring-hw-critical/30 focus-visible:ring-4 dark:focus-visible:ring-hw-critical/30 dark:bg-hw-critical/60 rounded-button",
+          "border border-transparent bg-hw-critical shadow-[var(--hw-shadow-button,0_1px_2px_0_rgb(0_0_0_/_0.05))] ring-1 ring-hw-critical text-hw-critical-foreground hover:bg-hw-critical-hover focus-visible:border-hw-critical/80 focus-visible:ring-hw-critical/30 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-critical/30 dark:bg-hw-critical/60 rounded-[var(--hw-radius-button,0.375rem)]",
         secondary:
-          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
+          "border border-[rgba(26,28,46,0.12)] bg-white shadow-[0_0_0_1px_rgba(11,38,66,0.08)] text-[#0b2642] hover:bg-gray-50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-[var(--hw-radius-button,0.375rem)]",
         outline:
-          "border border-transparent ring-hw-border shadow-button ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
+          "border border-transparent ring-hw-border shadow-[var(--hw-shadow-button,0_1px_2px_0_rgb(0_0_0_/_0.05))] ring-1 bg-hw-interactive-secondary text-hw-interactive-secondary-foreground hover:bg-hw-interactive-secondary-hover focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-[var(--hw-radius-button,0.375rem)]",
         ghost:
-          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
-        link: "border border-transparent text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4 dark:focus-visible:ring-hw-focus/30 rounded-button",
+          "border border-transparent hover:bg-hw-surface-hover hover:text-hw-text dark:hover:bg-hw-surface-hover/50 focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-[var(--hw-radius-button,0.375rem)]",
+        link: "border border-transparent text-hw-interactive underline-offset-4 hover:underline focus-visible:border-hw-focus focus-visible:ring-hw-focus/50 focus-visible:ring-(--ring-width-focus) dark:focus-visible:ring-hw-focus/50 rounded-[var(--hw-radius-button,0.375rem)]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5 rounded-button",
-        lg: "h-10 px-6 has-[>svg]:px-4 rounded-button",
-        icon: "size-9 rounded-button",
-        "icon-sm": "size-8 rounded-button",
-        "icon-lg": "size-10 rounded-button",
+        sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5 rounded-[var(--hw-radius-button,0.375rem)]",
+        lg: "h-10 px-6 has-[>svg]:px-4 rounded-[var(--hw-radius-button,0.375rem)]",
+        icon: "size-9 rounded-[var(--hw-radius-button,0.375rem)]",
+        "icon-sm": "size-8 rounded-[var(--hw-radius-button,0.375rem)]",
+        "icon-lg": "size-10 rounded-[var(--hw-radius-button,0.375rem)]",
       },
     },
     defaultVariants: {

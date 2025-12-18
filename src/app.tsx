@@ -4,6 +4,8 @@ import TokensPage from "@/tokens";
 import AssetAttributesV1App from "@/prototypes/asset-attributes/v1/App";
 import AssetAttributesV2App from "@/prototypes/asset-attributes/v2/App";
 import AssetServiceAgreementsV1App from "@/prototypes/asset-service-agreements/v1/App";
+import GroupInvoicingV1App from "@/prototypes/group-invoicing/v1/App";
+import GroupInvoicingV2App from "@/prototypes/group-invoicing/v2/App";
 import PlaygroundApp from "@/playground/App";
 import { ComponentsShowcase } from "@/pages/components-showcase";
 import { DevBar } from "@/components/DevBar";
@@ -48,6 +50,22 @@ function App() {
           element={
             <ProtectedRoute prototypeId="asset-service-agreements-v1">
               <AssetServiceAgreementsV1App />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/group-invoicing/v1/*"
+          element={
+            <ProtectedRoute prototypeId="group-invoicing-v1">
+              <GroupInvoicingV1App />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/group-invoicing/v2/*"
+          element={
+            <ProtectedRoute prototypeId="group-invoicing-v2">
+              <GroupInvoicingV2App />
             </ProtectedRoute>
           }
         />
