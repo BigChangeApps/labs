@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon } from "lucide-react";
+import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon, Download, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
@@ -1035,6 +1035,27 @@ export function InvoicePreview() {
       : new Set(invoiceData.selectedGroupLines);
   }, [invoiceData.selectedGroupLines]);
 
+  // Calculate the count of selected jobs
+  const selectedJobsCount = useMemo(() => {
+    let count = 0;
+    invoiceData.jobs.forEach(job => {
+      if (job.isGroupJob && job.childJobs) {
+        // Count selected child jobs within group jobs
+        job.childJobs.forEach(child => {
+          if (selectedJobIdsSet.has(child.id)) {
+            count++;
+          }
+        });
+      } else {
+        // Count selected regular jobs
+        if (selectedJobIdsSet.has(job.id)) {
+          count++;
+        }
+      }
+    });
+    return count;
+  }, [invoiceData.jobs, selectedJobIdsSet]);
+
   // Group jobs by category for display
   const jobsByCategory = useMemo(() => {
     const groups: Record<string, JobWithLines[]> = {
@@ -1052,7 +1073,7 @@ export function InvoicePreview() {
     return groups;
   }, [invoiceData.jobs]);
 
-  // Calculate total value for summary view
+  // Calculate total value for summary view (all jobs)
   const totalValue = useMemo(() => {
     return invoiceData.jobs.reduce((sum, job) => {
       if (job.isGroupJob && job.childJobs) {
@@ -1061,6 +1082,17 @@ export function InvoicePreview() {
       return sum + job.leftToInvoice;
     }, 0);
   }, [invoiceData.jobs]);
+
+  // Calculate selected total value (only selected jobs)
+  const selectedTotalValue = useMemo(() => {
+    return invoiceData.jobs.reduce((sum, job) => {
+      if (!selectedJobIdsSet.has(job.id)) return sum;
+      if (job.isGroupJob && job.childJobs) {
+        return sum + job.childJobs.reduce((s, c) => s + c.leftToInvoice, 0) + 1000;
+      }
+      return sum + job.leftToInvoice;
+    }, 0);
+  }, [invoiceData.jobs, selectedJobIdsSet]);
 
   // Generate line items for detailed view
   const lineItems = useMemo(() => generateLineItems(invoiceData.jobs), [invoiceData.jobs]);
@@ -1164,7 +1196,7 @@ export function InvoicePreview() {
         return;
       }
       // All invoices sent - navigate back to jobs list
-      navigate("/bulk-invoicing/v1", {
+      navigate("/group-invoicing/v1", {
         state: {
           success: true,
           message: `Successfully sent ${allInvoices.length} invoice${allInvoices.length > 1 ? 's' : ''}`,
@@ -1172,7 +1204,7 @@ export function InvoicePreview() {
       });
     } else {
       // Single invoice - navigate back to jobs list
-      navigate("/bulk-invoicing/v1", {
+      navigate("/group-invoicing/v1", {
         state: {
           success: true,
           message: `Successfully sent invoice for ${formatCurrency(total)}`,
@@ -1193,7 +1225,7 @@ export function InvoicePreview() {
           <span className="text-[#73777D]">Jobs ready to invoice</span>
           <ChevronRight className="h-4 w-4 text-[#73777D]" />
           <span className="font-medium text-[#0B2642]">Invoice/{invoiceData.invoiceNumber.toString().padStart(4, "0")}</span>
-          <div className="ml-2 px-2 py-0.5 bg-[#F8F9FC] rounded text-xs font-medium text-[#73777D]">Default</div>
+          <div className="ml-2 px-2 py-0.5 bg-white border border-[rgba(26,28,46,0.12)] rounded-full text-xs font-medium text-[#0B2642]">Draft</div>
           {sentInvoiceIds.has(invoiceData.id) && (
             <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
               <Check className="h-3.5 w-3.5 text-[#22c55e]" />
@@ -1204,7 +1236,7 @@ export function InvoicePreview() {
         <Button 
           variant="secondary" 
           size="sm"
-          onClick={() => navigate("/bulk-invoicing/v1/create")}
+          onClick={() => navigate("/group-invoicing/v1/create")}
         >
           Save as draft
         </Button>
@@ -1218,7 +1250,7 @@ export function InvoicePreview() {
             {/* Header Row: Back link + Pagination */}
             <div className="flex items-center justify-between">
               <button 
-                onClick={() => navigate("/bulk-invoicing/v1/create")}
+                onClick={() => navigate("/group-invoicing/v1/create")}
                 className="flex items-center gap-1.5 text-sm font-medium text-[#73777D] hover:underline"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -1406,7 +1438,7 @@ export function InvoicePreview() {
 
               {/* Site Title Header */}
               <div className="flex items-center gap-1">
-                <Building2 className="h-6 w-6 text-[#0B2642]" />
+                <Building2 className="h-6 w-6 text-[#73777D]" />
                 <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px] leading-5">
                   {invoiceData.name} ({invoiceData.jobs.length}) – {formatCurrency(totalValue)}
                 </span>
@@ -1699,13 +1731,28 @@ export function InvoicePreview() {
         </div>
 
         {/* Right Panel - PDF Preview */}
-        <div className="flex-1 bg-[#F9FAFD] overflow-auto flex flex-col items-center py-[46px] gap-6">
-          {/* Site Title Header */}
-          <div className="w-[592px] flex items-center justify-center gap-1">
-            <Building2 className="h-4 w-4 text-[#73777D]" />
-            <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px] leading-4">
-              {invoiceData.name} ({invoiceData.jobs.length}) – {formatCurrency(totalValue)}
-            </span>
+        <div className="flex-1 bg-[#F9FAFD] overflow-auto flex flex-col items-center py-8 gap-4">
+          {/* Header Row - Title and Quick Actions */}
+          <div className="w-[592px] flex items-center justify-between shrink-0">
+            {/* Left - Site Title */}
+            <div className="flex items-center gap-1">
+              <Building2 className="h-4 w-4 text-[#73777D] shrink-0" />
+              <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px] leading-4">
+                {invoiceData.name} ({selectedJobsCount}) – {formatCurrency(selectedTotalValue)}
+              </span>
+            </div>
+            
+            {/* Right - Quick Actions */}
+            <div className="flex items-center gap-3 shrink-0">
+              <button className="inline-flex items-center gap-1 h-7 px-2 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors">
+                <Download className="h-4 w-4 text-[#0A0A0A]" />
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">PDF</span>
+              </button>
+              <button className="inline-flex items-center gap-1 h-7 px-2 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors">
+                <Printer className="h-4 w-4 text-[#0A0A0A]" />
+                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Print</span>
+              </button>
+            </div>
           </div>
 
           {/* Invoice Preview Card */}
@@ -1765,53 +1812,103 @@ export function InvoicePreview() {
 
             {/* Job Details (Read-only Preview) */}
             <div className="p-6 space-y-6">
-              {levelOfDetail === "summary" && (
-                <SummaryJobView 
-                  jobs={invoiceData.jobs} 
-                  totalValue={totalValue}
-                  invoiceId={invoiceData.id}
-                />
-              )}
+              {levelOfDetail === "summary" && (() => {
+                const selectedJobs = invoiceData.jobs.filter((job) => selectedJobIdsSet.has(job.id));
+                
+                if (selectedJobs.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-[#73777D] text-sm">
+                      No jobs selected. Select jobs from the list to include them in the invoice.
+                    </div>
+                  );
+                }
+                
+                return (
+                  <SummaryJobView 
+                    jobs={selectedJobs} 
+                    totalValue={selectedTotalValue}
+                    invoiceId={invoiceData.id}
+                  />
+                );
+              })()}
               
-              {levelOfDetail === "detailed" && (
-                <DetailedJobView 
-                  lineItems={lineItems}
-                  invoiceId={invoiceData.id}
-                  onLineItemToggle={(jobId, lineId) => {
-                    toggleLineItem(invoiceData.id, jobId, lineId);
-                    setInvoiceData((prev) => ({ ...prev }));
-                  }}
-                />
-              )}
+              {levelOfDetail === "detailed" && (() => {
+                // Filter line items to only show selected jobs
+                const selectedLineItems = lineItems.filter((item) => {
+                  const jobId = item.id.split('-line-')[0];
+                  return selectedJobIdsSet.has(jobId);
+                });
+                
+                return selectedLineItems.length > 0 ? (
+                  <DetailedJobView 
+                    lineItems={selectedLineItems}
+                    invoiceId={invoiceData.id}
+                    onLineItemToggle={(jobId, lineId) => {
+                      toggleLineItem(invoiceData.id, jobId, lineId);
+                      setInvoiceData((prev) => ({ ...prev }));
+                    }}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-[#73777D] text-sm">
+                    No jobs selected. Select jobs from the list to include them in the invoice.
+                  </div>
+                );
+              })()}
               
-              {levelOfDetail === "partial" && (
-                <>
-                  {Object.entries(jobsByCategory).map(([category, jobs]) => {
-                    if (jobs.length === 0) return null;
-                    
-                    return (
-                      <div key={category} className="space-y-2">
-                        {jobs.map(job => {
-                          if (job.isGroupJob && job.childJobs) {
-                            return (
-                              <GroupJobCardPreview
-                                key={job.id}
-                                groupJob={job}
-                                childJobs={job.childJobs}
-                                selectedJobIds={selectedJobIdsSet}
-                                selectedGroupLines={selectedGroupLinesSet}
-                                showPartial={true}
-                                selectedLineDetailFields={selectedLineDetailFields}
-                              />
-                            );
-                          }
-                          return <JobCard key={job.id} job={job} showPartial={true} selectedLineDetailFields={selectedLineDetailFields} />;
-                        })}
-                      </div>
-                    );
-                  })}
-                </>
-              )}
+              {levelOfDetail === "partial" && (() => {
+                // Filter to only show selected jobs
+                const selectedJobs = invoiceData.jobs.filter((job) => selectedJobIdsSet.has(job.id));
+                
+                if (selectedJobs.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-[#73777D] text-sm">
+                      No jobs selected. Select jobs from the list to include them in the invoice.
+                    </div>
+                  );
+                }
+                
+                // Group selected jobs by category
+                const selectedJobsByCategory: Record<string, JobWithLines[]> = {
+                  "External": [],
+                  "Internal": [],
+                  "External, Internal": [],
+                };
+                
+                selectedJobs.forEach((job) => {
+                  if (selectedJobsByCategory[job.jobCategory]) {
+                    selectedJobsByCategory[job.jobCategory].push(job);
+                  }
+                });
+                
+                return (
+                  <>
+                    {Object.entries(selectedJobsByCategory).map(([category, jobs]) => {
+                      if (jobs.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="space-y-2">
+                          {jobs.map(job => {
+                            if (job.isGroupJob && job.childJobs) {
+                              return (
+                                <GroupJobCardPreview
+                                  key={job.id}
+                                  groupJob={job}
+                                  childJobs={job.childJobs}
+                                  selectedJobIds={selectedJobIdsSet}
+                                  selectedGroupLines={selectedGroupLinesSet}
+                                  showPartial={true}
+                                  selectedLineDetailFields={selectedLineDetailFields}
+                                />
+                              );
+                            }
+                            return <JobCard key={job.id} job={job} showPartial={true} selectedLineDetailFields={selectedLineDetailFields} />;
+                          })}
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Totals */}

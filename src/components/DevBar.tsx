@@ -104,7 +104,9 @@ export function DevBar() {
   const currentBrand = brandConfig[brand];
 
   // Hide devbar on invoice preview page to avoid covering buttons
-  if (location.pathname.includes("/bulk-invoicing/v1/preview")) {
+  if (location.pathname.includes("/group-invoicing/v1/preview") || 
+      location.pathname.includes("/group-invoicing/v2/preview") ||
+      location.pathname.includes("/group-invoicing/v2/workspace")) {
     return null;
   }
 

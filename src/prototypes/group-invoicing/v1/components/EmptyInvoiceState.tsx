@@ -33,7 +33,7 @@ export function EmptyInvoiceState() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <button 
-                onClick={() => navigate("/bulk-invoicing/v1")}
+                onClick={() => navigate("/group-invoicing/v1")}
                 className="text-sm font-medium text-[#475467] hover:text-[#0B2642] tracking-[-0.14px]"
               >
                 Jobs ready to invoice

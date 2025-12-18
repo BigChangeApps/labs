@@ -764,7 +764,7 @@ export function GroupInvoiceView() {
   };
 
   const handleSendInvoices = () => {
-    navigate("/bulk-invoicing/v1", { 
+    navigate("/group-invoicing/v2", { 
       state: { 
         success: true, 
         message: `Successfully created ${summary.invoiceCount} invoice${summary.invoiceCount !== 1 ? 's' : ''} totaling ${formatCurrency(summary.total)}` 
@@ -778,7 +778,7 @@ export function GroupInvoiceView() {
       <div className="min-h-screen bg-[#FCFCFD] flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-[#73777D] mb-4">No jobs selected for invoicing</p>
-          <Button variant="default" onClick={() => navigate("/bulk-invoicing/v1")}>
+          <Button variant="default" onClick={() => navigate("/group-invoicing/v2")}>
             Go back to Jobs
           </Button>
         </div>
@@ -795,7 +795,7 @@ export function GroupInvoiceView() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <button 
-                onClick={() => navigate("/bulk-invoicing/v1")}
+                onClick={() => navigate("/group-invoicing/v2")}
                 className="text-sm font-medium text-[#475467] hover:text-[#0B2642] tracking-[-0.14px]"
               >
                 Jobs ready to invoice

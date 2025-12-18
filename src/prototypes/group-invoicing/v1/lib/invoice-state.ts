@@ -285,3 +285,4 @@ export function getViewMode(invoiceId: string): ViewMode {
   return state?.viewMode || "partial";
 }
 
+

@@ -434,7 +434,7 @@ export function JobsReadyToInvoice() {
     setBreakdownModalOpen(false);
     
     // Navigate to the invoice creation page with selected jobs data
-    navigate("/bulk-invoicing/v1/create", {
+    navigate("/group-invoicing/v1/create", {
       state: {
         selectedJobs: selectedJobsData,
         breakdownLevel,
@@ -466,7 +466,7 @@ export function JobsReadyToInvoice() {
                     const allJobsData = filteredJobs;
                     setSelectedJobs(allJobIds);
                     // Navigate to empty state screen
-                    navigate("/bulk-invoicing/v1/empty", {
+                    navigate("/group-invoicing/v1/empty", {
                       state: {
                         selectedJobs: allJobsData,
                       },

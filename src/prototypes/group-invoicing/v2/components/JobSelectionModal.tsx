@@ -171,7 +171,7 @@ export function JobSelectionModal({
     if (selectedJobs.length === 0) return;
     
     // Navigate to create invoice page with selected jobs
-    navigate("/bulk-invoicing/v1/create", {
+    navigate("/group-invoicing/v2/workspace", {
       state: {
         selectedJobs: selectedJobs,
         breakdownLevel: "contact",

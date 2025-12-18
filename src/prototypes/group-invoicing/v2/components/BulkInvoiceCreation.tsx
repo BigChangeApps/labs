@@ -660,53 +660,57 @@ function InvoiceCard({
           </div>
           
           {/* Right side: Dates, Bank, Reference */}
-          <div className="flex flex-col gap-4 items-end">
+          <div className="flex flex-col gap-6 items-end">
             {/* Row 1: Issue date, Due date, Menu */}
-            <div className="flex items-start gap-6">
-              <div className="flex flex-col gap-0.5 min-w-[125px]">
-                <div className="flex items-center justify-end gap-1.5">
-                  <Calendar className="h-4 w-4 text-[#73777D]" />
-                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Issue date</span>
+            <div className="flex items-start gap-3">
+              <div className="flex gap-6 items-start">
+                <div className="flex flex-col gap-0.5 w-[125px] items-end">
+                  <div className="flex items-center justify-end gap-1">
+                    <Calendar className="h-4 w-4 text-[#73777D]" />
+                    <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Issue date</span>
+                  </div>
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right w-full">{formatDisplayDate(invoiceData.issueDate)}</span>
                 </div>
-                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatDisplayDate(invoiceData.issueDate)}</span>
+                
+                <div className="flex flex-col gap-0.5 w-[125px] items-end">
+                  <div className="flex items-center justify-end gap-1">
+                    <Calendar className="h-4 w-4 text-[#73777D]" />
+                    <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Due date</span>
+                  </div>
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right w-full">{formatDisplayDate(invoiceData.dueDate)}</span>
+                </div>
               </div>
               
-              <div className="flex flex-col gap-0.5 min-w-[125px]">
-                <div className="flex items-center justify-end gap-1.5">
-                  <Calendar className="h-4 w-4 text-[#73777D]" />
-                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Due date</span>
-                </div>
-                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px] text-right">{formatDisplayDate(invoiceData.dueDate)}</span>
-              </div>
-              
-              <button className="p-0.5 hover:bg-gray-100 rounded mt-0.5">
-                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+              <button className="p-0.5 hover:bg-gray-100 rounded">
+                <MoreVertical className="h-5 w-5 text-[#1D2939]" />
               </button>
             </div>
             
             {/* Row 2: Bank account, Reference */}
-            <div className="flex items-start gap-6">
-              <div className="flex flex-col gap-0.5 min-w-[125px]">
-                <div className="flex items-center gap-1.5">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1.33325 6.00004L7.99992 2.66671L14.6666 6.00004L7.99992 9.33337L1.33325 6.00004Z" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M3.33325 7.33337V11.3334C3.33325 11.3334 5.33325 13.3334 7.99992 13.3334C10.6666 13.3334 12.6666 11.3334 12.6666 11.3334V7.33337" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Bank account</span>
+            <div className="flex items-start gap-4">
+              <div className="flex gap-6 items-start">
+                <div className="flex flex-col gap-0.5 w-[112px] items-end">
+                  <div className="flex items-center justify-end gap-1">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.33325 6.00004L7.99992 2.66671L14.6666 6.00004L7.99992 9.33337L1.33325 6.00004Z" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M3.33325 7.33337V11.3334C3.33325 11.3334 5.33325 13.3334 7.99992 13.3334C10.6666 13.3334 12.6666 11.3334 12.6666 11.3334V7.33337" stroke="#73777D" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Bank account</span>
+                  </div>
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right w-full">{selected.label} ({selected.last4})</span>
                 </div>
-                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{selected.label} ({selected.last4})</span>
+                
+                <div className="flex flex-col gap-0.5 w-[112px] items-end">
+                  <div className="flex items-center justify-end gap-1">
+                    <FileText className="h-4 w-4 text-[#73777D]" />
+                    <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Reference</span>
+                  </div>
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right w-full">{invoiceData.reference || "Heating Upgrade"}</span>
+                </div>
               </div>
               
-              <div className="flex flex-col gap-0.5 min-w-[125px]">
-                <div className="flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-[#73777D]" />
-                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Reference</span>
-                </div>
-                <span className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">{invoiceData.reference || "Heating Upgrade"}</span>
-              </div>
-              
-              <button className="p-0.5 hover:bg-gray-100 rounded mt-0.5">
-                <MoreVertical className="h-5 w-5 text-[#0B2642]" />
+              <button className="p-0.5 hover:bg-gray-100 rounded">
+                <MoreVertical className="h-5 w-5 text-[#1D2939]" />
               </button>
             </div>
           </div>
@@ -1330,7 +1334,7 @@ export function BulkInvoiceCreation() {
         selectedGroupLines: Array.from(selectedGroupLines),
       };
       
-      navigate("/bulk-invoicing/v1/preview", {
+      navigate("/group-invoicing/v2/preview", {
         state: { 
           invoiceData: previewData, // Legacy support
           allInvoices: allInvoices, // New: all invoices
@@ -1354,17 +1358,7 @@ export function BulkInvoiceCreation() {
       const windowScrollY = window.scrollY;
       const windowInnerHeight = window.innerHeight;
 
-      if (stickyInner) {
-        const stickyRect = stickyInner.getBoundingClientRect();
-        const rightColRect = rightCol.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(stickyInner);
-        const containingBlock = stickyInner.offsetParent as HTMLElement;
-        const containingBlockRect = containingBlock?.getBoundingClientRect();
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'BulkInvoiceCreation.tsx:useEffect-sticky',message:'Sticky behavior after fix',data:{stickyTop:stickyRect.top,stickyBottom:stickyRect.bottom,rightColTop:rightColRect.top,rightColBottom:rightColRect.bottom,windowScrollY,windowInnerHeight,computedPosition:computedStyle.position,computedTop:computedStyle.top,shouldBeStuck:stickyRect.top <= 77 && stickyRect.top >= 77 - 5,containingBlockTag:containingBlock?.tagName,containingBlockTop:containingBlockRect?.top},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
-      }
+      // Sticky behavior check - no longer needs debug logging
     };
 
     // Check on mount and scroll
@@ -1379,7 +1373,7 @@ export function BulkInvoiceCreation() {
   }, [invoiceCards]);
 
   if (selectedJobs.length === 0) {
-    navigate("/bulk-invoicing/v1/empty", { replace: true });
+    navigate("/group-invoicing/v2/empty", { replace: true });
     return null;
   }
 
@@ -1391,7 +1385,7 @@ export function BulkInvoiceCreation() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <button 
-                onClick={() => navigate("/bulk-invoicing/v1")}
+                onClick={() => navigate("/group-invoicing/v2")}
                 className="text-sm font-medium text-[#475467] hover:text-[#0B2642] tracking-[-0.14px]"
               >
                 Jobs ready to invoice
@@ -1409,9 +1403,9 @@ export function BulkInvoiceCreation() {
 
       {/* Main Content */}
       <main className="px-6 py-5">
-        <div className="flex gap-6 items-start justify-center max-w-[1240px] mx-auto">
+        <div className="flex gap-6 items-stretch justify-center max-w-[1240px] mx-auto">
           {/* Left Column - Invoice Cards */}
-          <div className="w-[820px] shrink-0 self-start">
+          <div className="w-[820px] shrink-0">
             <div className="space-y-4">
               {invoiceCards.map((invoiceData) => (
                 <InvoiceCard
@@ -1429,7 +1423,7 @@ export function BulkInvoiceCreation() {
           </div>
 
           {/* Right Column - Settings & Overview (Sticky) */}
-          <div ref={rightColRef} className="w-[380px] shrink-0 self-start">
+          <div ref={rightColRef} className="w-[380px] shrink-0 self-stretch">
             <div className="sticky top-[77px] h-fit z-10 text-left">
               <UniversalSettingsPanel
                 levelOfDetail={universalLevelOfDetail}

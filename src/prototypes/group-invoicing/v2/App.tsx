@@ -7,19 +7,21 @@ import { BulkInvoiceCreation } from "./components/BulkInvoiceCreation";
 import { GroupInvoiceView } from "./components/GroupInvoiceView";
 import { InvoicePreview } from "./components/InvoicePreview";
 import { EmptyInvoiceState } from "./components/EmptyInvoiceState";
+import { UnifiedInvoiceWorkspace } from "./components/UnifiedInvoiceWorkspace";
 
 function BulkInvoicingApp() {
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-hw-background flex flex-col">
+      <div className="h-screen bg-hw-background flex flex-col overflow-hidden">
         <PrototypeBanner deviceType="desktop" />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 min-h-0">
           <Routes>
             <Route index element={<JobsReadyToInvoice />} />
             <Route path="create" element={<BulkInvoiceCreation />} />
             <Route path="empty" element={<EmptyInvoiceState />} />
             <Route path="group" element={<GroupInvoiceView />} />
             <Route path="preview" element={<InvoicePreview />} />
+            <Route path="workspace" element={<UnifiedInvoiceWorkspace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
