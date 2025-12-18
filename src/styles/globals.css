@@ -131,6 +131,18 @@
   --shadow-modal: var(--hw-shadow-modal);
   --shadow-overlay: var(--hw-shadow-overlay);
 
+  /* Typography - Font families */
+  --font-display: var(--hw-font-display);
+  --font-body: var(--hw-font-body);
+
+  /* Typography - Letter spacing */
+  --tracking-display: var(--hw-tracking-display);
+  --tracking-body: var(--hw-tracking-body);
+
+  /* Typography - Line height */
+  --leading-display: var(--hw-leading-display);
+  --leading-body: var(--hw-leading-body);
+
 
   @keyframes accordion-down {
     from {
@@ -174,6 +186,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--hw-font-body);
+    letter-spacing: var(--hw-tracking-body);
+    line-height: var(--hw-leading-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--hw-font-display);
+    letter-spacing: var(--hw-tracking-display);
+    line-height: var(--hw-leading-display);
   }
   /* Smooth transitions for dark/light mode switching - mimics dimming lights */
   *,

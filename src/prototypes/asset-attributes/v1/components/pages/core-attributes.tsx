@@ -176,7 +176,7 @@ export function CoreAttributes() {
                 </div>
 
                 {/* Attributes List */}
-                <div className="rounded-lg border bg-card">
+                <div className="rounded-card border bg-card">
                   {attributes.map((attribute, index) => {
                     const variant = getAttributeVariant(attribute);
                     const isDeleting = deletingAttributeIds.has(attribute.id);

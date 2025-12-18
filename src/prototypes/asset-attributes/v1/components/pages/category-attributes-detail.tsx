@@ -236,7 +236,7 @@ export function CategoryAttributesDetail() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
-          <div className="rounded-lg border bg-card divide-y">
+          <div className="rounded-card border bg-card divide-y">
             {attributes.map((item) => (
               <SortableAttributeCard
                 key={item.attributeId}
@@ -302,7 +302,7 @@ export function CategoryAttributesDetail() {
 
           {/* Conditional rendering based on attributes */}
           {allAttributes.length === 0 ? (
-            <div className="rounded-lg border bg-card">
+            <div className="rounded-card border bg-card">
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm mb-4">
                   There are no attributes for this category yet.

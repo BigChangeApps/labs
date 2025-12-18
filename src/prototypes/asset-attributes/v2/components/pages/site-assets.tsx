@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/registry/ui/table";
-import { Badge } from "@/registry/ui/badge";
+import { ConditionBadge, type ConditionType } from "../ui/condition-badge";
 import { SiteWorkspaceHeader } from "../SiteWorkspaceHeader";
 import { type AssetListItem } from "../../lib/mock-asset-list-data";
 import { useAttributeStore } from "../../lib/store";
@@ -178,20 +178,7 @@ export function SiteAssets() {
                             {asset.location}
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant="secondary"
-                              className={
-                                asset.condition === "Excellent"
-                                  ? "border-green-600 text-green-700"
-                                  : asset.condition === "Good"
-                                    ? "border-blue-600 text-blue-700"
-                                    : asset.condition === "Fair"
-                                      ? "border-yellow-600 text-yellow-700"
-                                      : "border-red-600 text-red-700"
-                              }
-                            >
-                              {asset.condition}
-                            </Badge>
+                            <ConditionBadge value={asset.condition as ConditionType} />
                           </TableCell>
                         </TableRow>
                       ))}
