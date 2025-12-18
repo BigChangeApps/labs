@@ -290,13 +290,13 @@ export function CreateAsset() {
       categoryId: categoryId,
       categoryName: categoryName,
       status: "Active",
-      condition: (data["global-condition"] as string) || "Good",
+      condition: (data["global-condition"] as "Excellent" | "Good" | "Fair" | "Poor") || "Good",
       location: (data["global-location"] as string) || "",
       manufacturer: manufacturerName,
       model: modelName,
       lastService: data["global-date-last-service"] as string | undefined,
       warrantyExpiry: data["global-warranty-expiry"] as string | undefined,
-      siteId: data["global-contact"] as string | undefined,
+      siteId: (data["global-contact"] as string) || "",
     };
     
     // Add asset to store
