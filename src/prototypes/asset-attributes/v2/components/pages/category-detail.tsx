@@ -271,7 +271,7 @@ export function CategoryDetail() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
-          <div className="rounded-lg border bg-card divide-y">
+          <div className="rounded-card border bg-card divide-y">
             {attributes.map((item) => (
               <SortableAttributeCard
                 key={item.attributeId}
@@ -366,7 +366,7 @@ export function CategoryDetail() {
             </Button>
             {isInheritedExpanded && (
               <div className="pt-3">
-                <div className="rounded-lg border bg-card divide-y">
+                <div className="rounded-card border bg-card divide-y">
                   {inheritedAttributes.map((item) => (
                     <AttributeCard
                       key={item.attributeId}
@@ -393,7 +393,7 @@ export function CategoryDetail() {
         <div className="space-y-3 sm:space-y-4">
           {/* Conditional rendering based on attributes */}
           {allAttributes.length === 0 ? (
-            <div className="rounded-lg border bg-card">
+            <div className="rounded-card border bg-card">
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm mb-4">
                   There are no attributes for this category yet.

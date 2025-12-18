@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@simpro-group/highway-tokens': link:../highway-design-tokens/packages/tokens-web
-
 importers:
 
   .:
