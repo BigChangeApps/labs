@@ -191,9 +191,9 @@
     line-height: var(--hw-leading-body);
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--hw-font-display);
-    letter-spacing: var(--hw-tracking-display);
-    line-height: var(--hw-leading-display);
+    font-family: var(--hw-font-body);
+    letter-spacing: var(--hw-tracking-body);
+    line-height: var(--hw-leading-display); /* tighter line-height for headings */
   }
   /* Smooth transitions for dark/light mode switching - mimics dimming lights */
   *,
