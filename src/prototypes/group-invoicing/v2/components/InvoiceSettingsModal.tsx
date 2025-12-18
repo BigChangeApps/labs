@@ -6,9 +6,13 @@ import { Checkbox } from "@/registry/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/registry/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/registry/ui/accordion";
 import {
   Popover,
   PopoverContent,
@@ -55,9 +59,9 @@ const departmentCodeOptions = [
 ];
 
 const contactLevelOptions = [
-  { id: "HS49301", label: "HS/49301" },
-  { id: "HS49302", label: "HS/49302" },
-  { id: "HS49303", label: "HS/49303" },
+  { id: "site", label: "Site (4 invoices)" },
+  { id: "contact", label: "Contact" },
+  { id: "job", label: "Job" },
 ];
 
 function SettingsSelect({
@@ -75,17 +79,17 @@ function SettingsSelect({
   const selected = options.find((o) => o.id === value) || options[0];
 
   return (
-    <div className="space-y-1.5">
-      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
         {label}
       </span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full px-3 py-2 bg-white rounded-md border border-[rgba(26,28,46,0.12)] hover:border-[rgba(26,28,46,0.24)] transition-colors text-left">
-            <span className="text-sm text-[#0B2642] tracking-[-0.14px]">
+          <button className="flex items-center justify-between w-full pl-2.5 pr-1.5 py-1.5 bg-white rounded-[6px] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:shadow-[0px_0px_0px_1px_rgba(3,7,18,0.12),0px_0.5px_2px_0px_rgba(11,38,66,0.20)] transition-shadow text-left">
+            <span className="text-sm text-[#73777D] tracking-[-0.14px] leading-5">
               {selected.label}
             </span>
-            <ChevronDown className="h-4 w-4 text-[#73777D]" />
+            <ChevronDown className="h-5 w-5 text-[#0B2642]" />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
@@ -111,16 +115,33 @@ function SettingsSelect({
   );
 }
 
+function SettingsToggle({
+  label,
+  checked,
+  onCheckedChange,
+}: {
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between w-full">
+      <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+        {label}
+      </span>
+      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+    </div>
+  );
+}
+
 export function InvoiceSettingsModal({
   open,
   onOpenChange,
   settings,
   onSettingsChange,
 }: InvoiceSettingsModalProps) {
-  // Local state for editing
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
 
-  // Sync with props when modal opens
   useEffect(() => {
     if (open) {
       setLocalSettings(settings);
@@ -137,152 +158,198 @@ export function InvoiceSettingsModal({
     onOpenChange(false);
   };
 
-  // Get level of detail display label
   const levelOfDetailLabel = levelOfDetailOptions.find(
     (opt) => opt.id === localSettings.levelOfDetail
   )?.label || "Partial";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[480px] p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[rgba(26,28,46,0.08)]">
-          <DialogTitle className="text-lg font-bold text-[#0B2642] tracking-[-0.18px]">
+      <DialogContent className="max-w-[439px] p-0 gap-0 !rounded-lg overflow-hidden ring-0 shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_16px_32px_0px_rgba(11,38,66,0.08),0px_2px_24px_0px_rgba(11,38,66,0.08)]">
+        {/* Header with grey background and rounded top corners */}
+        <div className="bg-[#F8F9FC] px-5 py-4 rounded-t-lg">
+          <h2 className="text-base font-bold text-[#0B2642] tracking-[-0.16px] leading-6">
             Group Invoice Settings
-          </DialogTitle>
-        </DialogHeader>
+          </h2>
+        </div>
 
-        <div className="px-6 py-4 space-y-6 max-h-[60vh] overflow-auto">
-          {/* Level of Detail - Dropdown */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
-                Level of detail
-              </span>
-              <span className="text-sm text-[#73777D]">(for all invoices)</span>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="flex items-center justify-between w-full px-3 py-2 bg-white rounded-md border border-[rgba(26,28,46,0.12)] hover:border-[rgba(26,28,46,0.24)] transition-colors text-left">
-                  <span className="text-sm text-[#0B2642] tracking-[-0.14px]">
-                    {levelOfDetailLabel}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-[#73777D]" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-                {levelOfDetailOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() =>
-                      setLocalSettings((prev) => ({
-                        ...prev,
-                        levelOfDetail: option.id,
-                      }))
+        {/* Accordion Sections */}
+        <div className="flex flex-col">
+          <Accordion type="multiple" defaultValue={[]} className="w-full">
+            {/* Breakdown settings */}
+            <AccordionItem value="breakdown" className="border-b border-[#E5E5E5] px-4">
+              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
+                Breakdown settings
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-6">
+                <div className="flex flex-col gap-6">
+                  {/* Level of Detail */}
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                      Level of detail (for all invoices)
+                    </span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="flex items-center justify-between w-full pl-2.5 pr-1.5 py-1.5 bg-white rounded-[6px] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:shadow-[0px_0px_0px_1px_rgba(3,7,18,0.12),0px_0.5px_2px_0px_rgba(11,38,66,0.20)] transition-shadow text-left">
+                          <span className="text-sm text-[#73777D] tracking-[-0.14px] leading-5">
+                            {levelOfDetailLabel}
+                          </span>
+                          <ChevronDown className="h-5 w-5 text-[#0B2642]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
+                        {levelOfDetailOptions.map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() =>
+                              setLocalSettings((prev) => ({
+                                ...prev,
+                                levelOfDetail: option.id,
+                              }))
+                            }
+                            className={cn(
+                              "w-full flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
+                              localSettings.levelOfDetail === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
+                            )}
+                          >
+                            <span>{option.label}</span>
+                            {localSettings.levelOfDetail === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
+                          </button>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Contact Level */}
+                  <SettingsSelect
+                    label="Contact Level"
+                    value={localSettings.contactLevel}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, contactLevel: value }))
                     }
-                    className={cn(
-                      "w-full flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
-                      localSettings.levelOfDetail === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
-                    )}
-                  >
-                    <span>{option.label}</span>
-                    {localSettings.levelOfDetail === option.id && <Check className="h-4 w-4 text-[#086DFF]" />}
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
-          </div>
+                    options={contactLevelOptions}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Contact Level - moved to top section */}
-          <SettingsSelect
-            label="Contact Level"
-            value={localSettings.contactLevel}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({ ...prev, contactLevel: value }))
-            }
-            options={contactLevelOptions}
-          />
+            {/* Display settings */}
+            <AccordionItem value="display" className="border-b border-[#E5E5E5] px-4">
+              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
+                Display settings
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-6">
+                <div className="flex flex-col gap-4">
+                  <SettingsToggle
+                    label="Show logo"
+                    checked={localSettings.showLogo}
+                    onCheckedChange={(checked) =>
+                      setLocalSettings((prev) => ({ ...prev, showLogo: checked }))
+                    }
+                  />
+                  <SettingsToggle
+                    label="Show T&Cs"
+                    checked={localSettings.showTcs}
+                    onCheckedChange={(checked) =>
+                      setLocalSettings((prev) => ({ ...prev, showTcs: checked }))
+                    }
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Bank Account */}
-          <SettingsSelect
-            label="Bank Account"
-            value={localSettings.bankAccount}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({ ...prev, bankAccount: value }))
-            }
-            options={bankAccountOptions}
-          />
+            {/* Finance settings */}
+            <AccordionItem value="finance" className="border-b border-[#E5E5E5] px-4">
+              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
+                Finance settings
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-6">
+                <div className="flex flex-col gap-4">
+                  <SettingsSelect
+                    label="Bank Account"
+                    value={localSettings.bankAccount}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, bankAccount: value }))
+                    }
+                    options={bankAccountOptions}
+                  />
+                  <SettingsSelect
+                    label="Currency"
+                    value={localSettings.currency}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, currency: value }))
+                    }
+                    options={currencyOptions}
+                  />
+                  <SettingsSelect
+                    label="Default nominal code"
+                    value={localSettings.nominalCode}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, nominalCode: value }))
+                    }
+                    options={nominalCodeOptions}
+                  />
+                  <SettingsSelect
+                    label="Default department"
+                    value={localSettings.departmentCode}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, departmentCode: value }))
+                    }
+                    options={departmentCodeOptions}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
 
-          {/* Currency */}
-          <SettingsSelect
-            label="Currency"
-            value={localSettings.currency}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({ ...prev, currency: value }))
-            }
-            options={currencyOptions}
-          />
-
-          {/* Default Nominal Code */}
-          <SettingsSelect
-            label="Default nominal code"
-            value={localSettings.nominalCode}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({ ...prev, nominalCode: value }))
-            }
-            options={nominalCodeOptions}
-          />
-
-          {/* Default Department */}
-          <SettingsSelect
-            label="Default department"
-            value={localSettings.departmentCode}
-            onChange={(value) =>
-              setLocalSettings((prev) => ({ ...prev, departmentCode: value }))
-            }
-            options={departmentCodeOptions}
-          />
-
-          {/* Divider */}
-          <div className="h-px bg-[rgba(26,28,46,0.08)]" />
-
-          {/* T&Cs Text Toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
-              Add T&Cs text
-            </span>
-            <Switch
-              checked={localSettings.tcsTextEnabled}
-              onCheckedChange={(checked) =>
-                setLocalSettings((prev) => ({ ...prev, tcsTextEnabled: checked }))
-              }
-            />
-          </div>
+            {/* Invoice settings */}
+            <AccordionItem value="invoice" className="border-b border-[#E5E5E5] px-4">
+              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
+                Invoice settings
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-6">
+                <div className="flex flex-col gap-4">
+                  {/* Placeholder for future invoice settings */}
+                  <p className="text-sm text-[#73777D]">Additional invoice settings will appear here.</p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           {/* Remember Selection Checkbox */}
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="remember-selection"
-              checked={localSettings.rememberSelection}
-              onCheckedChange={(checked) =>
-                setLocalSettings((prev) => ({ ...prev, rememberSelection: checked === true }))
-              }
-            />
-            <label
-              htmlFor="remember-selection"
-              className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] cursor-pointer"
-            >
-              Remember selection for customer
-            </label>
+          <div className="px-6 py-4">
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="remember-selection"
+                checked={localSettings.rememberSelection}
+                onCheckedChange={(checked) =>
+                  setLocalSettings((prev) => ({ ...prev, rememberSelection: checked === true }))
+                }
+                className="mt-0.5"
+              />
+              <div className="flex flex-col">
+                <label
+                  htmlFor="remember-selection"
+                  className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5 cursor-pointer"
+                >
+                  Remember selection for this customer
+                </label>
+                <span className="text-sm text-[#73777D] tracking-[-0.14px] leading-5">
+                  This will save settings for future invoice creations
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-[rgba(26,28,46,0.08)] flex items-center justify-end gap-3">
+        {/* Footer with grey background and rounded bottom corners */}
+        <div className="bg-[#F8F9FC] px-4 py-4 flex items-center justify-end gap-3 rounded-b-lg">
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>Apply settings</Button>
         </div>
+
+        {/* Inner shadow overlay for subtle border effect */}
+        <div className="absolute inset-0 pointer-events-none rounded-lg shadow-[inset_0px_0px_0px_1px_white,inset_0px_0px_0px_2px_rgba(229,231,235,0.4)]" />
       </DialogContent>
     </Dialog>
   );

@@ -98,7 +98,8 @@ export interface UniversalSettings {
   nominalCode: string;
   departmentCode: string;
   contactLevel: string;
-  tcsTextEnabled: boolean;
+  showLogo: boolean;
+  showTcs: boolean;
   rememberSelection: boolean;
 }
 
@@ -269,12 +270,12 @@ export function UnifiedInvoiceWorkspace() {
   // #region agent log
   // Debug: Log layout dimensions on mount
   useEffect(() => {
-    const root = document.getElementById('root');
     const main = document.querySelector('main');
     const wrapper = document.querySelector('[class*="h-full"]') || document.querySelector('[class*="h-[calc"]');
-    const actionBar = document.querySelector('[class*="border-t"]');
+    const actionBar = document.querySelector('[class*="shrink-0"][class*="border-t"]');
+    const actionBarStyle = actionBar ? getComputedStyle(actionBar) : null;
     
-    fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UnifiedInvoiceWorkspace.tsx:mount',message:'Layout after fix',data:{viewportHeight:window.innerHeight,mainHeight:main?.clientHeight,wrapperHeight:wrapper?.clientHeight,wrapperClasses:wrapper?.className,actionBarHeight:actionBar?.clientHeight,actionBarRect:actionBar?.getBoundingClientRect(),mainEqualsWrapper:main?.clientHeight===wrapper?.clientHeight},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'G,H,I'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UnifiedInvoiceWorkspace.tsx:mount',message:'CSS Debug - ActionBar styles',data:{actionBarClasses:actionBar?.className,actionBarBgColor:actionBarStyle?.backgroundColor,actionBarBgExpected:'white (rgb(255, 255, 255))',wrapperBgColor:wrapper ? getComputedStyle(wrapper).backgroundColor : null,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'css-debug',hypothesisId:'CSS-CHECK'})}).catch(()=>{});
   }, []);
   // #endregion
 
@@ -350,8 +351,9 @@ export function UnifiedInvoiceWorkspace() {
       bankAccount: "barclays",
       nominalCode: "5001",
       departmentCode: "HS49301",
-      contactLevel: "HS49301",
-      tcsTextEnabled: false,
+      contactLevel: "site",
+      showLogo: false,
+      showTcs: false,
       rememberSelection: false,
     }
   );
