@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Paperclip,
   FileText,
@@ -9,6 +9,9 @@ import {
   Layers,
   Pencil,
   Info,
+  Download,
+  Printer,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
@@ -20,13 +23,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/registry/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/registry/ui/dropdown-menu";
 import { cn } from "@/registry/lib/utils";
 import { formatCurrency } from "../lib/mock-data";
+import { EditJobsModal } from "./EditJobsModal";
 import type {
   InvoiceData,
   JobWithLines,
   Attachment,
   UniversalSettings,
+  LevelOfDetail,
 } from "./UnifiedInvoiceWorkspace";
 
 interface LiveInvoicePreviewProps {
@@ -384,48 +396,107 @@ function JobTypeDot({ category }: { category: "blue" | "orange" | "purple" }) {
   return <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", colors[category])} />;
 }
 
+// Line item type for detailed view
+interface LineItemRow {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  category: "labour" | "materials" | "other";
+  selected: boolean;
+}
+
 // Jobs table component for the invoice preview
 function JobsTable({
   jobs,
   selectedJobIds,
+  levelOfDetail,
+  onToggleLineItem,
 }: {
   jobs: JobWithLines[];
   selectedJobIds: Set<string>;
+  levelOfDetail: "summary" | "partial" | "detailed";
+  onToggleLineItem?: (jobId: string, lineId: string) => void;
 }) {
-  // Generate table rows from jobs - only show selected jobs
-  const tableRows = useMemo(() => {
-    const rows: { id: string; jobRef: string; unitPrice: number; total: number; categoryIndex: number }[] = [];
+  // Calculate overall total for summary view
+  const overallTotal = useMemo(() => {
+    let total = 0;
+    jobs.forEach((job) => {
+      if (job.isGroupJob && job.childJobs) {
+        job.childJobs.forEach((child) => {
+          if (selectedJobIds.has(child.id)) {
+            total += child.leftToInvoice;
+          }
+        });
+      } else if (selectedJobIds.has(job.id)) {
+        total += job.leftToInvoice;
+      }
+    });
+    return total;
+  }, [jobs, selectedJobIds]);
+
+  // Generate table rows based on levelOfDetail
+  const { partialRows, detailedRows } = useMemo(() => {
+    const partial: { id: string; jobRef: string; unitPrice: number; total: number; categoryIndex: number }[] = [];
+    const detailed: LineItemRow[] = [];
     let categoryIndex = 0;
     
     jobs.forEach((job) => {
       if (job.isGroupJob && job.childJobs) {
         job.childJobs.forEach((child) => {
           if (selectedJobIds.has(child.id)) {
-            rows.push({
+            // Partial row
+            partial.push({
               id: child.id,
               jobRef: child.jobRef,
               unitPrice: child.leftToInvoice / (child.linesCount || 1),
               total: child.leftToInvoice,
               categoryIndex: categoryIndex % 3,
             });
+            
+            // Detailed rows (line items)
+            const labourAmount = child.leftToInvoice * 0.6;
+            const materialsAmount = child.leftToInvoice * 0.3;
+            const otherAmount = child.leftToInvoice * 0.1;
+            
+            detailed.push(
+              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
+              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
+              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+            );
+            
             categoryIndex++;
           }
         });
       } else {
         if (selectedJobIds.has(job.id)) {
-          rows.push({
+          // Partial row
+          partial.push({
             id: job.id,
             jobRef: job.jobRef,
             unitPrice: job.leftToInvoice / (job.linesCount || 1),
             total: job.leftToInvoice,
             categoryIndex: categoryIndex % 3,
           });
+          
+          // Detailed rows (line items)
+          const labourAmount = job.leftToInvoice * 0.6;
+          const materialsAmount = job.leftToInvoice * 0.3;
+          const otherAmount = job.leftToInvoice * 0.1;
+          
+          detailed.push(
+            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
+            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
+            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+          );
+          
           categoryIndex++;
         }
       }
     });
     
-    return rows;
+    return { partialRows: partial, detailedRows: detailed };
   }, [jobs, selectedJobIds]);
 
   const getCategoryColor = (index: number): "blue" | "orange" | "purple" => {
@@ -433,11 +504,137 @@ function JobsTable({
     return colors[index % 3];
   };
 
+  const getLineItemColor = (category: "labour" | "materials" | "other"): "blue" | "orange" | "purple" => {
+    const map: Record<string, "blue" | "orange" | "purple"> = {
+      labour: "blue",
+      materials: "orange",
+      other: "purple",
+    };
+    return map[category];
+  };
+
+  // SUMMARY VIEW - Single consolidated row
+  if (levelOfDetail === "summary") {
+    return (
+      <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+        {/* Table Header */}
+        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
+          <div className="flex-1">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Name
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Unit price
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Total
+            </span>
+          </div>
+        </div>
+
+        {/* Single Summary Row */}
+        <div className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white">
+          <div className="flex-1 flex items-center gap-2.5">
+            <JobTypeDot category="blue" />
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+              Overall work
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+              {formatCurrency(overallTotal)}
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+              {formatCurrency(overallTotal)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // DETAILED VIEW - All line items with checkboxes
+  if (levelOfDetail === "detailed") {
+    return (
+      <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+        {/* Table Header */}
+        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
+          <Checkbox className="shrink-0" checked={true} />
+          <div className="flex-1">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Name
+            </span>
+          </div>
+          <div className="w-[60px] text-center">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Qty
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Unit price
+            </span>
+          </div>
+          <div className="w-[100px] text-right">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              Total
+            </span>
+          </div>
+        </div>
+
+        {/* Detailed Rows */}
+        {detailedRows.map((row) => (
+          <div
+            key={row.id}
+            className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white hover:bg-[#FCFCFD]"
+          >
+            <Checkbox 
+              className="shrink-0" 
+              checked={row.selected}
+              onCheckedChange={() => {
+                const [jobId] = row.id.split('-');
+                onToggleLineItem?.(jobId, row.id);
+              }}
+            />
+            <div className="flex-1 flex items-center gap-2.5">
+              <JobTypeDot category={getLineItemColor(row.category)} />
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                {row.description}
+              </span>
+            </div>
+            <div className="w-[60px] text-center">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                {row.quantity.toFixed(1)}
+              </span>
+            </div>
+            <div className="w-[100px] text-right">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                {formatCurrency(row.unitPrice)}
+              </span>
+            </div>
+            <div className="w-[100px] text-right">
+              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                {formatCurrency(row.total)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // PARTIAL VIEW (default) - One row per job
   return (
     <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
       {/* Table Header */}
       <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
-        <div className="flex-1 flex items-center gap-5">
+        <div className="flex-1">
           <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
             Name
           </span>
@@ -454,8 +651,8 @@ function JobsTable({
         </div>
       </div>
 
-      {/* Table Body */}
-      {tableRows.map((row) => (
+      {/* Partial Rows - One per job */}
+      {partialRows.map((row) => (
         <div
           key={row.id}
           className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
@@ -518,10 +715,21 @@ function AttachmentItem({
 export function LiveInvoicePreview({
   invoice,
   onUpdateInvoice,
+  universalSettings,
   onSendInvoice,
   isSent,
 }: LiveInvoicePreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editJobsModalOpen, setEditJobsModalOpen] = useState(false);
+
+  // Handle saving changes from the Edit Jobs modal
+  const handleEditJobsSave = (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => {
+    onUpdateInvoice({
+      selectedJobIds,
+      levelOfDetail,
+      isOverridden: true,
+    });
+  };
 
   // Calculate totals
   const { subtotal, vatAmount, total, selectedJobCount } = useMemo(() => {
@@ -602,15 +810,15 @@ export function LiveInvoicePreview({
       <div className="p-8 flex flex-col items-center gap-4">
         {/* Sent Invoice Banner */}
         {isSent && (
-          <div className="w-full max-w-[900px] flex items-start gap-3 p-4 bg-[#0288D1] rounded-lg">
-            <Info className="w-5 h-5 text-white shrink-0 mt-0.5" />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-bold text-white tracking-[-0.14px]">
+          <div className="w-full max-w-[900px] flex items-start gap-2 p-3 bg-[#edf7ed] rounded-md border border-[rgba(46,125,50,0.2)]">
+            <Info className="w-5 h-5 text-[#2E7D32] shrink-0" />
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-bold text-[#0B2642] leading-5 tracking-[-0.14px]">
                 Invoice sent
-              </span>
-              <span className="text-sm text-white/90 tracking-[-0.14px]">
+              </p>
+              <p className="text-sm text-[#0B2642] leading-5 tracking-[-0.14px]">
                 This invoice was sent to the customer on {invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'x date'}
-              </span>
+              </p>
             </div>
           </div>
         )}
@@ -620,42 +828,64 @@ export function LiveInvoicePreview({
           <div className="flex items-center gap-1 flex-1 min-w-0">
             <Building2 className="h-4 w-4 text-[#73777D]" />
             <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">
-              John Lewis Leeds ({selectedJobCount} Jobs) - {formatCurrency(total)}
+              {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
             </span>
           </div>
           <div className="flex items-center gap-6">
             {/* Actions dropdown */}
-            <Button variant="secondary" size="sm" className="gap-1">
-              <ChevronDown className="h-4 w-4" />
-              Actions
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="sm" className="gap-1">
+                  <ChevronDown className="h-4 w-4" />
+                  Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[180px]">
+                <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <Download className="h-4 w-4" />
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <ExternalLink className="h-4 w-4" />
+                  Open as PDF
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <Printer className="h-4 w-4" />
+                  Print
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
-            {/* Send Invoice split button */}
-            <div className="flex items-stretch rounded-md shadow-[0_0_0_1px_rgba(7,98,229,0.8)] overflow-hidden">
-              <button
-                onClick={onSendInvoice}
-                disabled={isSent}
-                className="flex items-center gap-1 px-1 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="px-0.5">Send invoice</span>
-              </button>
-              <button
-                className="flex items-center justify-center px-0.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#1a1c2e] transition-colors"
-              >
-                <ChevronDown className="h-5 w-5 text-white" />
-              </button>
-            </div>
+            {/* Send Invoice split button - hidden when invoice is sent */}
+            {!isSent && (
+              <div className="flex items-stretch rounded-md shadow-[0_0_0_1px_rgba(7,98,229,0.8)] overflow-hidden">
+                <button
+                  onClick={onSendInvoice}
+                  className="flex items-center gap-1 px-1 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] text-white text-sm font-medium transition-colors"
+                >
+                  <span className="px-0.5">Send invoice</span>
+                </button>
+                <button
+                  className="flex items-center justify-center px-0.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#E5E5E5] transition-colors"
+                >
+                  <ChevronDown className="h-5 w-5 text-white" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Invoice Document */}
         <div className="w-full max-w-[900px] bg-white shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)]">
           <div className="p-6 flex flex-col gap-6">
-            {/* Logo Section */}
-            <LogoUploader
-              logo={invoice.logo}
-              onLogoChange={(logo) => onUpdateInvoice({ logo })}
-            />
+            {/* Logo Section - only visible when enabled in settings */}
+            {universalSettings.showLogo && (
+              <LogoUploader
+                logo={invoice.logo}
+                onLogoChange={(logo) => onUpdateInvoice({ logo })}
+              />
+            )}
 
             {/* Top Section - From and Dates */}
             <div className="flex items-start justify-between">
@@ -814,7 +1044,10 @@ export function LiveInvoicePreview({
                 <span className="text-base font-medium text-[#0B2642] tracking-[-0.16px] leading-6">
                   Jobs
                 </span>
-                <button className="flex items-center gap-1 px-1 py-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:shadow-[0px_0px_0px_1px_rgba(11,38,66,0.16)] transition-shadow">
+                <button 
+                  onClick={() => setEditJobsModalOpen(true)}
+                  className="flex items-center gap-1 px-1 py-1 rounded-md bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:shadow-[0px_0px_0px_1px_rgba(11,38,66,0.16)] transition-shadow"
+                >
                   <Pencil className="h-3.5 w-3.5 text-[#0A0A0A]" />
                   <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px] leading-4 px-0.5">
                     Edit jobs
@@ -824,6 +1057,7 @@ export function LiveInvoicePreview({
               <JobsTable
                 jobs={invoice.jobs}
                 selectedJobIds={invoice.selectedJobIds}
+                levelOfDetail={invoice.levelOfDetail}
               />
             </div>
 
@@ -885,7 +1119,7 @@ export function LiveInvoicePreview({
               {/* Right: Totals Section */}
               <div className="flex flex-col flex-1 min-w-[280px] max-w-[400px] h-[152px] rounded-md overflow-hidden">
                 {/* Breakdown */}
-                <div className="flex flex-col gap-3 pt-2 pb-3 border-t border-[rgba(16,25,41,0.1)]">
+                <div className="flex flex-col gap-3 pt-2 pb-3 box-content">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
                       Subtotal
@@ -925,9 +1159,36 @@ export function LiveInvoicePreview({
                 </div>
               </div>
             </div>
+
+            {/* Terms & Conditions Section - only visible when enabled in settings */}
+            {universalSettings.showTcs && (
+              <>
+                <div className="h-px bg-border" />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                    Terms & Conditions
+                  </label>
+                  <div className="p-3 bg-[#F8F9FC] rounded-md border border-[rgba(26,28,46,0.08)]">
+                    <p className="text-xs text-[#62748E] tracking-[-0.12px] leading-4">
+                      Payment is due within 30 days of the invoice date. Late payments may be subject to interest charges at the rate of 2% per month. All goods remain the property of the seller until payment is received in full. Any disputes must be raised within 14 days of receipt of this invoice.
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Edit Jobs Modal */}
+      <EditJobsModal
+        open={editJobsModalOpen}
+        onOpenChange={setEditJobsModalOpen}
+        jobs={invoice.jobs}
+        selectedJobIds={invoice.selectedJobIds}
+        levelOfDetail={invoice.levelOfDetail}
+        onSave={handleEditJobsSave}
+      />
     </div>
   );
 }

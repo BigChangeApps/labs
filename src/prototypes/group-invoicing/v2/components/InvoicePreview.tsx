@@ -37,6 +37,8 @@ import {
 } from "../lib/invoice-state";
 import { JobLineDetailModal } from "./JobLineDetailModal";
 import { Checkbox } from "@/registry/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/registry/ui/radio-group";
+import { Label } from "@/registry/ui/label";
 
 // Types
 interface JobWithLines {
@@ -1530,29 +1532,28 @@ export function InvoicePreview() {
               <div className="flex flex-col gap-4">
                 
                 {/* Job Detail View Selector - horizontal cards */}
-                <div className="flex gap-4 h-[91px]">
-                  <button
-                    onClick={() => {
-                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "summary" }));
-                      setViewMode(invoiceData.id, "summary");
-                    }}
+                <RadioGroup
+                  value={levelOfDetail}
+                  onValueChange={(value) => {
+                    setInvoiceData((prev) => ({ ...prev, levelOfDetail: value as "summary" | "partial" | "detailed" }));
+                    setViewMode(invoiceData.id, value as "summary" | "partial" | "detailed");
+                  }}
+                  className="flex gap-4 h-[91px]"
+                >
+                  <Label
+                    htmlFor="level-summary"
                     className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
                       levelOfDetail === "summary"
                         ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
                         : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
                     )}
                   >
-                    <div className={cn(
-                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
-                      levelOfDetail === "summary" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
-                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
-                    )}>
-                      {levelOfDetail === "summary" && (
-                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
-                      )}
-                    </div>
+                    <RadioGroupItem
+                      value="summary"
+                      id="level-summary"
+                      className="shrink-0 mt-0.5"
+                    />
                     <div className="flex flex-col gap-1.5">
                       <span className={cn(
                         "text-sm font-medium tracking-[-0.14px] leading-5",
@@ -1560,30 +1561,22 @@ export function InvoicePreview() {
                       )}>Summary</span>
                       <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">1 Line for all jobs (combined totals)</p>
                     </div>
-                  </button>
+                  </Label>
                   
-                  <button
-                    onClick={() => {
-                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "partial" }));
-                      setViewMode(invoiceData.id, "partial");
-                    }}
+                  <Label
+                    htmlFor="level-partial"
                     className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
                       levelOfDetail === "partial"
                         ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
                         : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
                     )}
                   >
-                    <div className={cn(
-                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
-                      levelOfDetail === "partial" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
-                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
-                    )}>
-                      {levelOfDetail === "partial" && (
-                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
-                      )}
-                    </div>
+                    <RadioGroupItem
+                      value="partial"
+                      id="level-partial"
+                      className="shrink-0 mt-0.5"
+                    />
                     <div className="flex flex-col gap-1.5">
                       <span className={cn(
                         "text-sm font-medium tracking-[-0.14px] leading-5",
@@ -1591,32 +1584,22 @@ export function InvoicePreview() {
                       )}>Partial</span>
                       <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">Separate lines for labour vs materials per job</p>
                     </div>
-                  </button>
+                  </Label>
                   
-                  <button
-                    onClick={() => {
-                      setInvoiceData((prev) => ({ ...prev, levelOfDetail: "detailed" }));
-                      setViewMode(invoiceData.id, "detailed");
-                    }}
+                  <Label
+                    htmlFor="level-detailed"
                     className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start",
-                      levelOfDetail === "partial"
-                        ? "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
-                        : levelOfDetail === "detailed"
+                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
+                      levelOfDetail === "detailed"
                         ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
                         : "bg-white border-[#E5E5E5] hover:bg-[#F8F9FC]"
                     )}
                   >
-                    <div className={cn(
-                      "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
-                      levelOfDetail === "detailed" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
-                        : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
-                    )}>
-                      {levelOfDetail === "detailed" && (
-                        <div className="w-2 h-2 rounded-full bg-[#086DFF]" />
-                      )}
-                    </div>
+                    <RadioGroupItem
+                      value="detailed"
+                      id="level-detailed"
+                      className="shrink-0 mt-0.5"
+                    />
                     <div className="flex flex-col gap-1.5">
                       <span className={cn(
                         "text-sm font-medium tracking-[-0.14px] leading-5",
@@ -1624,8 +1607,8 @@ export function InvoicePreview() {
                       )}>Detailed</span>
                       <p className="text-xs text-[#73777D] tracking-[-0.12px] leading-4">Every line from every job</p>
                     </div>
-                  </button>
-                </div>
+                  </Label>
+                </RadioGroup>
               </div>
 
               {/* Job List */}

@@ -21,8 +21,13 @@ export function GlobalActionBar({
     ? "Send all remaining invoices"
     : `Send all ${invoiceCount} invoices`;
 
+  // #region agent log
+  const containerClassName = "shrink-0 bg-white border-t border-[rgba(26,28,46,0.12)] px-10 py-6";
+  fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GlobalActionBar.tsx:25',message:'GlobalActionBar RENDER',data:{containerClassName,invoiceCount,hasSentInvoices,buildTime:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H3'})}).catch(()=>{});
+  // #endregion
+
   return (
-    <div className="shrink-0 bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-10 py-6">
+    <div className={containerClassName}>
       <div className="flex items-center justify-between">
         {/* Left - Invoice Settings and Summary */}
         <div className="flex items-center gap-8">
@@ -57,7 +62,7 @@ export function GlobalActionBar({
           >
             <span className="px-0.5">{buttonText}</span>
           </button>
-          <button className="flex items-center justify-center px-0 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#1a1c2e] transition-colors">
+          <button className="flex items-center justify-center px-0 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#E5E5E5] transition-colors">
             <ChevronDown className="h-5 w-5 text-white" />
           </button>
         </div>

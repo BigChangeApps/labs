@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Check, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
 import { Checkbox } from "@/registry/ui/checkbox";
@@ -34,10 +35,10 @@ const levelOfDetailOptions: { id: LevelOfDetail; label: string }[] = [
   { id: "detailed", label: "Detailed" },
 ];
 
-const currencyOptions = [
-  { id: "gbp", label: "Great British Pounds (GBP)" },
-  { id: "usd", label: "US Dollar (USD)" },
-  { id: "eur", label: "Euro (EUR)" },
+const contactLevelOptions = [
+  { id: "site", label: "Site (4 invoices)" },
+  { id: "contact", label: "Contact" },
+  { id: "job", label: "Job" },
 ];
 
 const bankAccountOptions = [
@@ -46,22 +47,22 @@ const bankAccountOptions = [
   { id: "lloyds", label: "Lloyds 9012" },
 ];
 
+const currencyOptions = [
+  { id: "gbp", label: "Great British Pounds (GBP)" },
+  { id: "usd", label: "US Dollar (USD)" },
+  { id: "eur", label: "Euro (EUR)" },
+];
+
 const nominalCodeOptions = [
   { id: "5001", label: "5001" },
   { id: "5002", label: "5002" },
   { id: "5003", label: "5003" },
 ];
 
-const departmentCodeOptions = [
+const departmentOptions = [
   { id: "HS49301", label: "HS/49301" },
   { id: "HS49302", label: "HS/49302" },
   { id: "HS49303", label: "HS/49303" },
-];
-
-const contactLevelOptions = [
-  { id: "site", label: "Site (4 invoices)" },
-  { id: "contact", label: "Contact" },
-  { id: "job", label: "Job" },
 ];
 
 function SettingsSelect({
@@ -151,6 +152,7 @@ export function InvoiceSettingsModal({
   const handleSave = () => {
     onSettingsChange(localSettings);
     onOpenChange(false);
+    toast.success("Settings applied successfully");
   };
 
   const handleCancel = () => {
@@ -294,21 +296,8 @@ export function InvoiceSettingsModal({
                     onChange={(value) =>
                       setLocalSettings((prev) => ({ ...prev, departmentCode: value }))
                     }
-                    options={departmentCodeOptions}
+                    options={departmentOptions}
                   />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Invoice settings */}
-            <AccordionItem value="invoice" className="border-b border-[#E5E5E5] px-4">
-              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
-                Invoice settings
-              </AccordionTrigger>
-              <AccordionContent className="px-2 pb-6">
-                <div className="flex flex-col gap-4">
-                  {/* Placeholder for future invoice settings */}
-                  <p className="text-sm text-[#73777D]">Additional invoice settings will appear here.</p>
                 </div>
               </AccordionContent>
             </AccordionItem>

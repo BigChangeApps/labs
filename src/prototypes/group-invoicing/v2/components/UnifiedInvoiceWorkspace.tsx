@@ -23,17 +23,17 @@ function InvoiceSentToast({
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex items-start gap-3 p-4 bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_8px_16px_0px_rgba(26,28,46,0.12)] max-w-[280px]">
-      <div className="shrink-0 w-6 h-6 rounded-full bg-[#22C55E] flex items-center justify-center">
-        <CheckCircle2 className="w-4 h-4 text-white" />
+    <div className="fixed bottom-6 left-6 z-50 flex items-start gap-3 px-4 py-3 bg-white rounded-[10px] border border-[#E5E5E5] shadow-[0px_8px_16px_0px_rgba(26,28,46,0.12)] max-w-[320px]">
+      <div className="shrink-0 pt-0.5">
+        <CheckCircle2 className="w-4 h-4 text-[#0A0A0A]" />
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
-          Invoice {invoiceReference} sent
-        </span>
-        <span className="text-sm text-[#73777D] tracking-[-0.14px]">
+        <p className="text-sm font-medium text-[#0A0A0A] leading-5">
+          Invoice <span className="font-semibold">{invoiceReference}</span> sent
+        </p>
+        <p className="text-sm text-[#737373] leading-5">
           This invoice has been successfully sent to the customer
-        </span>
+        </p>
       </div>
     </div>
   );
@@ -114,6 +114,71 @@ function getDueDate(): string {
   return date.toISOString().split("T")[0];
 }
 
+// Helper to generate line items for a job
+function generateLineItemsForJob(job: Job): Array<{
+  id: string;
+  category: "labour" | "materials" | "other";
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}> {
+  const labourAmount = job.leftToInvoice * 0.6;
+  const materialsAmount = job.leftToInvoice * 0.3;
+  const otherAmount = job.leftToInvoice * 0.1;
+
+  return [
+    {
+      id: `${job.id}-labour`,
+      category: "labour",
+      description: "Labour charges",
+      quantity: 1,
+      unitPrice: labourAmount,
+      total: labourAmount,
+    },
+    {
+      id: `${job.id}-materials`,
+      category: "materials",
+      description: "Materials and parts",
+      quantity: 1,
+      unitPrice: materialsAmount,
+      total: materialsAmount,
+    },
+    {
+      id: `${job.id}-other`,
+      category: "other",
+      description: "Other charges",
+      quantity: 1,
+      unitPrice: otherAmount,
+      total: otherAmount,
+    },
+  ];
+}
+
+// Convert Job to JobWithLines
+function convertJobToJobWithLines(job: Job, index: number): JobWithLines {
+  const lineItems = generateLineItemsForJob(job);
+  const categories = ["External", "Internal"] as const;
+  const category = categories[index % 2];
+
+  return {
+    id: job.id,
+    jobRef: job.jobRef,
+    completed: job.completed,
+    linesCount: lineItems.length,
+    selectedLinesCount: lineItems.length,
+    leftToInvoice: job.leftToInvoice,
+    jobCategory: category,
+    isGroupJob: false,
+    site: job.site,
+    engineerName: job.engineerName,
+    jobStartDate: job.jobStartDate,
+    time: job.time,
+    resource: job.resource,
+    vehicle: job.vehicle,
+  };
+}
+
 // Generate invoice cards from jobs
 function generateInvoiceCards(
   jobs: Job[],
@@ -157,68 +222,12 @@ function generateInvoiceCards(
         jobType: "home_repair" as const,
       };
 
-      const jobsWithLines: JobWithLines[] = [
-        {
-          id: `${groupIndex}-ext-1`,
-          jobRef: `JOB/1235`,
-          completed: "Wed 21 May 2025",
-          linesCount: 12,
-          selectedLinesCount: 12,
-          jobCategory: "External",
-          isGroupJob: false,
-          leftToInvoice: 1500,
-          site: baseJob.site,
-          engineerName: "Luke Brown",
-        },
-        {
-          id: `${groupIndex}-int-1`,
-          jobRef: `JOB/1235`,
-          completed: "Wed 21 May 2025",
-          linesCount: 12,
-          selectedLinesCount: 12,
-          jobCategory: "External",
-          isGroupJob: false,
-          leftToInvoice: 1500,
-          site: baseJob.site,
-          engineerName: "Luke Brown",
-        },
-        {
-          id: `${groupIndex}-group`,
-          jobRef: `G/JOB1234`,
-          completed: "21 May - 3 June 2025",
-          linesCount: 22,
-          selectedLinesCount: 22,
-          jobCategory: "External, Internal",
-          isGroupJob: true,
-          leftToInvoice: 3850,
-          site: baseJob.site,
-          childJobs: [
-            {
-              id: `${groupIndex}-group-child-1`,
-              jobRef: `JOB/1235`,
-              completed: "Wed 21 May 2025",
-              linesCount: 10,
-              selectedLinesCount: 0,
-              leftToInvoice: 1500,
-              jobCategory: "External",
-              isGroupJob: false,
-              engineerName: "Luke Brown",
-            },
-            {
-              id: `${groupIndex}-group-child-2`,
-              jobRef: `JOB/1236`,
-              completed: "Mon 2 June 2025",
-              linesCount: 12,
-              selectedLinesCount: 12,
-              leftToInvoice: 1500,
-              jobCategory: "Internal",
-              isGroupJob: false,
-              engineerName: "Chris Smith",
-            },
-          ],
-        },
-      ];
+      // Convert actual jobs to JobWithLines
+      const jobsWithLines: JobWithLines[] = groupJobs.map((job, idx) =>
+        convertJobToJobWithLines(job, idx)
+      );
 
+      // Determine invoice name based on breakdown level
       const name =
         breakdown === "contact"
           ? baseJob.parent
@@ -226,27 +235,34 @@ function generateInvoiceCards(
             ? baseJob.site || baseJob.parent
             : baseJob.jobRef;
 
-      // Initialize selected job IDs (some selected, some not for demo)
+      // Calculate total left to invoice
+      const totalLeftToInvoice = groupJobs.reduce(
+        (sum, job) => sum + job.leftToInvoice,
+        0
+      );
+
+      // Initialize selected job IDs - select all jobs by default
       const selectedJobIds = new Set<string>();
       const selectedGroupLines = new Set<string>();
 
-      // Select first two standalone jobs
-      selectedJobIds.add(`${groupIndex}-ext-1`);
-      selectedJobIds.add(`${groupIndex}-int-1`);
-      
-      // For group job, only select the second child
-      selectedJobIds.add(`${groupIndex}-group-child-2`);
+      // Select all jobs by default
+      jobsWithLines.forEach((job) => {
+        selectedJobIds.add(job.id);
+      });
+
+      // Get address from first job's site
+      const address = baseJob.site || "Address not available";
 
       return {
         id: `invoice-${groupIndex}`,
-        invoiceNumber: 4901 + groupIndex,
+        invoiceNumber: 24245 + groupIndex,
         invoiceNumberPrefix: "IV",
-        name: "Next Birmingham Bullring",
-        address: "Leeds, Victoria Gate, Harewood St, Leeds LS2 7AR",
+        name,
+        address,
         jobs: jobsWithLines,
         originalJobIds: groupJobs.map((job) => job.id),
         title: "Fire extinguisher service",
-        reference: `2423452`,
+        reference: `243452`,
         issueDate: "",
         dueDate: "",
         bankAccount: "barclays",

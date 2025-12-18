@@ -5,6 +5,8 @@ import {
   DialogContent,
 } from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/registry/ui/radio-group";
+import { Label } from "@/registry/ui/label";
 import { cn } from "@/registry/lib/utils";
 import { type Job, formatCurrency } from "../lib/mock-data";
 
@@ -224,30 +226,29 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
           {step === 1 && (
             <div className="px-6 pb-5">
               <p className="text-sm font-normal text-[#0B2642] mb-4 tracking-[-0.14px]">How should we group your Invoices?</p>
-              <div className="flex gap-4">
+              <RadioGroup
+                value={breakdownLevel}
+                onValueChange={(value) => setBreakdownLevel(value as BreakdownLevel)}
+                className="flex gap-4"
+              >
                 {breakdownOptions.map((option) => {
                   const isSelected = breakdownLevel === option.id;
                   return (
-                    <button
+                    <Label
                       key={option.id}
-                      onClick={() => setBreakdownLevel(option.id)}
+                      htmlFor={`breakdown-${option.id}`}
                       className={cn(
-                        "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                        "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px] cursor-pointer font-normal",
                         isSelected
                           ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
                           : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
                       )}
                     >
-                      <div className={cn(
-                        "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
-                        isSelected
-                          ? "border-[rgba(2,136,209,0.2)]"
-                          : "border-[#E5E5E5] bg-white"
-                      )}>
-                        {isSelected && (
-                          <div className="size-2 rounded-full bg-[#086DFF]" />
-                        )}
-                      </div>
+                      <RadioGroupItem
+                        value={option.id}
+                        id={`breakdown-${option.id}`}
+                        className="shrink-0 mt-0.5"
+                      />
                       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                         <p className={cn(
                           "text-sm font-medium tracking-[-0.14px]",
@@ -259,10 +260,10 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                           {option.description}
                         </p>
                       </div>
-                    </button>
+                    </Label>
                   );
                 })}
-              </div>
+              </RadioGroup>
             </div>
           )}
 
@@ -271,30 +272,29 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
             <div className="px-6 pb-5">
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">Choose your invoice structure</p>
-                <div className="flex gap-4">
+                <RadioGroup
+                  value={levelOfDetail}
+                  onValueChange={(value) => setLevelOfDetail(value as LevelOfDetail)}
+                  className="flex gap-4"
+                >
                   {levelOfDetailOptions.map((option) => {
                     const isSelected = levelOfDetail === option.id;
                     return (
-                      <button
+                      <Label
                         key={option.id}
-                        onClick={() => setLevelOfDetail(option.id)}
+                        htmlFor={`detail-${option.id}`}
                         className={cn(
-                          "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                          "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px] cursor-pointer font-normal",
                           isSelected
                             ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
                             : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
                         )}
                       >
-                        <div className={cn(
-                          "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
-                          isSelected
-                            ? "border-[rgba(2,136,209,0.2)]"
-                            : "border-[rgba(26,28,46,0.12)] bg-white"
-                        )}>
-                          {isSelected && (
-                            <div className="size-2 rounded-full bg-[#086DFF]" />
-                          )}
-                        </div>
+                        <RadioGroupItem
+                          value={option.id}
+                          id={`detail-${option.id}`}
+                          className="shrink-0 mt-0.5"
+                        />
                         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                           <p className={cn(
                             "text-sm font-medium tracking-[-0.14px]",
@@ -306,10 +306,10 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                             {option.description}
                           </p>
                         </div>
-                      </button>
+                      </Label>
                     );
                   })}
-                </div>
+                </RadioGroup>
               </div>
             </div>
           )}
