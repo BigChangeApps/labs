@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
 import {
@@ -8,7 +7,6 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerFooter,
-  DrawerClose,
 } from "@/registry/ui/drawer";
 import { formatCurrency } from "../lib/mock-data";
 import { cn } from "@/registry/lib/utils";
@@ -43,7 +41,7 @@ function CategoryDot({ category }: { category: "labour" | "materials" | "other" 
 }
 
 export function JobLineDetailModal({
-  jobId,
+  jobId: _jobId,
   jobRef,
   jobDate,
   lineItems,

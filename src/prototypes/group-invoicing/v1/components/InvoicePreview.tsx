@@ -26,14 +26,11 @@ import {
   getInvoiceSelection,
   toggleLineItem,
   toggleJob,
-  toggleCategory,
   getLineCounts,
   calculateTotals as calculateTotalsFromState,
   updateJobLineItems,
   setViewMode,
-  getViewMode,
   type LineItem as StateLineItem,
-  type ViewMode as StateViewMode,
 } from "../lib/invoice-state";
 import { JobLineDetailModal } from "./JobLineDetailModal";
 import { Checkbox } from "@/registry/ui/checkbox";
@@ -932,7 +929,7 @@ export function InvoicePreview() {
 
   // State for line detail modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedJobForModal, setSelectedJobForModal] = useState<{
+  const [selectedJobForModal, _setSelectedJobForModal] = useState<{
     jobId: string;
     jobRef: string;
     jobDate?: string;
@@ -1055,23 +1052,6 @@ export function InvoicePreview() {
     });
     return count;
   }, [invoiceData.jobs, selectedJobIdsSet]);
-
-  // Group jobs by category for display
-  const jobsByCategory = useMemo(() => {
-    const groups: Record<string, JobWithLines[]> = {
-      "External": [],
-      "Internal": [],
-      "External, Internal": [],
-    };
-    
-    invoiceData.jobs.forEach((job) => {
-      if (groups[job.jobCategory]) {
-        groups[job.jobCategory].push(job);
-      }
-    });
-    
-    return groups;
-  }, [invoiceData.jobs]);
 
   // Calculate total value for summary view (all jobs)
   const totalValue = useMemo(() => {
@@ -1592,11 +1572,6 @@ export function InvoicePreview() {
                 const lineCounts = getLineCounts(invoiceData.id, job.id);
                 const isJobSelected = selectedJobIdsSet.has(job.id);
                 
-                // Get line items for this job from state
-                const state = getInvoiceSelection(invoiceData.id);
-                const jobState = state?.jobSelections.get(job.id);
-                const jobLineItems = jobState?.lineItems || [];
-
                 if (levelOfDetail === "partial") {
                   return (
                     <div

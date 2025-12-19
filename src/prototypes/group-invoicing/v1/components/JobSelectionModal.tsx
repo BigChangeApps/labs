@@ -4,8 +4,6 @@ import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
