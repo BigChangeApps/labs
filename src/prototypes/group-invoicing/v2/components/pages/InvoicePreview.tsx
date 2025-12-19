@@ -199,7 +199,7 @@ function LinesBadge({
 }) {
   if (isPartial && selected !== undefined) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-hw-brand/10 border border-[rgba(2,136,209,0.2)] w-fit">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-hw-brand/10 border border-hw-brand/20 w-fit">
         <span className="text-sm font-medium text-hw-brand tracking-[-0.14px]">{selected} of {total} lines</span>
       </div>
     );
@@ -399,7 +399,7 @@ function SummaryJobView({
               <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
               <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
             </div>
-            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-hw-brand/10 border border-[rgba(2,136,209,0.2)] w-fit">
+            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-hw-brand/10 border border-hw-brand/20 w-fit">
               <span className="text-sm font-medium tracking-[-0.14px] text-hw-brand">
                 {includedLines} of {totalLines} lines
               </span>
@@ -1245,7 +1245,7 @@ export function InvoicePreview() {
           <span className="font-bold text-hw-text">Invoice/{invoiceData.invoiceNumber.toString().padStart(4, "0")}</span>
           <div className="ml-2 px-2 py-0.5 bg-white border border-hw-border rounded-full text-xs font-medium text-hw-text">Draft</div>
           {sentInvoiceIds.has(invoiceData.id) && (
-            <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
+            <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-green-500/20">
               <Check className="h-3.5 w-3.5 text-[#22c55e]" />
               <span className="text-xs font-medium text-[#22c55e]">Sent</span>
             </div>
@@ -1580,7 +1580,7 @@ export function InvoicePreview() {
                           <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
                           <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
                         </div>
-                        <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-hw-brand/10 border border-[rgba(2,136,209,0.2)] w-fit">
+                        <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-hw-brand/10 border border-hw-brand/20 w-fit">
                           <span className="text-sm font-medium tracking-[-0.14px] text-hw-brand">
                             {includedLines} of {totalLines} lines
                           </span>
@@ -1632,7 +1632,7 @@ export function InvoicePreview() {
                           <div className={cn(
                             "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
                             isJobSelected 
-                              ? "bg-hw-brand/10 border-[rgba(2,136,209,0.2)]"
+                              ? "bg-hw-brand/10 border-hw-brand/20"
                               : "bg-[rgba(26,28,46,0.05)] border-hw-border"
                           )}>
                             <span className={cn(
@@ -1687,7 +1687,7 @@ export function InvoicePreview() {
                         <div className={cn(
                           "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
                           isJobSelected 
-                            ? "bg-hw-brand/10 border-[rgba(2,136,209,0.2)]"
+                            ? "bg-hw-brand/10 border-hw-brand/20"
                             : "bg-[rgba(26,28,46,0.05)] border-hw-border"
                         )}>
                           <span className={cn(
@@ -2023,7 +2023,7 @@ export function InvoicePreview() {
                       value={invoiceData.notes}
                       onChange={(e) => setInvoiceData((prev) => ({ ...prev, notes: e.target.value }))}
                       placeholder="Add notes..."
-                      className="w-full h-[66px] px-2 py-2 bg-white rounded text-sm text-hw-text placeholder:text-hw-inactive resize-none border border-[rgba(3,7,18,0.08)] shadow-[0px_0.5px_2px_0px_rgba(11,38,66,0.16)] focus:outline-none focus:ring-1 focus:ring-[#086DFF]"
+                      className="w-full h-[66px] px-2 py-2 bg-white rounded text-sm text-hw-text placeholder:text-hw-inactive resize-none border border-hw-border shadow-[0px_0.5px_2px_0px_rgba(11,38,66,0.16)] focus:outline-none focus:ring-1 focus:ring-[#086DFF]"
                     />
                   </div>
                   

@@ -22,7 +22,7 @@ interface BreakdownModalProps {
 
 function StatusBadge({ count, label, variant }: { count: number; label: string; variant: "scheduled" | "progress" | "complete" }) {
   const variants = {
-    scheduled: "bg-[#e6f3fa] border border-[rgba(2,136,209,0.2)] text-[#0b2642]",
+    scheduled: "bg-[#e6f3fa] border border-hw-brand/20 text-[#0b2642]",
     progress: "bg-[#0288d1] border border-[#0288d1] text-white",
     complete: "bg-[#2e7d32] border border-[#2e7d32] text-white",
   };
@@ -152,9 +152,9 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[680px] max-w-[680px] h-[555px] p-0 gap-0 overflow-hidden !rounded-[8px] sm:!rounded-[8px] border border-[rgba(26,28,46,0.12)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
+      <DialogContent className="w-[680px] max-w-[680px] h-[555px] p-0 gap-0 overflow-hidden !rounded-[8px] sm:!rounded-[8px] border border-hw-border shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
         {/* Sticky Header */}
-        <div className="px-6 py-4 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] shrink-0 flex flex-row items-start justify-between gap-2.5">
+        <div className="px-6 py-4 bg-[#F8F9FC] border-b border-hw-border shrink-0 flex flex-row items-start justify-between gap-2.5">
           <div className="flex flex-col gap-2.5 flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <img 
@@ -172,7 +172,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="size-6 shrink-0 flex items-center justify-center rounded-[8px] bg-white border border-[rgba(3,7,18,0.08)] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors"
+            className="size-6 shrink-0 flex items-center justify-center rounded-[8px] bg-white border border-hw-border shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:bg-gray-50 transition-colors"
           >
             <X className="h-5 w-5 text-[#0B2642]" />
           </button>
@@ -235,13 +235,13 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                         "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
                         isSelected
                           ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                          : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
+                          : "border-hw-border bg-white hover:border-hw-border"
                       )}
                     >
                       <div className={cn(
                         "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
                         isSelected
-                          ? "border-[rgba(2,136,209,0.2)]"
+                          ? "border-hw-brand/20"
                           : "border-[#E5E5E5] bg-white"
                       )}>
                         {isSelected && (
@@ -282,14 +282,14 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                           "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
                           isSelected
                             ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                            : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
+                            : "border-hw-border bg-white hover:border-hw-border"
                         )}
                       >
                         <div className={cn(
                           "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
                           isSelected
-                            ? "border-[rgba(2,136,209,0.2)]"
-                            : "border-[rgba(26,28,46,0.12)] bg-white"
+                            ? "border-hw-brand/20"
+                            : "border-hw-border bg-white"
                         )}>
                           {isSelected && (
                             <div className="size-2 rounded-full bg-[#086DFF]" />
@@ -316,7 +316,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
         </div>
 
         {/* Sticky Footer */}
-        <div className="px-6 py-4 border-t border-[rgba(26,28,46,0.12)] flex items-center justify-between bg-[#F8F9FC] shrink-0">
+        <div className="px-6 py-4 border-t border-hw-border flex items-center justify-between bg-[#F8F9FC] shrink-0">
           {step === 1 ? (
             <>
               <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">

@@ -543,7 +543,7 @@ function InvoiceCard({
   const selected = bankAccountOptions.find(b => b.id === invoiceData.bankAccount) || bankAccountOptions[0];
 
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_1px_2px_-1px_rgba(11,38,66,0.08),0px_2px_4px_0px_rgba(11,38,66,0.04)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
       {/* Invoice Header */}
       <div className="px-6 pt-6 pb-0">
         {/* Top row: Invoice badge, dates, bank account, reference, menu */}

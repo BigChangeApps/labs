@@ -23,7 +23,7 @@ export function GlobalActionBar({
     : `Send all ${invoiceCount} invoices`;
 
   return (
-    <div className="shrink-0 bg-white border-t border-hw-border px-10 py-6">
+    <div className="shrink-0 bg-white border-t border-hw-border px-10 py-6 relative z-[45]">
       <div className="flex items-center justify-between">
         {/* Left - Invoice Settings and Summary */}
         <div className="flex items-center gap-8">

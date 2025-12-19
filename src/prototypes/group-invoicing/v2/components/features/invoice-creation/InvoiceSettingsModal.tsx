@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
 import { Checkbox } from "@/registry/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-} from "@/registry/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/registry/ui/sheet";
 import {
   Accordion,
   AccordionContent,
@@ -85,7 +86,7 @@ function SettingsSelect({
       </span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-between w-full pl-2.5 pr-1.5 py-1.5 bg-white rounded-input shadow-input hover:shadow-[0px_0px_0px_1px_rgba(3,7,18,0.12),0px_0.5px_2px_0px_rgba(11,38,66,0.20)] transition-shadow text-left">
+          <button className="flex items-center justify-between w-full h-9 px-3 py-1 bg-hw-surface rounded-input ring-1 ring-hw-border shadow-input transition-shadow text-left">
             <span className="text-sm text-hw-text-secondary tracking-[-0.14px] leading-5">
               {selected.label}
             </span>
@@ -165,17 +166,23 @@ export function InvoiceSettingsModal({
   )?.label || "Partial";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[439px] p-0 gap-0 !rounded-modal overflow-hidden ring-0 shadow-modal">
-        {/* Header with grey background and rounded top corners */}
-        <div className="bg-hw-surface-subtle px-5 py-4 rounded-t-modal">
-          <h2 className="text-base font-bold text-hw-text tracking-[-0.16px] leading-6">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-[440px] sm:max-w-[440px] p-0 flex flex-col h-full overflow-hidden">
+        {/* Header */}
+        <div className="bg-hw-surface-subtle px-5 py-4 border-b border-hw-border shrink-0 flex items-center justify-between">
+          <SheetTitle className="text-base font-bold text-hw-text tracking-[-0.16px] leading-6">
             Group Invoice Settings
-          </h2>
+          </SheetTitle>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="p-1 rounded-md hover:bg-hw-surface-hover transition-colors"
+          >
+            <X className="h-5 w-5 text-hw-text-secondary" />
+          </button>
         </div>
 
-        {/* Accordion Sections */}
-        <div className="flex flex-col">
+        {/* Scrollable Accordion Sections */}
+        <div className="flex-1 overflow-y-auto">
           <Accordion type="multiple" defaultValue={[]} className="w-full">
             {/* Breakdown settings */}
             <AccordionItem value="breakdown" className="border-b border-hw-border px-4">
@@ -191,7 +198,7 @@ export function InvoiceSettingsModal({
                     </span>
                     <Popover open={levelOfDetailOpen} onOpenChange={setLevelOfDetailOpen}>
                       <PopoverTrigger asChild>
-                        <button className="flex items-center justify-between w-full pl-2.5 pr-1.5 py-1.5 bg-white rounded-input shadow-input hover:shadow-[0px_0px_0px_1px_rgba(3,7,18,0.12),0px_0.5px_2px_0px_rgba(11,38,66,0.20)] transition-shadow text-left">
+                        <button className="flex items-center justify-between w-full h-9 px-3 py-1 bg-hw-surface rounded-input ring-1 ring-hw-border shadow-input transition-shadow text-left">
                           <span className="text-sm text-hw-text-secondary tracking-[-0.14px] leading-5">
                             {levelOfDetailLabel}
                           </span>
@@ -339,17 +346,14 @@ export function InvoiceSettingsModal({
           </div>
         </div>
 
-        {/* Footer with grey background and rounded bottom corners */}
-        <div className="bg-hw-surface-subtle px-4 py-4 flex items-center justify-end gap-3 rounded-b-modal">
+        {/* Footer */}
+        <div className="bg-hw-surface-subtle px-5 py-4 flex items-center justify-end gap-3 border-t border-hw-border shrink-0">
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>Apply settings</Button>
         </div>
-
-        {/* Inner shadow overlay for subtle border effect */}
-        <div className="absolute inset-0 pointer-events-none rounded-modal shadow-[inset_0px_0px_0px_1px_white,inset_0px_0px_0px_2px_rgba(229,231,235,0.4)]" />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

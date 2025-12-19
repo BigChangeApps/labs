@@ -80,11 +80,8 @@ function InvoiceCard({
       variant="ghost"
       onClick={onClick}
       className={cn(
-        "w-full h-auto text-left p-4 rounded-card transition-all flex flex-col items-stretch gap-4",
-        "shadow-card",
-        isActive
-          ? "bg-hw-brand/8 border border-hw-brand"
-          : "bg-white border border-transparent hover:shadow-[0px_0px_0px_1px_rgba(26,28,46,0.16),0px_2px_4px_0px_rgba(26,28,46,0.08)]"
+        "w-full h-auto text-left p-4 rounded-card transition-all flex flex-col items-stretch gap-4 ring-1 shadow-card bg-hw-surface ring-hw-border",
+        isActive && "bg-hw-brand/16 ring-hw-brand"
       )}
     >
       {/* Status badge at top */}

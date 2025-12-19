@@ -8,7 +8,7 @@ import { JobSelectionModal } from "./JobSelectionModal";
 // Status badge component
 function DraftBadge() {
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-[rgba(16,25,41,0.1)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-hw-border">
       <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px]">Default</span>
     </div>
   );
@@ -28,7 +28,7 @@ export function EmptyInvoiceState() {
   return (
     <div className="min-h-screen bg-[#FCFCFD] flex flex-col">
       {/* Subheader */}
-      <header className="sticky top-0 z-10 bg-white border-b border-[rgba(26,28,46,0.12)]">
+      <header className="sticky top-0 z-10 bg-white border-b border-hw-border">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">

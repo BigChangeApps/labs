@@ -533,7 +533,7 @@ export function UnifiedInvoiceWorkspace() {
   return (
     <div className="flex flex-col h-full bg-muted">
       {/* Header Bar */}
-      <div className="shrink-0 h-14 bg-hw-surface-subtle border-b border-hw-border px-6 flex items-center justify-between">
+      <div className="shrink-0 h-14 bg-[var(--hw-interactive-foreground)] border-b border-hw-border px-6 flex items-center justify-between">
         {/* Left - Breadcrumbs */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">

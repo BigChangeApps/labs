@@ -239,7 +239,7 @@ function JobsTable({
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
     return (
-      <div className="bg-white rounded-lg shadow-card overflow-hidden">
+      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
         <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
           <div className="flex-1">
@@ -285,7 +285,7 @@ function JobsTable({
   // DETAILED VIEW - Line items without checkboxes (selection via Edit Jobs button)
   if (levelOfDetail === "detailed") {
     return (
-      <div className="bg-white rounded-lg shadow-card overflow-hidden">
+      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
         <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
           <div className="flex-1">
@@ -337,7 +337,7 @@ function JobsTable({
 
   // PARTIAL VIEW (default) - One row per job
   return (
-    <div className="bg-white rounded-lg shadow-card overflow-hidden">
+    <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
       {/* Table Header */}
       <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
         <div className="flex-1">
@@ -502,7 +502,7 @@ export function LiveInvoicePreview({
 
   return (
     <div className="flex-1 bg-muted overflow-auto">
-      <div className="p-8 flex flex-col items-center gap-4">
+      <div className="p-8 flex flex-col items-center gap-4 text-hw-surface-subtle">
         {/* Sent Invoice Banner */}
         {isSent && (
           <div className="w-full max-w-[900px] flex items-start gap-2 p-3 bg-green-50 rounded-md border border-green-200">
@@ -724,13 +724,13 @@ export function LiveInvoicePreview({
               <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                 Invoice title
               </span>
-              <div className="inline-flex items-center h-8 px-2.5 py-1.5 bg-white shadow-input w-fit rounded-input">
+              <div className="inline-flex items-center h-9 px-3 py-1 bg-hw-surface border border-transparent ring-1 ring-hw-border shadow-input w-fit rounded-input focus-within:border-hw-focus focus-within:ring-hw-focus/30 focus-within:ring-4 transition-[color,box-shadow]">
                 <input
                   type="text"
                   value={invoice.title || ""}
                   onChange={(e) => onUpdateInvoice({ title: e.target.value })}
                   placeholder="Fire extinguisher service"
-                  className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 bg-transparent border-none outline-none placeholder:text-hw-text-secondary/40"
+                  className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 bg-transparent border-none outline-none placeholder:text-hw-text-secondary"
                 />
               </div>
             </div>
