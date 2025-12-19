@@ -64,6 +64,33 @@ export const prototypes: PrototypeMetadata[] = [
       },
     ],
   },
+  {
+    id: "group-invoicing",
+    title: "Group Invoicing",
+    description:
+      "Bulk invoice creation and management with job grouping, invoice preview, and batch processing workflows.",
+    thumbnail: "/thumbnails/group-invoicing-v2.png",
+    deviceType: "desktop",
+    visibility: "public",
+    versions: [
+      {
+        id: "v1",
+        title: "Version 1",
+        description:
+          "Jobs ready to invoice view with bulk invoice creation, group invoice management, and invoice preview.",
+        path: "/group-invoicing/v1",
+        createdAt: "2025-12-09",
+      },
+      {
+        id: "v2",
+        title: "Version 2",
+        description:
+          "Enhanced version with unified invoice workspace and improved batch processing workflows.",
+        path: "/group-invoicing/v2",
+        createdAt: "2025-12-19",
+      },
+    ],
+  },
   // Add more prototypes here as they are created
 ];
 
