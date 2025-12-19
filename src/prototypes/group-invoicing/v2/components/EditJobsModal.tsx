@@ -1,9 +1,7 @@
 import { useState, useMemo } from "react";
-import { X } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/registry/ui/radio-group";
-import { Label } from "@/registry/ui/label";
+import { Switch } from "@/registry/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -21,14 +19,44 @@ interface EditJobsModalProps {
   onSave: (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => void;
 }
 
-// Category dot for job type
-function JobTypeDot({ category }: { category: "blue" | "orange" | "purple" }) {
+// Category dot for line item type
+function ItemTypeDot({ category }: { category: "labour" | "materials" | "other" }) {
   const colors = {
-    blue: "bg-[#0E94EB]",
-    orange: "bg-[#FE8640]",
-    purple: "bg-[#8C54CA]",
+    labour: "bg-[#0E94EB]",
+    materials: "bg-[#FE8640]",
+    other: "bg-[#8C54CA]",
   };
   return <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", colors[category])} />;
+}
+
+// Resource avatar
+function ResourceAvatar({ initials, image }: { initials: string; image?: string }) {
+  return (
+    <div className="relative size-[18px]">
+      <div className="absolute inset-0 rounded-full bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.45px_1.8px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+        {image ? (
+          <img src={image} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-[5%] rounded-full bg-[#F8F9FC] flex items-center justify-center">
+            <span className="text-[8px] font-semibold text-[#73777D] leading-none">
+              {initials}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Line item type
+interface LineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  category: "labour" | "materials" | "other";
+  selected: boolean;
 }
 
 export function EditJobsModal({
@@ -39,260 +67,280 @@ export function EditJobsModal({
   levelOfDetail,
   onSave,
 }: EditJobsModalProps) {
-  // Local state for editing
-  const [localSelectedJobIds, setLocalSelectedJobIds] = useState<Set<string>>(
-    new Set(selectedJobIds)
-  );
-  const [localLevelOfDetail, setLocalLevelOfDetail] = useState<LevelOfDetail>(levelOfDetail);
-
-  // Reset local state when modal opens
-  useMemo(() => {
-    if (open) {
-      setLocalSelectedJobIds(new Set(selectedJobIds));
-      setLocalLevelOfDetail(levelOfDetail);
-    }
-  }, [open, selectedJobIds, levelOfDetail]);
-
-  // Flatten jobs for display
-  const allJobs = useMemo(() => {
-    const result: { job: JobWithLines; categoryIndex: number }[] = [];
-    let idx = 0;
-    jobs.forEach((job) => {
+  const [showAllLines, setShowAllLines] = useState(false);
+  
+  // Get first selected job for display
+  const selectedJob = useMemo(() => {
+    for (const job of jobs) {
       if (job.isGroupJob && job.childJobs) {
-        job.childJobs.forEach((child) => {
-          result.push({ job: child, categoryIndex: idx % 3 });
-          idx++;
-        });
+        for (const child of job.childJobs) {
+          if (selectedJobIds.has(child.id)) {
+            return child;
+          }
+        }
+      } else if (selectedJobIds.has(job.id)) {
+        return job;
+      }
+    }
+    return jobs[0];
+  }, [jobs, selectedJobIds]);
+
+  // Generate line items from selected jobs
+  const [lineItems, setLineItems] = useState<LineItem[]>(() => {
+    const items: LineItem[] = [];
+    let idx = 0;
+    
+    jobs.forEach((job) => {
+      const processJob = (j: JobWithLines) => {
+        if (selectedJobIds.has(j.id) || showAllLines) {
+          // Generate mock line items for the job
+          const categories: Array<"labour" | "materials" | "other"> = ["labour", "materials", "other"];
+          const descriptions = [
+            { category: "labour" as const, name: "Labour", qty: 7.5 },
+            { category: "materials" as const, name: `${j.jobRef} Materials`, qty: 10 },
+            { category: "other" as const, name: `${j.jobRef} Other charges`, qty: 1 },
+          ];
+          
+          descriptions.forEach((desc, i) => {
+            const unitPrice = j.leftToInvoice * (i === 0 ? 0.6 : i === 1 ? 0.3 : 0.1) / desc.qty;
+            items.push({
+              id: `${j.id}-${desc.category}`,
+              description: desc.name,
+              quantity: desc.qty,
+              unitPrice,
+              total: unitPrice * desc.qty,
+              category: desc.category,
+              selected: selectedJobIds.has(j.id),
+            });
+            idx++;
+          });
+        }
+      };
+
+      if (job.isGroupJob && job.childJobs) {
+        job.childJobs.forEach(processJob);
       } else {
-        result.push({ job, categoryIndex: idx % 3 });
-        idx++;
+        processJob(job);
       }
     });
-    return result;
-  }, [jobs]);
+    
+    return items;
+  });
+
+  // Recalculate line items when showAllLines changes
+  useMemo(() => {
+    const items: LineItem[] = [];
+    
+    jobs.forEach((job) => {
+      const processJob = (j: JobWithLines) => {
+        if (selectedJobIds.has(j.id) || showAllLines) {
+          const descriptions = [
+            { category: "labour" as const, name: "Labour", qty: 7.5 },
+            { category: "materials" as const, name: `No Nonsense 480 Acrylic Frame Sealant White 310ml`, qty: 10 },
+            { category: "other" as const, name: `18V ONE+ Cordless Caulking Gun`, qty: 1 },
+          ];
+          
+          descriptions.forEach((desc, i) => {
+            const unitPrice = j.leftToInvoice * (i === 0 ? 0.6 : i === 1 ? 0.3 : 0.1) / desc.qty;
+            items.push({
+              id: `${j.id}-${desc.category}`,
+              description: desc.name,
+              quantity: desc.qty,
+              unitPrice,
+              total: unitPrice * desc.qty,
+              category: desc.category,
+              selected: selectedJobIds.has(j.id),
+            });
+          });
+        }
+      };
+
+      if (job.isGroupJob && job.childJobs) {
+        job.childJobs.forEach(processJob);
+      } else {
+        processJob(job);
+      }
+    });
+    
+    setLineItems(items);
+  }, [jobs, selectedJobIds, showAllLines]);
 
   // Calculate totals
   const { selectedCount, totalAmount } = useMemo(() => {
-    let count = 0;
-    let amount = 0;
-    allJobs.forEach(({ job }) => {
-      if (localSelectedJobIds.has(job.id)) {
-        count++;
-        amount += job.leftToInvoice;
-      }
-    });
-    return { selectedCount: count, totalAmount: amount };
-  }, [allJobs, localSelectedJobIds]);
+    const selected = lineItems.filter(item => item.selected);
+    return {
+      selectedCount: selected.length,
+      totalAmount: selected.reduce((sum, item) => sum + item.total, 0),
+    };
+  }, [lineItems]);
 
-  const toggleJob = (jobId: string) => {
-    const newSelected = new Set(localSelectedJobIds);
-    if (newSelected.has(jobId)) {
-      newSelected.delete(jobId);
-    } else {
-      newSelected.add(jobId);
-    }
-    setLocalSelectedJobIds(newSelected);
+  const toggleLineItem = (id: string) => {
+    setLineItems(prev => prev.map(item => 
+      item.id === id ? { ...item, selected: !item.selected } : item
+    ));
   };
 
   const toggleAll = () => {
-    if (selectedCount === allJobs.length) {
-      // Deselect all
-      setLocalSelectedJobIds(new Set());
-    } else {
-      // Select all
-      const newSelected = new Set<string>();
-      allJobs.forEach(({ job }) => newSelected.add(job.id));
-      setLocalSelectedJobIds(newSelected);
-    }
+    const allSelected = lineItems.every(item => item.selected);
+    setLineItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
   };
 
   const handleSave = () => {
-    onSave(localSelectedJobIds, localLevelOfDetail);
+    // For now, just keep the existing job selection
+    onSave(selectedJobIds, levelOfDetail);
     onOpenChange(false);
   };
 
   const handleCancel = () => {
-    setLocalSelectedJobIds(new Set(selectedJobIds));
-    setLocalLevelOfDetail(levelOfDetail);
     onOpenChange(false);
   };
 
-  const getCategoryColor = (index: number): "blue" | "orange" | "purple" => {
-    const colors: Array<"blue" | "orange" | "purple"> = ["blue", "orange", "purple"];
-    return colors[index % 3];
-  };
+  const allSelected = lineItems.length > 0 && lineItems.every(item => item.selected);
+  const someSelected = lineItems.some(item => item.selected) && !allSelected;
 
-  const allSelected = selectedCount === allJobs.length;
-  const someSelected = selectedCount > 0 && selectedCount < allJobs.length;
+  // Format job date
+  const formatJobDate = (dateStr?: string) => {
+    if (!dateStr) return "Wed 21 May 2025";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[600px] p-0 gap-0 !rounded-lg overflow-hidden ring-0 shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_16px_32px_0px_rgba(11,38,66,0.08),0px_2px_24px_0px_rgba(11,38,66,0.08)]">
-        {/* Header */}
-        <div className="bg-[#F8F9FC] px-5 py-4 rounded-t-lg flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#0B2642] tracking-[-0.16px] leading-6">
-            Edit Jobs
-          </h2>
-          <button
-            onClick={handleCancel}
-            className="size-6 flex items-center justify-center rounded-md hover:bg-gray-200 transition-colors"
-          >
-            <X className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </div>
-
-        {/* Level of Detail Selector */}
-        <div className="px-5 py-4 border-b border-[#E5E5E5]">
-          <p className="text-sm font-medium text-[#0B2642] mb-3 tracking-[-0.14px]">
-            Level of detail
-          </p>
-          <RadioGroup
-            value={localLevelOfDetail}
-            onValueChange={(value) => setLocalLevelOfDetail(value as LevelOfDetail)}
-            className="flex gap-3"
-          >
-            <Label
-              htmlFor="edit-summary"
-              className={cn(
-                "flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all",
-                localLevelOfDetail === "summary"
-                  ? "border-[#086DFF] bg-[rgba(8,109,255,0.08)]"
-                  : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
-              )}
-            >
-              <RadioGroupItem value="summary" id="edit-summary" />
-              <span className={cn(
-                "text-sm font-medium tracking-[-0.14px]",
-                localLevelOfDetail === "summary" ? "text-[#086DFF]" : "text-[#0B2642]"
-              )}>
-                Summary
-              </span>
-            </Label>
-            <Label
-              htmlFor="edit-partial"
-              className={cn(
-                "flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all",
-                localLevelOfDetail === "partial"
-                  ? "border-[#086DFF] bg-[rgba(8,109,255,0.08)]"
-                  : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
-              )}
-            >
-              <RadioGroupItem value="partial" id="edit-partial" />
-              <span className={cn(
-                "text-sm font-medium tracking-[-0.14px]",
-                localLevelOfDetail === "partial" ? "text-[#086DFF]" : "text-[#0B2642]"
-              )}>
-                Partial
-              </span>
-            </Label>
-            <Label
-              htmlFor="edit-detailed"
-              className={cn(
-                "flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all",
-                localLevelOfDetail === "detailed"
-                  ? "border-[#086DFF] bg-[rgba(8,109,255,0.08)]"
-                  : "border-[rgba(26,28,46,0.12)] bg-white hover:border-[rgba(26,28,46,0.24)]"
-              )}
-            >
-              <RadioGroupItem value="detailed" id="edit-detailed" />
-              <span className={cn(
-                "text-sm font-medium tracking-[-0.14px]",
-                localLevelOfDetail === "detailed" ? "text-[#086DFF]" : "text-[#0B2642]"
-              )}>
-                Detailed
-              </span>
-            </Label>
-          </RadioGroup>
-        </div>
-
-        {/* Jobs List */}
-        <div className="px-5 py-4 max-h-[400px] overflow-y-auto">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
-              Jobs ({selectedCount} of {allJobs.length} selected)
-            </p>
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">
-              {formatCurrency(totalAmount)}
+      <DialogContent className="max-w-[989px] p-0 gap-0 !rounded-lg overflow-hidden ring-0 shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08),0px_16px_32px_0px_rgba(11,38,66,0.08),0px_2px_24px_0px_rgba(11,38,66,0.08)]">
+        {/* Header - Job Info */}
+        <div className="bg-white px-5 py-4 flex flex-col gap-3">
+          {/* Job reference and total */}
+          <div className="flex items-start justify-between">
+            <span className="text-base font-bold text-[#0B2642] tracking-[-0.16px] leading-6">
+              {selectedJob?.jobRef || "INT/03910"}
+            </span>
+            <span className="text-base font-bold text-[#0B2642] tracking-[-0.16px] leading-6">
+              {formatCurrency(totalAmount || selectedJob?.leftToInvoice || 806.64)}
             </span>
           </div>
-
-          {/* Table */}
-          <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center gap-3 px-3 py-2 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)]">
-              <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                onCheckedChange={toggleAll}
-              />
-              <span className="flex-1 text-sm font-medium text-[#73777D] tracking-[-0.14px]">
-                Job Reference
-              </span>
-              <span className="w-[100px] text-sm font-medium text-[#73777D] tracking-[-0.14px] text-right">
-                Site
-              </span>
-              <span className="w-[100px] text-sm font-medium text-[#73777D] tracking-[-0.14px] text-right">
-                Amount
+          
+          {/* Job metadata */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              {formatJobDate(selectedJob?.completed)}
+            </span>
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              {selectedJob?.jobCategory || "Internal Sealant"}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <ResourceAvatar initials="CS" />
+              <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+                Charlotte Stanton
               </span>
             </div>
+          </div>
 
-            {/* Rows */}
-            {allJobs.map(({ job, categoryIndex }) => (
-              <div
-                key={job.id}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-3 border-b last:border-b-0 border-[rgba(26,28,46,0.08)] transition-colors",
-                  localSelectedJobIds.has(job.id)
-                    ? "bg-white"
-                    : "bg-[#FCFCFD]"
-                )}
-              >
-                <Checkbox
-                  checked={localSelectedJobIds.has(job.id)}
-                  onCheckedChange={() => toggleJob(job.id)}
-                />
-                <div className="flex-1 flex items-center gap-2">
-                  <JobTypeDot category={getCategoryColor(categoryIndex)} />
-                  <span className={cn(
-                    "text-sm font-medium tracking-[-0.14px]",
-                    localSelectedJobIds.has(job.id)
-                      ? "text-[#0B2642]"
-                      : "text-[rgba(11,38,66,0.4)] line-through"
-                  )}>
-                    {job.jobRef}
-                  </span>
-                </div>
-                <span className={cn(
-                  "w-[100px] text-sm tracking-[-0.14px] text-right truncate",
-                  localSelectedJobIds.has(job.id)
-                    ? "text-[#73777D]"
-                    : "text-[rgba(11,38,66,0.3)]"
-                )}>
-                  {job.site || "-"}
-                </span>
-                <span className={cn(
-                  "w-[100px] text-sm font-medium tracking-[-0.14px] text-right",
-                  localSelectedJobIds.has(job.id)
-                    ? "text-[#0B2642]"
-                    : "text-[rgba(11,38,66,0.4)]"
-                )}>
-                  {formatCurrency(job.leftToInvoice)}
+          {/* Show all lines toggle */}
+          <div className="flex items-center gap-2">
+            <Switch 
+              checked={showAllLines}
+              onCheckedChange={setShowAllLines}
+            />
+            <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+              Show all lines
+            </span>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden max-h-[436px] overflow-y-auto">
+          {/* Table Header */}
+          <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)] sticky top-0">
+            <Checkbox
+              checked={allSelected ? true : someSelected ? "indeterminate" : false}
+              onCheckedChange={toggleAll}
+              className="shrink-0"
+            />
+            <div className="flex-1 flex items-center gap-5">
+              <div className="flex-1">
+                <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+                  Name
                 </span>
               </div>
-            ))}
+              <div className="w-[100px]" />
+              <div className="w-6 text-right">
+                <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+                  Qty
+                </span>
+              </div>
+              <div className="w-[100px] text-right">
+                <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+                  Unit price
+                </span>
+              </div>
+              <div className="w-[100px] text-right">
+                <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+                  Total
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* Table Rows */}
+          {lineItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
+            >
+              <Checkbox
+                checked={item.selected}
+                onCheckedChange={() => toggleLineItem(item.id)}
+                className="shrink-0"
+              />
+              <div className="flex-1 flex items-center gap-5">
+                <div className="flex-1 flex items-center gap-2.5 py-2">
+                  <ItemTypeDot category={item.category} />
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5 truncate">
+                    {item.description}
+                  </span>
+                </div>
+                <div className="w-[100px]" />
+                <div className="w-6 text-right py-2">
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                    {item.quantity % 1 === 0 ? item.quantity : item.quantity.toFixed(1)}
+                  </span>
+                </div>
+                <div className="w-[100px] text-right py-2">
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                    {formatCurrency(item.unitPrice)}
+                  </span>
+                </div>
+                <div className="w-[100px] text-right py-2">
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
+                    {formatCurrency(item.total)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Footer */}
-        <div className="bg-[#F8F9FC] px-5 py-4 flex items-center justify-end gap-3 rounded-b-lg">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save changes
-          </Button>
+        <div className="flex items-center justify-between px-4 py-3 h-14">
+          {/* Line count badge */}
+          <div className="inline-flex items-center px-1.5 py-0.5 bg-white border border-[rgba(26,28,46,0.12)] rounded-md">
+            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
+              {selectedCount} {selectedCount === 1 ? 'line' : 'lines'}
+            </span>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              Update
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

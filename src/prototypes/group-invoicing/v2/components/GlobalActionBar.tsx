@@ -62,7 +62,7 @@ export function GlobalActionBar({
           >
             <span className="px-0.5">{buttonText}</span>
           </button>
-          <button className="flex items-center justify-center px-0 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#E5E5E5] transition-colors">
+          <button className="flex items-center justify-center px-0 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[rgba(26,28,46,0.5)] transition-colors">
             <ChevronDown className="h-5 w-5 text-white" />
           </button>
         </div>

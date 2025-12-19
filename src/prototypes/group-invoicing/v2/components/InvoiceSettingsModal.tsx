@@ -36,9 +36,8 @@ const levelOfDetailOptions: { id: LevelOfDetail; label: string }[] = [
 ];
 
 const contactLevelOptions = [
-  { id: "site", label: "Site (4 invoices)" },
-  { id: "contact", label: "Contact" },
-  { id: "job", label: "Job" },
+  { id: "contact", label: "Contact (1 invoice)" },
+  { id: "site", label: "Site (per site)" },
 ];
 
 const bankAccountOptions = [
@@ -142,6 +141,7 @@ export function InvoiceSettingsModal({
   onSettingsChange,
 }: InvoiceSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
+  const [levelOfDetailOpen, setLevelOfDetailOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -189,7 +189,7 @@ export function InvoiceSettingsModal({
                     <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
                       Level of detail (for all invoices)
                     </span>
-                    <Popover>
+                    <Popover open={levelOfDetailOpen} onOpenChange={setLevelOfDetailOpen}>
                       <PopoverTrigger asChild>
                         <button className="flex items-center justify-between w-full pl-2.5 pr-1.5 py-1.5 bg-white rounded-[6px] shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:shadow-[0px_0px_0px_1px_rgba(3,7,18,0.12),0px_0.5px_2px_0px_rgba(11,38,66,0.20)] transition-shadow text-left">
                           <span className="text-sm text-[#73777D] tracking-[-0.14px] leading-5">
@@ -202,12 +202,13 @@ export function InvoiceSettingsModal({
                         {levelOfDetailOptions.map((option) => (
                           <button
                             key={option.id}
-                            onClick={() =>
+                            onClick={() => {
                               setLocalSettings((prev) => ({
                                 ...prev,
                                 levelOfDetail: option.id,
-                              }))
-                            }
+                              }));
+                              setLevelOfDetailOpen(false);
+                            }}
                             className={cn(
                               "w-full flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F8F9FC] transition-colors text-left",
                               localSettings.levelOfDetail === option.id ? "bg-[#F8F9FC] text-[#086DFF]" : "text-[#0B2642]"
@@ -230,29 +231,13 @@ export function InvoiceSettingsModal({
                     }
                     options={contactLevelOptions}
                   />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
 
-            {/* Display settings */}
-            <AccordionItem value="display" className="border-b border-[#E5E5E5] px-4">
-              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
-                Display settings
-              </AccordionTrigger>
-              <AccordionContent className="px-2 pb-6">
-                <div className="flex flex-col gap-4">
+                  {/* Custom Line */}
                   <SettingsToggle
-                    label="Show logo"
-                    checked={localSettings.showLogo}
+                    label="Add custom line"
+                    checked={localSettings.customLine}
                     onCheckedChange={(checked) =>
-                      setLocalSettings((prev) => ({ ...prev, showLogo: checked }))
-                    }
-                  />
-                  <SettingsToggle
-                    label="Show T&Cs"
-                    checked={localSettings.showTcs}
-                    onCheckedChange={(checked) =>
-                      setLocalSettings((prev) => ({ ...prev, showTcs: checked }))
+                      setLocalSettings((prev) => ({ ...prev, customLine: checked }))
                     }
                   />
                 </div>
@@ -297,6 +282,31 @@ export function InvoiceSettingsModal({
                       setLocalSettings((prev) => ({ ...prev, departmentCode: value }))
                     }
                     options={departmentOptions}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Display settings - moved to bottom */}
+            <AccordionItem value="display" className="border-b border-[#E5E5E5] px-4">
+              <AccordionTrigger className="text-sm font-medium text-[#0A0A0A] hover:no-underline py-4">
+                Display settings
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-6">
+                <div className="flex flex-col gap-4">
+                  <SettingsToggle
+                    label="Show logo"
+                    checked={localSettings.showLogo}
+                    onCheckedChange={(checked) =>
+                      setLocalSettings((prev) => ({ ...prev, showLogo: checked }))
+                    }
+                  />
+                  <SettingsToggle
+                    label="Show T&Cs"
+                    checked={localSettings.showTcs}
+                    onCheckedChange={(checked) =>
+                      setLocalSettings((prev) => ({ ...prev, showTcs: checked }))
+                    }
                   />
                 </div>
               </AccordionContent>

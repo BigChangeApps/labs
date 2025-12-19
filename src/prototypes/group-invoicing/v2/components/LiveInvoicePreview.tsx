@@ -4,9 +4,7 @@ import {
   FileText,
   X,
   Building2,
-  Calendar as CalendarIcon,
   ChevronDown,
-  Layers,
   Pencil,
   Info,
   Download,
@@ -47,89 +45,6 @@ interface LiveInvoicePreviewProps {
   universalSettings: UniversalSettings;
   onSendInvoice: () => void;
   isSent: boolean;
-}
-
-// Date picker input component
-function DatePickerInput({
-  label,
-  value,
-  onChange,
-  placeholder = "DD/MM/YYYY",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}) {
-  const dateValue = value ? new Date(value) : undefined;
-  const displayValue = dateValue ? format(dateValue, "dd/MM/yyyy") : "";
-
-  return (
-    <div className="flex-1 flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
-        {label}
-      </label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="flex items-center justify-between gap-1.5 h-8 pl-2 pr-1.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] hover:shadow-[0px_0px_0px_1px_rgba(8,109,255,0.4)] transition-shadow">
-            <span
-              className={cn(
-                "text-sm tracking-[-0.14px]",
-                displayValue ? "text-[#0B2642]" : "text-[rgba(11,38,66,0.4)]"
-              )}
-            >
-              {displayValue || placeholder}
-            </span>
-            <CalendarIcon className="h-5 w-5 text-[#0B2642]" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={dateValue}
-            onSelect={(date) => {
-              if (date) {
-                onChange(format(date, "yyyy-MM-dd"));
-              }
-            }}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
-
-// Text input field component
-function TextInputField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  className,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  className?: string;
-}) {
-  return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <label className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
-        {label}
-      </label>
-      <div className="flex items-center h-8 px-2.5 bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)]">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px] bg-transparent border-none outline-none placeholder:text-[rgba(11,38,66,0.4)]"
-        />
-      </div>
-    </div>
-  );
 }
 
 // Logo uploader component
@@ -212,70 +127,6 @@ function ResourceAvatar({ initials = "LB" }: { initials?: string }) {
   );
 }
 
-// Job card component (for standalone jobs)
-function JobCard({
-  job,
-  isSelected,
-  onToggle,
-}: {
-  job: JobWithLines;
-  isSelected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-3 h-[70px] pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg hover:border-[rgba(26,28,46,0.24)] transition-colors">
-      <Checkbox checked={isSelected} onCheckedChange={onToggle} />
-      <div className="flex-1 flex flex-col gap-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px] leading-5">
-            {job.jobRef}
-          </span>
-          <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
-            {job.completed}
-          </span>
-          <ResourceAvatar
-            initials={job.jobCategory === "Internal" ? "CS" : "LB"}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <div
-            className={cn(
-              "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
-              isSelected
-                ? "bg-[rgba(8,109,255,0.08)] border-[rgba(2,136,209,0.2)]"
-                : "bg-[rgba(26,28,46,0.05)] border-[rgba(26,28,46,0.12)]"
-            )}
-          >
-            <span
-              className={cn(
-                "text-sm font-medium tracking-[-0.14px] leading-5",
-                isSelected ? "text-[#0288D1]" : "text-[#73777D]"
-              )}
-            >
-              {job.linesCount} lines
-            </span>
-          </div>
-          {job.jobCategory !== "External, Internal" && (
-            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
-              <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
-                {job.jobCategory}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-      <span
-        className={cn(
-          "text-sm tracking-[-0.14px] leading-5",
-          isSelected ? "font-bold text-[#0B2642]" : "font-medium text-[rgba(11,38,66,0.4)]"
-        )}
-      >
-        {formatCurrency(job.leftToInvoice)}
-      </span>
-    </div>
-  );
-}
-
 // Nested job card (inside group jobs)
 function NestedJobCard({
   job,
@@ -329,59 +180,6 @@ function NestedJobCard({
       >
         {formatCurrency(job.leftToInvoice)}
       </span>
-    </div>
-  );
-}
-
-// Group job card component
-function GroupJobCard({
-  job,
-  selectedJobIds,
-  onToggleChild,
-}: {
-  job: JobWithLines;
-  selectedJobIds: Set<string>;
-  onToggleChild: (childId: string) => void;
-}) {
-  // Calculate group total based on selected children
-  const groupTotal = job.childJobs?.reduce((total, child) => {
-    if (selectedJobIds.has(child.id)) {
-      return total + child.leftToInvoice;
-    }
-    return total;
-  }, 0) || 0;
-
-  return (
-    <div className="bg-white border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
-      {/* Group Header */}
-      <div className="flex items-center gap-2 p-3 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)]">
-        <Layers className="h-5 w-5 text-[#73777D]" />
-        <div className="flex-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px] leading-5">
-              {job.jobRef}
-            </span>
-            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
-              {job.completed}
-            </span>
-          </div>
-          <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px] leading-5">
-            {formatCurrency(groupTotal > 0 ? groupTotal : job.leftToInvoice)}
-          </span>
-        </div>
-      </div>
-      
-      {/* Child Jobs */}
-      <div className="p-4 flex flex-col gap-3">
-        {job.childJobs?.map((child) => (
-          <NestedJobCard
-            key={child.id}
-            job={child}
-            isSelected={selectedJobIds.has(child.id)}
-            onToggle={() => onToggleChild(child.id)}
-          />
-        ))}
-      </div>
     </div>
   );
 }
@@ -559,23 +357,18 @@ function JobsTable({
     );
   }
 
-  // DETAILED VIEW - All line items with checkboxes
+  // DETAILED VIEW - Line items without checkboxes (selection via Edit Jobs button)
   if (levelOfDetail === "detailed") {
     return (
       <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
-          <Checkbox className="shrink-0" checked={true} />
+        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
           <div className="flex-1">
             <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
               Name
             </span>
           </div>
-          <div className="w-[60px] text-center">
-            <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
-              Qty
-            </span>
-          </div>
+          <div className="w-[100px]" />
           <div className="w-[100px] text-right">
             <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px] leading-5">
               Unit price
@@ -592,27 +385,15 @@ function JobsTable({
         {detailedRows.map((row) => (
           <div
             key={row.id}
-            className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white hover:bg-[#FCFCFD]"
+            className="flex items-center gap-5 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
           >
-            <Checkbox 
-              className="shrink-0" 
-              checked={row.selected}
-              onCheckedChange={() => {
-                const [jobId] = row.id.split('-');
-                onToggleLineItem?.(jobId, row.id);
-              }}
-            />
             <div className="flex-1 flex items-center gap-2.5">
               <JobTypeDot category={getLineItemColor(row.category)} />
               <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
                 {row.description}
               </span>
             </div>
-            <div className="w-[60px] text-center">
-              <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
-                {row.quantity.toFixed(1)}
-              </span>
-            </div>
+            <div className="w-[100px]" />
             <div className="w-[100px] text-right">
               <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px] leading-5">
                 {formatCurrency(row.unitPrice)}
@@ -766,17 +547,6 @@ export function LiveInvoicePreview({
     };
   }, [invoice.jobs, invoice.selectedJobIds, invoice.selectedGroupLines]);
 
-  // Toggle job selection
-  const toggleJob = (jobId: string) => {
-    const newSelected = new Set(invoice.selectedJobIds);
-    if (newSelected.has(jobId)) {
-      newSelected.delete(jobId);
-    } else {
-      newSelected.add(jobId);
-    }
-    onUpdateInvoice({ selectedJobIds: newSelected, isOverridden: true });
-  };
-
   // Handle file upload
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -867,7 +637,7 @@ export function LiveInvoicePreview({
                   <span className="px-0.5">Send invoice</span>
                 </button>
                 <button
-                  className="flex items-center justify-center px-0.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#E5E5E5] transition-colors"
+                  className="flex items-center justify-center px-0.5 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[rgba(26,28,46,0.5)] transition-colors"
                 >
                   <ChevronDown className="h-5 w-5 text-white" />
                 </button>

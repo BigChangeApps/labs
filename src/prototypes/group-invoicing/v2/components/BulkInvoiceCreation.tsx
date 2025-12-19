@@ -6,10 +6,8 @@ import {
   MoreVertical, 
   HelpCircle, 
   Check, 
-  Paperclip,
   Calendar,
   FileText,
-  X,
 } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
@@ -193,98 +191,6 @@ function DraftBadge() {
   return (
     <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-[rgba(16,25,41,0.1)]">
       <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px]">Draft</span>
-    </div>
-  );
-}
-
-
-
-// Attachment Uploader Component
-function AttachmentUploader({
-  attachments,
-  onAttachmentsChange,
-}: {
-  attachments: Attachment[];
-  onAttachmentsChange: (attachments: Attachment[]) => void;
-}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const newAttachments: Attachment[] = Array.from(files).map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    }));
-
-    onAttachmentsChange([...attachments, ...newAttachments]);
-    
-    // Reset input so same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleRemove = (id: string) => {
-    onAttachmentsChange(attachments.filter((a) => a.id !== id));
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  return (
-    <div className="space-y-2">
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        onChange={handleFileSelect}
-        className="hidden"
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-      />
-      
-      {/* Uploaded files list */}
-      {attachments.length > 0 && (
-        <div className="space-y-1.5">
-          {attachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="flex items-center justify-between px-3 py-2 bg-[#F8F9FC] rounded-md"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <FileText className="h-4 w-4 text-[#73777D] shrink-0" />
-                <span className="text-sm text-[#0B2642] truncate">{attachment.name}</span>
-                <span className="text-xs text-[#73777D] shrink-0">
-                  ({formatFileSize(attachment.size)})
-                </span>
-              </div>
-              <button
-                onClick={() => handleRemove(attachment.id)}
-                className="p-1 hover:bg-[rgba(11,38,66,0.08)] rounded transition-colors shrink-0"
-              >
-                <X className="h-4 w-4 text-[#73777D]" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      {/* Upload button */}
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="gap-1.5 bg-white"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <Paperclip className="h-4 w-4" />
-        Upload attachments
-      </Button>
     </div>
   );
 }
@@ -855,7 +761,7 @@ function UniversalSettingsPanel({
   onCurrencyChange,
   onBankAccountChange,
   subtotal,
-  vatAmount,
+  vatAmount: _vatAmount,
   total,
   contactName,
   sites,
@@ -1352,11 +1258,6 @@ export function BulkInvoiceCreation() {
     const checkStickyBehavior = () => {
       const rightCol = rightColRef.current;
       if (!rightCol) return;
-
-      // Find the sticky inner div
-      const stickyInner = rightCol.querySelector('[class*="sticky"]') as HTMLElement;
-      const windowScrollY = window.scrollY;
-      const windowInnerHeight = window.innerHeight;
 
       // Sticky behavior check - no longer needs debug logging
     };

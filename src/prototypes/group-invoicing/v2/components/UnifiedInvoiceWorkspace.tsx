@@ -100,18 +100,8 @@ export interface UniversalSettings {
   contactLevel: string;
   showLogo: boolean;
   showTcs: boolean;
+  customLine: boolean;
   rememberSelection: boolean;
-}
-
-// Helper functions
-function getToday(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function getDueDate(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 30);
-  return date.toISOString().split("T")[0];
 }
 
 // Helper to generate line items for a job
@@ -235,12 +225,6 @@ function generateInvoiceCards(
             ? baseJob.site || baseJob.parent
             : baseJob.jobRef;
 
-      // Calculate total left to invoice
-      const totalLeftToInvoice = groupJobs.reduce(
-        (sum, job) => sum + job.leftToInvoice,
-        0
-      );
-
       // Initialize selected job IDs - select all jobs by default
       const selectedJobIds = new Set<string>();
       const selectedGroupLines = new Set<string>();
@@ -284,15 +268,6 @@ export function UnifiedInvoiceWorkspace() {
   const location = useLocation();
 
   // #region agent log
-  // Debug: Log layout dimensions on mount
-  useEffect(() => {
-    const main = document.querySelector('main');
-    const wrapper = document.querySelector('[class*="h-full"]') || document.querySelector('[class*="h-[calc"]');
-    const actionBar = document.querySelector('[class*="shrink-0"][class*="border-t"]');
-    const actionBarStyle = actionBar ? getComputedStyle(actionBar) : null;
-    
-    fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UnifiedInvoiceWorkspace.tsx:mount',message:'CSS Debug - ActionBar styles',data:{actionBarClasses:actionBar?.className,actionBarBgColor:actionBarStyle?.backgroundColor,actionBarBgExpected:'white (rgb(255, 255, 255))',wrapperBgColor:wrapper ? getComputedStyle(wrapper).backgroundColor : null,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'css-debug',hypothesisId:'CSS-CHECK'})}).catch(()=>{});
-  }, []);
   // #endregion
 
   const locationState = (location.state || {}) as {
@@ -359,7 +334,7 @@ export function UnifiedInvoiceWorkspace() {
       : demoJobs;
   const breakdownLevel = locationState.breakdownLevel || "site";
 
-  // Universal settings state
+  // Universal settings state - sync contactLevel with breakdownLevel from location
   const [universalSettings, setUniversalSettings] = useState<UniversalSettings>(
     {
       levelOfDetail: locationState.levelOfDetail || "partial",
@@ -367,9 +342,10 @@ export function UnifiedInvoiceWorkspace() {
       bankAccount: "barclays",
       nominalCode: "5001",
       departmentCode: "HS49301",
-      contactLevel: "site",
+      contactLevel: breakdownLevel,
       showLogo: false,
       showTcs: false,
+      customLine: false,
       rememberSelection: false,
     }
   );
@@ -452,7 +428,24 @@ export function UnifiedInvoiceWorkspace() {
   // Handle universal settings change
   const handleSettingsChange = useCallback(
     (newSettings: UniversalSettings) => {
+      const previousSettings = universalSettings;
       setUniversalSettings(newSettings);
+
+      // If contact level changed, regenerate all invoices
+      if (newSettings.contactLevel !== previousSettings.contactLevel) {
+        const newBreakdown = newSettings.contactLevel as BreakdownLevel;
+        const newInvoices = generateInvoiceCards(
+          selectedJobs,
+          newBreakdown,
+          newSettings.levelOfDetail
+        );
+        setInvoices(newInvoices);
+        // Set the first invoice as active
+        if (newInvoices.length > 0) {
+          setActiveInvoiceId(newInvoices[0].id);
+        }
+        return;
+      }
 
       // Apply to non-overridden invoices
       setInvoices((prev) =>
@@ -469,7 +462,7 @@ export function UnifiedInvoiceWorkspace() {
         })
       );
     },
-    []
+    [universalSettings, selectedJobs]
   );
 
   // Handle send all invoices

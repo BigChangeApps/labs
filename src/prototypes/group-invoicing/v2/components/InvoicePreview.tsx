@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon, Download, Printer, Pencil, ImagePlus } from "lucide-react";
+import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon, Download, Printer, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
@@ -26,14 +26,11 @@ import {
   getInvoiceSelection,
   toggleLineItem,
   toggleJob,
-  toggleCategory,
   getLineCounts,
   calculateTotals as calculateTotalsFromState,
   updateJobLineItems,
   setViewMode,
-  getViewMode,
   type LineItem as StateLineItem,
-  type ViewMode as StateViewMode,
 } from "../lib/invoice-state";
 import { JobLineDetailModal } from "./JobLineDetailModal";
 import { Checkbox } from "@/registry/ui/checkbox";
@@ -176,20 +173,6 @@ function generateLineItems(jobs: JobWithLines[]): LineItem[] {
   });
 
   return items;
-}
-
-// Format date for display
-function formatDisplayDate(dateStr: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  const today = new Date();
-  const isToday = date.toDateString() === today.toDateString();
-  const formatted = date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  return isToday ? `${formatted} (Today)` : formatted;
 }
 
 // Resource avatar component
@@ -448,7 +431,7 @@ function CategoryDot({ category }: { category: "blue" | "orange" | "purple" }) {
 function DetailedJobView({ 
   lineItems,
   invoiceId,
-  onLineItemToggle,
+  onLineItemToggle: _onLineItemToggle,
   onEditLineItem,
 }: { 
   lineItems: LineItem[];
@@ -456,9 +439,6 @@ function DetailedJobView({
   onLineItemToggle?: (jobId: string, lineId: string) => void;
   onEditLineItem?: (lineItem: LineItem) => void;
 }) {
-  // Get state line items to check selection status
-  const state = getInvoiceSelection(invoiceId);
-  
   return (
     <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
       {/* Table Header */}
@@ -475,11 +455,6 @@ function DetailedJobView({
           // Determine category color based on item index
           const categoryIndex = parseInt(item.id.split('-').pop() || '0') % 3;
           const category = categoryIndex === 0 ? "blue" : categoryIndex === 1 ? "orange" : "purple";
-          
-          // Extract jobId from line item id (format: jobId-line-X)
-          const jobId = item.id.split('-line-')[0];
-          const stateLineItem = state?.jobSelections.get(jobId)?.lineItems.find(l => l.id === item.id);
-          const isSelected = stateLineItem?.selected ?? true;
           
           return (
             <div key={item.id} className="flex items-center gap-5 px-3 py-2 bg-white hover:bg-[#F8F9FC] transition-colors min-h-[40px] max-h-[56px]">
@@ -1006,7 +981,7 @@ export function InvoicePreview() {
 
   // State for line detail modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedJobForModal, setSelectedJobForModal] = useState<{
+  const [selectedJobForModal, _setSelectedJobForModal] = useState<{
     jobId: string;
     jobRef: string;
     jobDate?: string;
@@ -1130,22 +1105,6 @@ export function InvoicePreview() {
     return count;
   }, [invoiceData.jobs, selectedJobIdsSet]);
 
-  // Group jobs by category for display
-  const jobsByCategory = useMemo(() => {
-    const groups: Record<string, JobWithLines[]> = {
-      "External": [],
-      "Internal": [],
-      "External, Internal": [],
-    };
-    
-    invoiceData.jobs.forEach((job) => {
-      if (groups[job.jobCategory]) {
-        groups[job.jobCategory].push(job);
-      }
-    });
-    
-    return groups;
-  }, [invoiceData.jobs]);
 
   // Calculate total value for summary view (all jobs)
   const totalValue = useMemo(() => {
@@ -1657,11 +1616,6 @@ export function InvoicePreview() {
                 const lineCounts = getLineCounts(invoiceData.id, job.id);
                 const isJobSelected = selectedJobIdsSet.has(job.id);
                 
-                // Get line items for this job from state
-                const state = getInvoiceSelection(invoiceData.id);
-                const jobState = state?.jobSelections.get(job.id);
-                const jobLineItems = jobState?.lineItems || [];
-
                 if (levelOfDetail === "partial") {
                   return (
                     <div
