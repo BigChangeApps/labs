@@ -387,7 +387,7 @@ export function CreateAsset() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <span className="text-base sm:text-lg font-bold tracking-tight">
-                Create Asset
+                Create asset
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export function CreateAsset() {
             <div className="flex items-start gap-4 w-full">
               {/* Title */}
               <div className="flex-1 flex flex-col gap-2">
-                <h1 
+                <h1
                   ref={h1Ref}
                   tabIndex={0}
                   className="text-2xl sm:text-3xl font-bold tracking-tight outline-none focus-visible:outline-none"
@@ -458,7 +458,7 @@ export function CreateAsset() {
                     {organizedAttributes.assetInfo.length > 0 && (
                       <>
                         <div className="flex flex-col gap-4 pb-5">
-                          <h2 className="font-bold text-base">Asset Info</h2>
+                          <h2 className="font-bold text-base">Asset info</h2>
                           <div className="flex flex-col gap-3">
                             {organizedAttributes.assetInfo.map((attr) => (
                               <AttributeField
@@ -625,7 +625,7 @@ export function CreateAsset() {
                     <CardContent className="p-5">
                       <div className="flex flex-col gap-4">
                         <h2 className="font-bold text-base">
-                          {selectedCategory?.name} Attributes
+                          {selectedCategory?.name} attributes
                         </h2>
                         <div className="flex flex-col gap-4">
                           {categorySpecificAttributes.map((attr) => (

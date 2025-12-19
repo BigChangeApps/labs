@@ -532,7 +532,7 @@ export function EditAsset() {
         <Card className="w-full max-w-[700px]">
           <CardContent className="p-8">
             <div className="flex flex-col items-center gap-6">
-              <h1 className="text-2xl font-bold">Asset Not Found</h1>
+              <h1 className="text-2xl font-bold">Asset not found</h1>
               <p className="text-muted-foreground text-center">
                 The asset with ID "{assetId}" could not be found.
               </p>
@@ -689,7 +689,7 @@ export function EditAsset() {
                 Cancel
               </Button>
               <Button variant="default" onClick={handleConfirmCategoryChange}>
-                Change Category
+                Change category
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -742,7 +742,7 @@ export function EditAsset() {
                       <>
                         <div className="flex flex-col gap-4 pb-5">
                           <div className="flex items-center justify-between">
-                            <h2 className="font-bold text-base">Asset Info</h2>
+                            <h2 className="font-bold text-base">Asset info</h2>
                             {mockAsset && typeof mockAsset["global-asset-id"] === "string" && (
                               <Badge variant="secondary" className="text-xs font-semibold px-2 bg-muted text-muted-foreground">
                                 {mockAsset["global-asset-id"]}
@@ -894,7 +894,7 @@ export function EditAsset() {
                     <CardContent className="p-5">
                       <div className="flex flex-col gap-4">
                         <h2 className="font-bold text-base">
-                          {selectedCategory?.name} Attributes
+                          {selectedCategory?.name} attributes
                         </h2>
                         <div className="flex flex-col gap-4">
                           {categorySpecificAttributes.map((attr) => (

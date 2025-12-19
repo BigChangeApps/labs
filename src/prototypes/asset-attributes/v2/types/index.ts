@@ -1,5 +1,18 @@
 export type AttributeType = "text" | "number" | "dropdown" | "date" | "boolean";
 
+export type NumberFormat = "measurement" | "currency" | "percentage";
+
+export type MeasurementCategory = "length" | "weight" | "volume" | "area" | "temperature" | "time" | "speed" | "pressure" | "power";
+
+export interface MeasurementConfig {
+  category: MeasurementCategory;
+  unit: string;
+}
+
+export interface CurrencyConfig {
+  currency: string; // ISO 4217 code: "GBP", "USD", "EUR", etc.
+}
+
 export interface Attribute {
   id: string;
   label: string;
@@ -9,7 +22,10 @@ export interface Attribute {
   description?: string;
   order?: number;
   dropdownOptions?: string[];
-  units?: string;
+  numberFormat?: NumberFormat; // For number type: none, measurement, currency, percentage, suffix
+  measurementConfig?: MeasurementConfig;
+  currencyConfig?: CurrencyConfig;
+  suffix?: string; // For number type with suffix format
 }
 
 export interface CategoryAttributeConfig {
@@ -59,6 +75,9 @@ export interface GlobalAttribute {
   description?: string;
   detailedDescription?: string;
   dropdownOptions?: string[];
-  units?: string; // Added for consistency with category attributes
+  numberFormat?: NumberFormat; // For number type: none, measurement, currency, percentage, suffix
+  measurementConfig?: MeasurementConfig;
+  currencyConfig?: CurrencyConfig;
+  suffix?: string; // For number type with suffix format
 }
 

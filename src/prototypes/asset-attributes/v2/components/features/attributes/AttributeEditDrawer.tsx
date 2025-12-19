@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from "@/registry/ui/dialog";
 import { Button } from "@/registry/ui/button";
+import { Input } from "@/registry/ui/input";
+import { Label } from "@/registry/ui/label";
 import {
   AttributeForm,
   type AttributeFormData,
@@ -54,6 +56,7 @@ export function AttributeEditDrawer({
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const formRef = useRef<{ submit: () => void }>(null);
   
   // When delete dialog opens, temporarily close the parent modal
@@ -194,34 +197,56 @@ export function AttributeEditDrawer({
               >
                 Cancel
               </Button>
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave}>Save changes</Button>
             </div>
           </ResponsiveModalFooter>
         </ResponsiveModalContent>
       </ResponsiveModal>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) setDeleteConfirmText("");
+        }}
+      >
         <DialogContent className="z-[100]" overlayClassName="z-[100]">
           <DialogHeader>
             <DialogTitle>Delete {attribute.label}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this attribute? This will remove
-              the attribute and any associated data. This action cannot be
-              undone.
+              This will permanently delete the attribute and any associated data.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          <div className="py-2">
+            <Label htmlFor="delete-confirm" className="text-sm text-muted-foreground">
+              Type <span className="font-semibold text-foreground">{attribute.label}</span> to confirm
+            </Label>
+            <Input
+              id="delete-confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={attribute.label}
+              className="mt-2"
+              autoComplete="off"
+            />
+          </div>
           <DialogFooter>
             <Button
               variant="secondary"
               onClick={() => {
                 setIsDeleteDialogOpen(false);
-                // Parent modal will be restored via useEffect
+                setDeleteConfirmText("");
               }}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteConfirmText !== attribute.label}
+            >
               Delete
             </Button>
           </DialogFooter>

@@ -83,6 +83,7 @@ interface AttributeStore {
   addGlobalAttribute: (attribute: Omit<GlobalAttribute, "id">, section?: GlobalAttributeSection) => string;
   editGlobalAttribute: (attributeId: string, updates: Partial<GlobalAttribute>) => void;
   deleteGlobalAttribute: (attributeId: string) => void;
+  reorderGlobalAttributes: (section: GlobalAttributeSection, attributeIds: string[]) => void;
 
   // Category actions
   addCategory: (name: string, parentId?: string) => string;
@@ -557,6 +558,22 @@ export const useAttributeStore = create<AttributeStore>((set) => ({
       );
 
       return { globalAttributes };
+    });
+  },
+
+  reorderGlobalAttributes: (section, attributeIds) => {
+    set((state) => {
+      // Get all attributes not in this section (unchanged)
+      const otherAttributes = state.globalAttributes.filter(
+        (attr) => attr.section !== section
+      );
+
+      // Reorder attributes in this section based on provided IDs
+      const sectionAttributes = attributeIds
+        .map((id) => state.globalAttributes.find((attr) => attr.id === id))
+        .filter(Boolean) as GlobalAttribute[];
+
+      return { globalAttributes: [...otherAttributes, ...sectionAttributes] };
     });
   },
 

@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import {
-  ResponsiveModal,
-  ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
-} from "@/registry/ui/responsive-modal";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/registry/ui/sheet";
 import { Button } from "@/registry/ui/button";
 import {
   AttributeForm,
@@ -16,7 +17,7 @@ import { useAttributeStore } from "../../../lib/store";
 import type { GlobalAttributeSection } from "../../../types";
 import { toast } from "sonner";
 
-interface AttributeAddDrawerProps {
+interface AttributeAddSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   context: AttributeFormContext;
@@ -24,13 +25,13 @@ interface AttributeAddDrawerProps {
   section?: GlobalAttributeSection | null; // Optional section for global attributes
 }
 
-export function AttributeAddDrawer({
+export function AttributeAddSidebar({
   open,
   onOpenChange,
   context,
   categoryId,
   section,
-}: AttributeAddDrawerProps) {
+}: AttributeAddSidebarProps) {
   const { addAttribute, addGlobalAttribute, categories } = useAttributeStore();
   const formRef = useRef<{ submit: () => void }>(null);
 
@@ -66,18 +67,16 @@ export function AttributeAddDrawer({
     onOpenChange(false);
   };
 
-  const title = "Add attribute";
-
-  const formId = "attribute-add-form";
+  const formId = "attribute-add-sidebar-form";
 
   return (
-    <ResponsiveModal open={open} onOpenChange={onOpenChange}>
-      <ResponsiveModalContent>
-        <ResponsiveModalHeader>
-          <ResponsiveModalTitle>{title}</ResponsiveModalTitle>
-        </ResponsiveModalHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex flex-col w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Add attribute</SheetTitle>
+        </SheetHeader>
 
-        <div className="flex flex-col gap-6 pt-2">
+        <div className="flex-1 overflow-y-auto py-4">
           <AttributeForm
             ref={formRef}
             mode="add"
@@ -85,18 +84,17 @@ export function AttributeAddDrawer({
             onSubmit={handleSubmit}
             formId={formId}
           />
-
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2">
-            <Button type="button" variant="secondary" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit" form={formId}>
-              {context === "category" ? "Save attribute" : "Add attribute"}
-            </Button>
-          </div>
         </div>
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+
+        <SheetFooter className="border-t pt-4 -mx-6 px-6 pb-0">
+          <Button type="button" variant="secondary" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" form={formId}>
+            {context === "category" ? "Save attribute" : "Add attribute"}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
-

@@ -1339,7 +1339,7 @@ export const globalAttributes: GlobalAttribute[] = [
     type: "text",
     section: "asset-info",
     isEnabled: true,
-    isRequired: false,
+    isRequired: true,
   },
   {
     id: "global-barcode",

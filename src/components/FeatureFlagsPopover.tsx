@@ -56,6 +56,18 @@ export const prototypeFlags: PrototypeFlags = {
       description: "Manufacturer management section",
       defaultValue: true,
     },
+    {
+      id: "useInlineAttributeForms",
+      name: "Inline attribute forms",
+      description: "Add/edit attributes inline vs modal",
+      defaultValue: true,
+    },
+    {
+      id: "useSidebarAttributeForms",
+      name: "Sidebar for add (non-inline)",
+      description: "Use sidebar instead of modal when inline is off",
+      defaultValue: false,
+    },
   ],
 };
 

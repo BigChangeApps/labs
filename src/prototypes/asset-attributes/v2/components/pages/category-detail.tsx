@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/registry/ui/button";
+import { Card } from "@/registry/ui/card";
 import { ChevronDown, ChevronUp, MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -93,7 +94,7 @@ function SortableAttributeCard({
         }
         onClick={() => onViewDetails(item.attributeId)}
         showSeparator={false}
-        isDraggable={false}
+        isDraggable={true}
         dragHandleProps={listeners}
       />
     </div>
@@ -219,7 +220,7 @@ export function CategoryDetail() {
         attribute,
         source: "custom",
         isDeletable: true,
-        isToggleable: true,
+        isToggleable: false, // Custom attributes don't have toggle
       });
     }
   });
@@ -232,7 +233,7 @@ export function CategoryDetail() {
     setIsDetailDrawerOpen(true);
   };
 
-  // Handle drag end - reorder attributes
+  // Handle drag end - reorder all attributes
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -255,14 +256,13 @@ export function CategoryDetail() {
     reorderAttributes(categoryId, orderedIds);
   };
 
-  // Helper function to render a list of attributes
-  const renderAttributeList = (attributes: AttributeWithSource[]) => {
-    if (attributes.length === 0) {
+  // Render all attributes (all draggable)
+  const renderAttributeList = () => {
+    if (allAttributes.length === 0) {
       return null;
     }
 
-    // Get IDs for sortable context
-    const attributeIds = attributes.map((item) => item.attributeId);
+    const attributeIds = allAttributes.map((item) => item.attributeId);
 
     return (
       <DndContext
@@ -271,8 +271,8 @@ export function CategoryDetail() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={attributeIds} strategy={verticalListSortingStrategy}>
-          <div className="rounded-card border bg-card divide-y">
-            {attributes.map((item) => (
+          <Card className="divide-y">
+            {allAttributes.map((item) => (
               <SortableAttributeCard
                 key={item.attributeId}
                 item={item}
@@ -281,7 +281,7 @@ export function CategoryDetail() {
                 toggleAttribute={toggleAttribute}
               />
             ))}
-          </div>
+          </Card>
         </SortableContext>
       </DndContext>
     );
@@ -366,7 +366,7 @@ export function CategoryDetail() {
             </Button>
             {isInheritedExpanded && (
               <div className="pt-3">
-                <div className="rounded-card border bg-card divide-y">
+                <Card className="divide-y">
                   {inheritedAttributes.map((item) => (
                     <AttributeCard
                       key={item.attributeId}
@@ -383,25 +383,24 @@ export function CategoryDetail() {
                       inheritedFrom={item.parentCategoryName}
                     />
                   ))}
-                </div>
+                </Card>
               </div>
             )}
           </div>
         )}
 
-        {/* Attributes Section - Unified display of all attributes */}
+        {/* Attributes Section - All attributes in one draggable list */}
         <div className="space-y-3 sm:space-y-4">
-          {/* Conditional rendering based on attributes */}
           {allAttributes.length === 0 ? (
-            <div className="rounded-card border bg-card">
+            <Card>
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm mb-4">
                   There are no attributes for this category yet.
                 </p>
               </div>
-            </div>
+            </Card>
           ) : (
-            renderAttributeList(allAttributes)
+            renderAttributeList()
           )}
         </div>
       </div>

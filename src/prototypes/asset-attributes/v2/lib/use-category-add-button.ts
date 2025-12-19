@@ -44,4 +44,23 @@ export function useManufacturers(): boolean {
   return useFeatureFlag("showManufacturers", true);
 }
 
+/**
+ * Hook to check if inline attribute forms should be used.
+ * When true: Uses inline add/edit cards within the list
+ * When false: Uses modal/drawer approach for add/edit
+ */
+export function useInlineAttributeForms(): boolean {
+  return useFeatureFlag("useInlineAttributeForms", true);
+}
+
+/**
+ * Hook to check if sidebar should be used for adding attributes.
+ * Only applies when inline forms are disabled.
+ * When true: Uses sidebar (Sheet) for add
+ * When false: Uses modal (ResponsiveModal) for add
+ */
+export function useSidebarAttributeForms(): boolean {
+  return useFeatureFlag("useSidebarAttributeForms", false);
+}
+
 

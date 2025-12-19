@@ -13,6 +13,7 @@ import {
 } from "@/registry/ui/form";
 import { Input } from "@/registry/ui/input";
 import { Button } from "@/registry/ui/button";
+import { Badge } from "@/registry/ui/badge";
 import { Kbd } from "@/registry/ui/kbd";
 
 export interface ManufacturerFormData {
@@ -108,7 +109,15 @@ export const ManufacturerForm = React.forwardRef<
           name="models"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Models (Optional)</FormLabel>
+              <FormLabel className="flex items-center gap-2">
+                Models
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] font-medium rounded-none px-1 py-0"
+                >
+                  Optional
+                </Badge>
+              </FormLabel>
               <div className="space-y-2">
                 {field.value?.map((_, index) => {
                   const isLastInput = index === (field.value?.length || 0) - 1;
