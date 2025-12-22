@@ -182,9 +182,6 @@ function JobsTable({
     setIsAddingLine(false);
   };
 
-  const customLinesTotal = useMemo(() => {
-    return customLines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
-  }, [customLines]);
   // Calculate overall total for summary view
   const overallTotal = useMemo(() => {
     let total = 0;

@@ -511,7 +511,7 @@ export function JobsReadyToInvoice() {
       </header>
 
       {/* Main Content */}
-      <main className={cn("p-6 bg-gray-50", selectedJobs.size > 0 && "pb-24")}>
+      <main className={cn("p-6 bg-[var(--color-white)]", selectedJobs.size > 0 && "pb-24")}>
         {/* Filters */}
         <div className="mb-4 flex items-center gap-2">
           <div className="flex-1 max-w-[300px]">
