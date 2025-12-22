@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
 import { Switch } from "@/registry/ui/switch";
@@ -17,6 +17,7 @@ interface EditJobsModalProps {
   selectedJobIds: Set<string>;
   levelOfDetail: LevelOfDetail;
   onSave: (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => void;
+  onChange?: (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => void;
 }
 
 // Category dot for line item type
@@ -57,6 +58,7 @@ interface LineItem {
   total: number;
   category: "labour" | "materials" | "other";
   selected: boolean;
+  jobId: string;
 }
 
 export function EditJobsModal({
@@ -66,71 +68,42 @@ export function EditJobsModal({
   selectedJobIds,
   levelOfDetail,
   onSave,
+  onChange,
 }: EditJobsModalProps) {
   const [showAllLines, setShowAllLines] = useState(false);
+  // Track internal selection state that can differ from props
+  const [internalSelectedJobIds, setInternalSelectedJobIds] = useState<Set<string>>(() => new Set(selectedJobIds));
   
   // Get first selected job for display
   const selectedJob = useMemo(() => {
     for (const job of jobs) {
       if (job.isGroupJob && job.childJobs) {
         for (const child of job.childJobs) {
-          if (selectedJobIds.has(child.id)) {
+          if (internalSelectedJobIds.has(child.id)) {
             return child;
           }
         }
-      } else if (selectedJobIds.has(job.id)) {
+      } else if (internalSelectedJobIds.has(job.id)) {
         return job;
       }
     }
     return jobs[0];
-  }, [jobs, selectedJobIds]);
+  }, [jobs, internalSelectedJobIds]);
 
-  // Generate line items from selected jobs
-  const [lineItems, setLineItems] = useState<LineItem[]>(() => {
-    const items: LineItem[] = [];
+  // Reset internal state when modal opens
+  useEffect(() => {
+    if (open) {
+      setInternalSelectedJobIds(new Set(selectedJobIds));
+    }
+  }, [open, selectedJobIds]);
 
-    jobs.forEach((job) => {
-      const processJob = (j: JobWithLines) => {
-        if (selectedJobIds.has(j.id) || showAllLines) {
-          // Generate mock line items for the job
-          const descriptions = [
-            { category: "labour" as const, name: "Labour", qty: 7.5 },
-            { category: "materials" as const, name: `${j.jobRef} Materials`, qty: 10 },
-            { category: "other" as const, name: `${j.jobRef} Other charges`, qty: 1 },
-          ];
-          
-          descriptions.forEach((desc, i) => {
-            const unitPrice = j.leftToInvoice * (i === 0 ? 0.6 : i === 1 ? 0.3 : 0.1) / desc.qty;
-            items.push({
-              id: `${j.id}-${desc.category}`,
-              description: desc.name,
-              quantity: desc.qty,
-              unitPrice,
-              total: unitPrice * desc.qty,
-              category: desc.category,
-              selected: selectedJobIds.has(j.id),
-            });
-          });
-        }
-      };
-
-      if (job.isGroupJob && job.childJobs) {
-        job.childJobs.forEach(processJob);
-      } else {
-        processJob(job);
-      }
-    });
-    
-    return items;
-  });
-
-  // Recalculate line items when showAllLines changes
-  useMemo(() => {
+  // Generate line items based on jobs and selection state
+  const lineItems = useMemo(() => {
     const items: LineItem[] = [];
     
     jobs.forEach((job) => {
       const processJob = (j: JobWithLines) => {
-        if (selectedJobIds.has(j.id) || showAllLines) {
+        if (internalSelectedJobIds.has(j.id) || showAllLines) {
           const descriptions = [
             { category: "labour" as const, name: "Labour", qty: 7.5 },
             { category: "materials" as const, name: `No Nonsense 480 Acrylic Frame Sealant White 310ml`, qty: 10 },
@@ -146,7 +119,8 @@ export function EditJobsModal({
               unitPrice,
               total: unitPrice * desc.qty,
               category: desc.category,
-              selected: selectedJobIds.has(j.id),
+              selected: internalSelectedJobIds.has(j.id),
+              jobId: j.id,
             });
           });
         }
@@ -159,8 +133,8 @@ export function EditJobsModal({
       }
     });
     
-    setLineItems(items);
-  }, [jobs, selectedJobIds, showAllLines]);
+    return items;
+  }, [jobs, internalSelectedJobIds, showAllLines]);
 
   // Calculate totals
   const { selectedCount, totalAmount } = useMemo(() => {
@@ -171,20 +145,33 @@ export function EditJobsModal({
     };
   }, [lineItems]);
 
-  const toggleLineItem = (id: string) => {
-    setLineItems(prev => prev.map(item => 
-      item.id === id ? { ...item, selected: !item.selected } : item
-    ));
+  const toggleLineItem = (lineItem: LineItem) => {
+    const newSelectedJobIds = new Set(internalSelectedJobIds);
+    if (newSelectedJobIds.has(lineItem.jobId)) {
+      newSelectedJobIds.delete(lineItem.jobId);
+    } else {
+      newSelectedJobIds.add(lineItem.jobId);
+    }
+    setInternalSelectedJobIds(newSelectedJobIds);
+    onChange?.(newSelectedJobIds, levelOfDetail);
   };
 
   const toggleAll = () => {
     const allSelected = lineItems.every(item => item.selected);
-    setLineItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
+    const newSelectedJobIds = new Set<string>();
+    
+    if (!allSelected) {
+      // Select all - add all job IDs from visible line items
+      lineItems.forEach(item => newSelectedJobIds.add(item.jobId));
+    }
+    // If allSelected, we leave the set empty to deselect all
+    
+    setInternalSelectedJobIds(newSelectedJobIds);
+    onChange?.(newSelectedJobIds, levelOfDetail);
   };
 
   const handleSave = () => {
-    // For now, just keep the existing job selection
-    onSave(selectedJobIds, levelOfDetail);
+    onSave(internalSelectedJobIds, levelOfDetail);
     onOpenChange(false);
   };
 
@@ -287,7 +274,7 @@ export function EditJobsModal({
             >
               <Checkbox
                 checked={item.selected}
-                onCheckedChange={() => toggleLineItem(item.id)}
+                onCheckedChange={() => toggleLineItem(item)}
                 className="shrink-0"
               />
               <div className="flex-1 flex items-center gap-5">

@@ -1,12 +1,15 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronRight, CheckCircle2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Settings } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { InvoiceCardList } from "../features/invoice-creation/InvoiceCardList";
 import { LiveInvoicePreview } from "../features/invoice-creation/LiveInvoicePreview";
 import { GlobalActionBar } from "../ui/GlobalActionBar";
 import { InvoiceSettingsModal } from "../features/invoice-creation/InvoiceSettingsModal";
-import { formatCurrency, type Job } from "../../lib/mock-data";
+import { InlineSettingsPanel } from "../features/invoice-creation/InlineSettingsPanel";
+import { formatCurrency, contactBillingAddresses, type Job } from "../../lib/mock-data";
+import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
+import { useMediaQuery } from "@/registry/hooks/use-media-query";
 
 // Toast notification component for sent invoices
 function InvoiceSentToast({
@@ -68,6 +71,14 @@ export interface Attachment {
   type: string;
 }
 
+export interface CustomLineItem {
+  id: string;
+  category: "labour" | "materials" | "other";
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export interface InvoiceData {
   id: string;
   invoiceNumber: number;
@@ -89,6 +100,10 @@ export interface InvoiceData {
   isOverridden: boolean;
   selectedJobIds: Set<string>;
   selectedGroupLines: Set<string>;
+  customLines: CustomLineItem[];
+  showLogo: boolean;
+  showTcs: boolean;
+  customLine: boolean;
 }
 
 export interface UniversalSettings {
@@ -173,7 +188,8 @@ function convertJobToJobWithLines(job: Job, index: number): JobWithLines {
 function generateInvoiceCards(
   jobs: Job[],
   breakdown: BreakdownLevel,
-  defaultLevelOfDetail: LevelOfDetail
+  defaultLevelOfDetail: LevelOfDetail,
+  displaySettings: { showLogo: boolean; showTcs: boolean; customLine: boolean } = { showLogo: false, showTcs: false, customLine: false }
 ): InvoiceData[] {
   let groupedJobs: Record<string, Job[]> = {};
 
@@ -234,8 +250,8 @@ function generateInvoiceCards(
         selectedJobIds.add(job.id);
       });
 
-      // Get address from first job's site
-      const address = baseJob.site || "Address not available";
+      // Get billing address from contact (parent company)
+      const address = contactBillingAddresses[baseJob.parent] || baseJob.site || "Address not available";
 
       return {
         id: `invoice-${groupIndex}`,
@@ -247,7 +263,7 @@ function generateInvoiceCards(
         originalJobIds: groupJobs.map((job) => job.id),
         title: "Fire extinguisher service",
         reference: `243452`,
-        issueDate: "",
+        issueDate: new Date().toISOString().split("T")[0],
         dueDate: "",
         bankAccount: "barclays",
         currency: "gbp",
@@ -258,6 +274,10 @@ function generateInvoiceCards(
         isOverridden: false,
         selectedJobIds,
         selectedGroupLines,
+        customLines: [],
+        showLogo: displaySettings.showLogo,
+        showTcs: displaySettings.showTcs,
+        customLine: displaySettings.customLine,
       };
     }
   );
@@ -266,6 +286,14 @@ function generateInvoiceCards(
 export function UnifiedInvoiceWorkspace() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Feature flags
+  const showApplyToAllCheckbox = useFeatureFlag("showApplyToAllCheckbox", false);
+  const showInlineSettings = useFeatureFlag("showInlineSettings", false);
+  
+  // Responsive: Only show inline panel on large screens (1280px+)
+  const isLargeScreen = useMediaQuery("(min-width: 1280px)");
+  const showInlinePanel = showInlineSettings && isLargeScreen;
 
   // #region agent log
   // #endregion
@@ -355,7 +383,8 @@ export function UnifiedInvoiceWorkspace() {
     generateInvoiceCards(
       selectedJobs,
       breakdownLevel,
-      universalSettings.levelOfDetail
+      universalSettings.levelOfDetail,
+      { showLogo: universalSettings.showLogo, showTcs: universalSettings.showTcs, customLine: universalSettings.customLine }
     )
   );
 
@@ -406,6 +435,11 @@ export function UnifiedInvoiceWorkspace() {
           }
         }
       });
+
+      // Include custom lines in totals
+      invoice.customLines.forEach((line) => {
+        subtotal += line.quantity * line.unitPrice;
+      });
     });
 
     const vatRate = 0.2;
@@ -427,42 +461,70 @@ export function UnifiedInvoiceWorkspace() {
 
   // Handle universal settings change
   const handleSettingsChange = useCallback(
-    (newSettings: UniversalSettings) => {
+    (newSettings: UniversalSettings, applyToAll: boolean = true) => {
       const previousSettings = universalSettings;
-      setUniversalSettings(newSettings);
 
-      // If contact level changed, regenerate all invoices
-      if (newSettings.contactLevel !== previousSettings.contactLevel) {
-        const newBreakdown = newSettings.contactLevel as BreakdownLevel;
-        const newInvoices = generateInvoiceCards(
-          selectedJobs,
-          newBreakdown,
-          newSettings.levelOfDetail
-        );
-        setInvoices(newInvoices);
-        // Set the first invoice as active
-        if (newInvoices.length > 0) {
-          setActiveInvoiceId(newInvoices[0].id);
-        }
-        return;
-      }
+      // Apply settings based on applyToAll flag
+      if (applyToAll) {
+        // Update universal settings only when applying to all
+        setUniversalSettings(newSettings);
 
-      // Apply to non-overridden invoices
-      setInvoices((prev) =>
-        prev.map((inv) => {
-          if (!inv.isOverridden) {
-            return {
-              ...inv,
-              levelOfDetail: newSettings.levelOfDetail,
-              currency: newSettings.currency,
-              bankAccount: newSettings.bankAccount,
-            };
+        // If contact level changed, regenerate all invoices
+        if (newSettings.contactLevel !== previousSettings.contactLevel) {
+          const newBreakdown = newSettings.contactLevel as BreakdownLevel;
+          const newInvoices = generateInvoiceCards(
+            selectedJobs,
+            newBreakdown,
+            newSettings.levelOfDetail,
+            { showLogo: newSettings.showLogo, showTcs: newSettings.showTcs, customLine: newSettings.customLine }
+          );
+          setInvoices(newInvoices);
+          // Set the first invoice as active
+          if (newInvoices.length > 0) {
+            setActiveInvoiceId(newInvoices[0].id);
           }
-          return inv;
-        })
-      );
+          return;
+        }
+
+        // Apply to non-overridden invoices
+        setInvoices((prev) =>
+          prev.map((inv) => {
+            if (!inv.isOverridden) {
+              return {
+                ...inv,
+                levelOfDetail: newSettings.levelOfDetail,
+                currency: newSettings.currency,
+                bankAccount: newSettings.bankAccount,
+                showLogo: newSettings.showLogo,
+                showTcs: newSettings.showTcs,
+                customLine: newSettings.customLine,
+              };
+            }
+            return inv;
+          })
+        );
+      } else {
+        // Apply only to the active invoice (don't update universalSettings)
+        setInvoices((prev) =>
+          prev.map((inv) => {
+            if (inv.id === activeInvoiceId) {
+              return {
+                ...inv,
+                levelOfDetail: newSettings.levelOfDetail,
+                currency: newSettings.currency,
+                bankAccount: newSettings.bankAccount,
+                showLogo: newSettings.showLogo,
+                showTcs: newSettings.showTcs,
+                customLine: newSettings.customLine,
+                isOverridden: true,
+              };
+            }
+            return inv;
+          })
+        );
+      }
     },
-    [universalSettings, selectedJobs]
+    [universalSettings, selectedJobs, activeInvoiceId]
   );
 
   // Handle send all invoices
@@ -533,7 +595,7 @@ export function UnifiedInvoiceWorkspace() {
   return (
     <div className="flex flex-col h-full bg-muted">
       {/* Header Bar */}
-      <div className="shrink-0 h-14 bg-hw-surface-subtle border-b border-hw-border px-6 flex items-center justify-between">
+      <div className="shrink-0 h-14 bg-[var(--hw-interactive-foreground)] border-b border-hw-border px-6 flex items-center justify-between">
         {/* Left - Breadcrumbs */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
@@ -552,14 +614,27 @@ export function UnifiedInvoiceWorkspace() {
           </div>
         </div>
 
-        {/* Right - Save as draft */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleSaveDraft}
-        >
-          {isSaved ? "Save group draft" : "Save as draft"}
-        </Button>
+        {/* Right - Settings (when sidebar collapsed) and Save as draft */}
+        <div className="flex items-center gap-4">
+          {!showInlinePanel && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setSettingsModalOpen(true)}
+              className="gap-1"
+            >
+              <Settings className="h-4 w-4" />
+              Invoice settings
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSaveDraft}
+          >
+            {isSaved ? "Save group draft" : "Save as draft"}
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -573,7 +648,7 @@ export function UnifiedInvoiceWorkspace() {
           onBackClick={() => navigate("/group-invoicing/v2")}
         />
 
-        {/* Right Panel - Live Invoice Preview */}
+        {/* Middle/Right Panel - Live Invoice Preview */}
         <LiveInvoicePreview
           invoice={activeInvoice}
           onUpdateInvoice={(updates) => updateInvoice(activeInvoice.id, updates)}
@@ -581,6 +656,15 @@ export function UnifiedInvoiceWorkspace() {
           onSendInvoice={() => handleSendInvoice(activeInvoice.id)}
           isSent={sentInvoiceIds.has(activeInvoice.id)}
         />
+
+        {/* Right Panel - Inline Settings (when flag enabled) */}
+        {showInlinePanel && (
+          <InlineSettingsPanel
+            settings={universalSettings}
+            onSettingsChange={handleSettingsChange}
+            showApplyToAllCheckbox={showApplyToAllCheckbox}
+          />
+        )}
       </div>
 
       {/* Global Action Bar */}
@@ -590,6 +674,7 @@ export function UnifiedInvoiceWorkspace() {
         onOpenSettings={() => setSettingsModalOpen(true)}
         onSendAll={handleSendAll}
         hasSentInvoices={hasSentInvoices}
+        hideSettingsButton
       />
 
       {/* Settings Modal */}
@@ -598,6 +683,7 @@ export function UnifiedInvoiceWorkspace() {
         onOpenChange={setSettingsModalOpen}
         settings={universalSettings}
         onSettingsChange={handleSettingsChange}
+        showApplyToAllCheckbox={showApplyToAllCheckbox}
       />
 
       {/* Toast Notification */}

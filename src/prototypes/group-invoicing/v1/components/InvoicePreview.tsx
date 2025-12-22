@@ -210,20 +210,20 @@ function LinesBadge({
 }) {
   if (isPartial && selected !== undefined) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-hw-brand/20 w-fit">
         <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
       </div>
     );
   }
   if (isInactive) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)] w-fit">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-hw-border w-fit">
         <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
       </div>
     );
   }
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)] w-fit">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-hw-border w-fit">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
     </div>
   );
@@ -232,7 +232,7 @@ function LinesBadge({
 // Job type badge
 function JobTypeBadge({ type }: { type: string }) {
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-hw-border">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{type}</span>
     </div>
   );
@@ -275,7 +275,7 @@ function JobCard({
   }, [job, selectedLineDetailFields]);
   
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex flex-col gap-1.5 flex-1">
           <div className="flex items-center gap-1.5">
@@ -330,7 +330,7 @@ function NestedJobCardPreview({
   }, [job, selectedLineDetailFields]);
   
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex-1 flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5">
@@ -402,7 +402,7 @@ function SummaryJobView({
       </h3>
       
       {/* Job card */}
-      <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+      <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
         <div className="flex items-center justify-between pl-4 pr-3 py-3">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5">
@@ -410,7 +410,7 @@ function SummaryJobView({
               <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
               <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
             </div>
-            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-hw-brand/20 w-fit">
               <span className="text-sm font-medium tracking-[-0.14px] text-[#0288D1]">
                 {includedLines} of {totalLines} lines
               </span>
@@ -449,9 +449,9 @@ function DetailedJobView({
   const state = getInvoiceSelection(invoiceId);
   
   return (
-    <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
+    <div className="border border-hw-border rounded-lg overflow-hidden">
       {/* Table Header */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
+      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-hw-border">
         <span className="w-10"></span>
         <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Description</span>
         <span className="w-16 text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-center">Qty</span>
@@ -545,8 +545,8 @@ function GroupJobCardPreview({
   }, [groupJob, selectedLineDetailFields]);
 
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
-      <div className="bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] px-3 py-3">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
+      <div className="bg-[#F8F9FC] border-b border-hw-border px-3 py-3">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1.5 flex-1">
             <div className="flex items-center gap-2">
@@ -573,7 +573,7 @@ function GroupJobCardPreview({
       <div className="p-4 space-y-3">
         {/* Group-level lines */}
         {(groupLinesSelected || !showPartial) && (
-          <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+          <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1 flex flex-col gap-1.5">
                 <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Group-level lines</span>
@@ -1190,14 +1190,14 @@ export function InvoicePreview() {
   return (
     <div className="h-screen bg-[#FCFCFD] flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-[rgba(26,28,46,0.12)] shrink-0">
+      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-hw-border shrink-0">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[#73777D]">Jobs ready to invoice</span>
           <ChevronRight className="h-4 w-4 text-[#73777D]" />
           <span className="font-medium text-[#0B2642]">Invoice/{invoiceData.invoiceNumber.toString().padStart(4, "0")}</span>
-          <div className="ml-2 px-2 py-0.5 bg-white border border-[rgba(26,28,46,0.12)] rounded-full text-xs font-medium text-[#0B2642]">Draft</div>
+          <div className="ml-2 px-2 py-0.5 bg-white border border-hw-border rounded-full text-xs font-medium text-[#0B2642]">Draft</div>
           {sentInvoiceIds.has(invoiceData.id) && (
-            <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
+            <div className="ml-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[rgba(34,197,94,0.1)] border border-green-500/20">
               <Check className="h-3.5 w-3.5 text-[#22c55e]" />
               <span className="text-xs font-medium text-[#22c55e]">Sent</span>
             </div>
@@ -1215,7 +1215,7 @@ export function InvoicePreview() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Form */}
-        <div className="bg-white border-r border-[rgba(26,28,46,0.12)] overflow-auto">
+        <div className="bg-white border-r border-hw-border overflow-auto">
           <div className="px-[46px] py-[32px] space-y-10 w-[780px]">
             {/* Header Row: Back link + Pagination */}
             <div className="flex items-center justify-between">
@@ -1327,7 +1327,7 @@ export function InvoicePreview() {
                 />
               </div>
 
-              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+              <div className="border-t border-hw-border" />
 
               {/* Nominal and Department codes */}
               <div className="w-[302px] space-y-4">
@@ -1341,7 +1341,7 @@ export function InvoicePreview() {
                 </div>
               </div>
 
-              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+              <div className="border-t border-hw-border" />
 
               {/* Line Level Detail Section */}
               <div className="w-[302px] space-y-2">
@@ -1381,7 +1381,7 @@ export function InvoicePreview() {
                 </div>
               </div>
 
-              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+              <div className="border-t border-hw-border" />
 
               {/* Notes Section */}
               <div className="w-[302px] space-y-6">
@@ -1404,7 +1404,7 @@ export function InvoicePreview() {
                 />
               </div>
 
-              <div className="border-t border-[rgba(26,28,46,0.12)]" />
+              <div className="border-t border-hw-border" />
 
               {/* Site Title Header */}
               <div className="flex items-center gap-1">
@@ -1434,7 +1434,7 @@ export function InvoicePreview() {
                     <div className={cn(
                       "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
                       levelOfDetail === "summary" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        ? "border-hw-brand/20 bg-white" 
                         : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
                     )}>
                       {levelOfDetail === "summary" && (
@@ -1465,7 +1465,7 @@ export function InvoicePreview() {
                     <div className={cn(
                       "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
                       levelOfDetail === "partial" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        ? "border-hw-brand/20 bg-white" 
                         : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
                     )}>
                       {levelOfDetail === "partial" && (
@@ -1498,7 +1498,7 @@ export function InvoicePreview() {
                     <div className={cn(
                       "w-4 h-4 rounded-full border shrink-0 mt-0.5 flex items-center justify-center",
                       levelOfDetail === "detailed" 
-                        ? "border-[rgba(2,136,209,0.2)] bg-white" 
+                        ? "border-hw-brand/20 bg-white" 
                         : "border-[#E5E5E5] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
                     )}>
                       {levelOfDetail === "detailed" && (
@@ -1534,14 +1534,14 @@ export function InvoicePreview() {
                   });
                   
                   return (
-                    <div className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg">
+                    <div className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-hw-border rounded-lg">
                       <div className="flex-1 flex flex-col gap-1.5">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{firstJob?.jobRef || "INT/12345"}</span>
                           <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{firstJob?.completed || "Wed 21 May 2025"}</span>
                           <ResourceAvatar initials={firstJob?.jobCategory === "Internal" ? "CS" : "LB"} />
                         </div>
-                        <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+                        <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-[rgba(8,109,255,0.08)] border border-hw-brand/20 w-fit">
                           <span className="text-sm font-medium tracking-[-0.14px] text-[#0288D1]">
                             {includedLines} of {totalLines} lines
                           </span>
@@ -1566,7 +1566,7 @@ export function InvoicePreview() {
                   return (
                     <div
                       key={job.id}
-                      className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg h-[70px]"
+                      className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-hw-border rounded-lg h-[70px]"
                     >
                       <Checkbox
                         checked={isJobSelected}
@@ -1593,8 +1593,8 @@ export function InvoicePreview() {
                           <div className={cn(
                             "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
                             isJobSelected 
-                              ? "bg-[rgba(8,109,255,0.08)] border-[rgba(2,136,209,0.2)]"
-                              : "bg-[rgba(26,28,46,0.05)] border-[rgba(26,28,46,0.12)]"
+                              ? "bg-[rgba(8,109,255,0.08)] border-hw-brand/20"
+                              : "bg-[rgba(26,28,46,0.05)] border-hw-border"
                           )}>
                             <span className={cn(
                               "text-sm font-medium tracking-[-0.14px]",
@@ -1604,7 +1604,7 @@ export function InvoicePreview() {
                             </span>
                           </div>
                           {job.jobCategory && (
-                            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+                            <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-hw-border">
                               <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.jobCategory}</span>
                             </div>
                           )}
@@ -1621,7 +1621,7 @@ export function InvoicePreview() {
                 return (
                   <div
                     key={job.id}
-                    className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-[rgba(26,28,46,0.12)] rounded-lg h-[70px]"
+                    className="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-hw-border rounded-lg h-[70px]"
                   >
                     <Checkbox
                       checked={isJobSelected}
@@ -1648,8 +1648,8 @@ export function InvoicePreview() {
                         <div className={cn(
                           "inline-flex items-center px-1.5 py-px h-5 rounded-md border",
                           isJobSelected 
-                            ? "bg-[rgba(8,109,255,0.08)] border-[rgba(2,136,209,0.2)]"
-                            : "bg-[rgba(26,28,46,0.05)] border-[rgba(26,28,46,0.12)]"
+                            ? "bg-[rgba(8,109,255,0.08)] border-hw-brand/20"
+                            : "bg-[rgba(26,28,46,0.05)] border-hw-border"
                         )}>
                           <span className={cn(
                             "text-sm font-medium tracking-[-0.14px]",
@@ -1659,7 +1659,7 @@ export function InvoicePreview() {
                           </span>
                         </div>
                         {job.jobCategory && (
-                          <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+                          <div className="inline-flex items-center px-1.5 py-px h-5 rounded-md bg-white border border-hw-border">
                             <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{job.jobCategory}</span>
                           </div>
                         )}
@@ -1879,7 +1879,7 @@ export function InvoicePreview() {
             {/* Totals */}
             <div className="px-6 pb-6">
               {/* Subtotal row */}
-              <div className="flex justify-between items-center py-3 border-t border-[rgba(16,25,41,0.1)]">
+              <div className="flex justify-between items-center py-3 border-t border-hw-border">
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Subtotal</span>
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(subtotal)}</span>
               </div>
@@ -1889,12 +1889,12 @@ export function InvoicePreview() {
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
               </div>
               {/* Total row */}
-              <div className="flex justify-between items-center py-[10px] border-t border-[rgba(16,25,41,0.1)]">
+              <div className="flex justify-between items-center py-[10px] border-t border-hw-border">
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Total</span>
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(total)}</span>
               </div>
               {/* Amount due row */}
-              <div className="flex justify-between items-center py-3 border-t border-[rgba(16,25,41,0.1)]">
+              <div className="flex justify-between items-center py-3 border-t border-hw-border">
                 <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Amount due</span>
                 <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
               </div>
@@ -1903,7 +1903,7 @@ export function InvoicePreview() {
             {/* Notes Section on Preview */}
             {invoiceData.notes && (
               <div className="px-6 pb-6">
-                <div className="border-t border-[rgba(16,25,41,0.1)] pt-4">
+                <div className="border-t border-hw-border pt-4">
                   <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Notes</p>
                   <p className="text-sm text-[#0B2642] tracking-[-0.14px] whitespace-pre-wrap">{invoiceData.notes}</p>
                 </div>
@@ -1915,14 +1915,14 @@ export function InvoicePreview() {
               <div className="px-6 pb-6">
                 <div className={cn(
                   "pt-4",
-                  !invoiceData.notes && "border-t border-[rgba(16,25,41,0.1)]"
+                  !invoiceData.notes && "border-t border-hw-border"
                 )}>
                   <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Attachments</p>
                   <div className="flex flex-wrap gap-2">
                     {invoiceData.attachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md border border-[rgba(26,28,46,0.08)]"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md border border-hw-border"
                       >
                         <Paperclip className="h-3 w-3 text-[#73777D]" />
                         <span className="text-xs text-[#0B2642] tracking-[-0.12px]">{attachment.name}</span>

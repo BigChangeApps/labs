@@ -5,12 +5,18 @@ import {
   X,
   Building2,
   ChevronDown,
-  Pencil,
   Info,
   Download,
   Printer,
   ExternalLink,
+  Eye,
+  Settings,
+  Plus,
+  Trash2,
+  Send,
+  CheckCircle,
 } from "lucide-react";
+import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Textarea } from "@/registry/ui/textarea";
@@ -36,6 +42,7 @@ import type {
   Attachment,
   UniversalSettings,
   LevelOfDetail,
+  CustomLineItem,
 } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface LiveInvoicePreviewProps {
@@ -137,11 +144,44 @@ function JobsTable({
   jobs,
   selectedJobIds,
   levelOfDetail,
+  customLines = [],
+  onAddCustomLine,
+  onRemoveCustomLine,
+  showAddButton = false,
 }: {
   jobs: JobWithLines[];
   selectedJobIds: Set<string>;
   levelOfDetail: "summary" | "partial" | "detailed";
+  customLines?: CustomLineItem[];
+  onAddCustomLine?: (line: CustomLineItem) => void;
+  onRemoveCustomLine?: (lineId: string) => void;
+  showAddButton?: boolean;
 }) {
+  const [isAddingLine, setIsAddingLine] = useState(false);
+  const [newLine, setNewLine] = useState<Omit<CustomLineItem, "id">>({
+    category: "labour",
+    description: "",
+    quantity: 1,
+    unitPrice: 0,
+  });
+
+  const handleAddLine = () => {
+    if (!newLine.description || newLine.unitPrice <= 0) return;
+    
+    onAddCustomLine?.({
+      id: `custom-${Date.now()}`,
+      ...newLine,
+    });
+    
+    setNewLine({
+      category: "labour",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+    });
+    setIsAddingLine(false);
+  };
+
   // Calculate overall total for summary view
   const overallTotal = useMemo(() => {
     let total = 0;
@@ -236,12 +276,108 @@ function JobsTable({
     return map[category];
   };
 
+  // Custom line row component
+  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => (
+    <div className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white group">
+      <div className="flex-1 flex items-center gap-2.5">
+        <JobTypeDot category={getLineItemColor(line.category)} />
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {line.description}
+        </span>
+        <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
+          Custom
+        </span>
+      </div>
+      <div className="w-[100px] text-right">
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {formatCurrency(line.unitPrice)}
+        </span>
+      </div>
+      <div className="w-[100px] text-right flex items-center justify-end gap-2">
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {formatCurrency(line.quantity * line.unitPrice)}
+        </span>
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // Add line form component
+  const AddLineForm = () => (
+    <div className="border-t border-hw-border p-4 bg-hw-surface-subtle">
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-3">
+          <div className="flex flex-col gap-1.5 w-[120px]">
+            <label className="text-xs font-medium text-hw-text-secondary">Category</label>
+            <select
+              value={newLine.category}
+              onChange={(e) => setNewLine({ ...newLine, category: e.target.value as "labour" | "materials" | "other" })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm"
+            >
+              <option value="labour">Labour</option>
+              <option value="materials">Materials</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-xs font-medium text-hw-text-secondary">Description</label>
+            <input
+              type="text"
+              placeholder="Enter description..."
+              value={newLine.description}
+              onChange={(e) => setNewLine({ ...newLine, description: e.target.value })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 items-end">
+          <div className="flex flex-col gap-1.5 w-20">
+            <label className="text-xs font-medium text-hw-text-secondary">Quantity</label>
+            <input
+              type="number"
+              min="1"
+              value={newLine.quantity}
+              onChange={(e) => setNewLine({ ...newLine, quantity: parseInt(e.target.value) || 1 })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5 w-32">
+            <label className="text-xs font-medium text-hw-text-secondary">Unit price</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              value={newLine.unitPrice || ""}
+              onChange={(e) => setNewLine({ ...newLine, unitPrice: parseFloat(e.target.value) || 0 })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={() => setIsAddingLine(false)}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleAddLine} disabled={!newLine.description || newLine.unitPrice <= 0}>
+            Add
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
     return (
-      <div className="bg-white rounded-lg shadow-card overflow-hidden">
+      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
           <div className="flex-1">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Name
@@ -278,6 +414,27 @@ function JobsTable({
             </span>
           </div>
         </div>
+
+        {/* Custom Lines */}
+        {customLines.map((line) => (
+          <CustomLineRow
+            key={line.id}
+            line={line}
+            onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+          />
+        ))}
+
+        {/* Add Line Button or Form */}
+        {showAddButton && !isAddingLine && (
+          <button
+            onClick={() => setIsAddingLine(true)}
+            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+          >
+            <Plus className="h-4 w-4" />
+            Add line
+          </button>
+        )}
+        {isAddingLine && <AddLineForm />}
       </div>
     );
   }
@@ -285,9 +442,9 @@ function JobsTable({
   // DETAILED VIEW - Line items without checkboxes (selection via Edit Jobs button)
   if (levelOfDetail === "detailed") {
     return (
-      <div className="bg-white rounded-lg shadow-card overflow-hidden">
+      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
           <div className="flex-1">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Name
@@ -331,15 +488,36 @@ function JobsTable({
             </div>
           </div>
         ))}
+
+        {/* Custom Lines */}
+        {customLines.map((line) => (
+          <CustomLineRow
+            key={line.id}
+            line={line}
+            onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+          />
+        ))}
+
+        {/* Add Line Button or Form */}
+        {showAddButton && !isAddingLine && (
+          <button
+            onClick={() => setIsAddingLine(true)}
+            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+          >
+            <Plus className="h-4 w-4" />
+            Add line
+          </button>
+        )}
+        {isAddingLine && <AddLineForm />}
       </div>
     );
   }
 
   // PARTIAL VIEW (default) - One row per job
   return (
-    <div className="bg-white rounded-lg shadow-card overflow-hidden">
+    <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
       {/* Table Header */}
-      <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+      <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
         <div className="flex-1">
           <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
             Name
@@ -381,6 +559,27 @@ function JobsTable({
           </div>
         </div>
       ))}
+
+      {/* Custom Lines */}
+      {customLines.map((line) => (
+        <CustomLineRow
+          key={line.id}
+          line={line}
+          onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+        />
+      ))}
+
+      {/* Add Line Button or Form */}
+      {showAddButton && !isAddingLine && (
+        <button
+          onClick={() => setIsAddingLine(true)}
+          className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+        >
+          <Plus className="h-4 w-4" />
+          Add line
+        </button>
+      )}
+      {isAddingLine && <AddLineForm />}
     </div>
   );
 }
@@ -427,6 +626,8 @@ export function LiveInvoicePreview({
 }: LiveInvoicePreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editJobsModalOpen, setEditJobsModalOpen] = useState(false);
+  const [perInvoiceSettingsOpen, setPerInvoiceSettingsOpen] = useState(false);
+  const showPerInvoiceSettings = useFeatureFlag("showPerInvoiceSettings", false);
 
   // Handle saving changes from the Edit Jobs modal
   const handleEditJobsSave = (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => {
@@ -501,8 +702,8 @@ export function LiveInvoicePreview({
   };
 
   return (
-    <div className="flex-1 bg-muted overflow-auto">
-      <div className="p-8 flex flex-col items-center gap-4">
+    <div className="flex-1 bg-gray-50 overflow-auto">
+      <div className="p-6 flex flex-col items-center gap-4 text-hw-surface-subtle">
         {/* Sent Invoice Banner */}
         {isSent && (
           <div className="w-full max-w-[900px] flex items-start gap-2 p-3 bg-green-50 rounded-md border border-green-200">
@@ -526,7 +727,69 @@ export function LiveInvoicePreview({
               {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
             </span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            {/* Per-invoice Settings button - only shown when flag is enabled */}
+            {showPerInvoiceSettings && (
+              <Popover open={perInvoiceSettingsOpen} onOpenChange={setPerInvoiceSettingsOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="secondary" size="sm" className="gap-1.5">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-4" align="end">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-sm font-medium text-hw-text">Invoice Settings</h4>
+                      <p className="text-xs text-hw-text-secondary">Settings for this invoice only</p>
+                    </div>
+                    
+                    {/* Level of Detail */}
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-hw-text-secondary">Level of detail</span>
+                      <div className="flex gap-2">
+                        {(["summary", "partial", "detailed"] as const).map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => {
+                              onUpdateInvoice({ levelOfDetail: level, isOverridden: true });
+                            }}
+                            className={cn(
+                              "flex-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors capitalize",
+                              invoice.levelOfDetail === level
+                                ? "bg-hw-brand/10 border-hw-brand text-hw-brand"
+                                : "bg-hw-surface border-hw-border text-hw-text hover:bg-hw-surface-subtle"
+                            )}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="h-px bg-hw-border" />
+
+                    {/* Reset button */}
+                    {invoice.isOverridden && (
+                      <button
+                        onClick={() => {
+                          onUpdateInvoice({ 
+                            levelOfDetail: universalSettings.levelOfDetail,
+                            isOverridden: false 
+                          });
+                          setPerInvoiceSettingsOpen(false);
+                        }}
+                        className="text-xs text-hw-text-secondary hover:text-hw-text transition-colors text-left"
+                      >
+                        Reset to group settings
+                      </button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
             {/* Actions dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -536,6 +799,10 @@ export function LiveInvoicePreview({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[180px]">
+                <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </DropdownMenuItem>
                 <DropdownMenuItem className="gap-2 cursor-pointer">
                   <Download className="h-4 w-4" />
                   Download as PDF
@@ -562,22 +829,41 @@ export function LiveInvoicePreview({
                 >
                   Send invoice
                 </Button>
-                <Button
-                  size="sm"
-                  className="rounded-l-none border-l border-white/20 px-1"
-                >
-                  <ChevronDown className="h-5 w-5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="rounded-l-none border-l border-white/20 px-1"
+                    >
+                      <ChevronDown className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={onSendInvoice} className="gap-2 cursor-pointer">
+                      <Send className="h-4 w-4" />
+                      Send invoice
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark as sent
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="gap-2 cursor-pointer text-red-600 focus:text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                      Delete invoice
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>
         </div>
 
         {/* Invoice Document */}
-        <div className="w-full max-w-[900px] bg-white shadow-modal">
+        <div className="w-full max-w-[900px] bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)]">
           <div className="p-6 flex flex-col gap-6">
             {/* Logo Section - only visible when enabled in settings */}
-            {universalSettings.showLogo && (
+            {invoice.showLogo && (
               <LogoUploader
                 logo={invoice.logo}
                 onLogoChange={(logo) => onUpdateInvoice({ logo })}
@@ -588,17 +874,23 @@ export function LiveInvoicePreview({
             <div className="flex items-start justify-between">
               {/* From Section */}
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                <span className="text-base font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
                   From:
                 </span>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-bold text-hw-text tracking-[-0.14px] leading-5">
+                  <span className="text-2xl font-bold text-hw-text tracking-[-0.14px] leading-6">
                     BigChange Ltd
                   </span>
                   <span className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px] leading-4">
                     123 Business Street
                   </span>
                 </div>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
+                >
+                  Edit
+                </button>
               </div>
 
               {/* Right side - Dates and References - Editable */}
@@ -706,55 +998,70 @@ export function LiveInvoicePreview({
 
             {/* Bill To Section */}
             <div className="flex flex-col gap-2 max-w-[400px]">
-              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                 Bill To:
               </span>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                  Boots Pharmacy
+              <div className="flex flex-col gap-1">
+                <span className="text-xl font-bold text-hw-text tracking-[-0.14px] leading-6">
+                  {invoice.name}
                 </span>
-                <span className="text-sm font-normal text-hw-text tracking-[-0.14px] leading-5">
+                <span className="text-sm font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
                   {invoice.address}
                 </span>
               </div>
+              <button
+                type="button"
+                className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
+              >
+                Edit
+              </button>
             </div>
 
             {/* Invoice Title - Editable */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                 Invoice title
               </span>
-              <div className="inline-flex items-center h-8 px-2.5 py-1.5 bg-white shadow-input w-fit rounded-input">
+              <div className="inline-flex items-center h-9 px-3 py-1 bg-hw-surface border border-transparent ring-1 ring-hw-border shadow-input w-fit rounded-input focus-within:border-hw-focus focus-within:ring-hw-focus/30 focus-within:ring-4 transition-[color,box-shadow]">
                 <input
                   type="text"
                   value={invoice.title || ""}
                   onChange={(e) => onUpdateInvoice({ title: e.target.value })}
                   placeholder="Fire extinguisher service"
-                  className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 bg-transparent border-none outline-none placeholder:text-hw-text-secondary/40"
+                  className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 bg-transparent border-none outline-none placeholder:text-hw-text-secondary"
                 />
               </div>
             </div>
 
             {/* Jobs Section */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-base font-medium text-hw-text tracking-[-0.16px] leading-6">
+                <span className="text-base font-medium text-hw-text-secondary tracking-[-0.16px] leading-6">
                   Jobs
                 </span>
                 <button
                   onClick={() => setEditJobsModalOpen(true)}
-                  className="flex items-center gap-1 px-1 py-1 rounded-button bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:shadow-[0px_0px_0px_1px_rgba(11,38,66,0.16)] transition-shadow"
+                  className="text-sm font-medium text-hw-brand hover:underline transition-colors"
                 >
-                  <Pencil className="h-3.5 w-3.5 text-hw-text" />
-                  <span className="text-xs font-medium text-hw-text tracking-[-0.12px] leading-4 px-0.5">
-                    Edit jobs
-                  </span>
+                  Edit jobs
                 </button>
               </div>
               <JobsTable
                 jobs={invoice.jobs}
                 selectedJobIds={invoice.selectedJobIds}
                 levelOfDetail={invoice.levelOfDetail}
+                customLines={invoice.customLines}
+                onAddCustomLine={(line) => {
+                  onUpdateInvoice({
+                    customLines: [...invoice.customLines, line],
+                  });
+                }}
+                onRemoveCustomLine={(lineId) => {
+                  onUpdateInvoice({
+                    customLines: invoice.customLines.filter((l) => l.id !== lineId),
+                  });
+                }}
+                showAddButton={invoice.customLine}
               />
             </div>
 
@@ -767,7 +1074,7 @@ export function LiveInvoicePreview({
               <div className="flex flex-col gap-6 flex-1 min-w-[250px]">
                 {/* Notes Section */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  <label className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                     Notes
                   </label>
                   <Textarea
@@ -858,7 +1165,7 @@ export function LiveInvoicePreview({
             </div>
 
             {/* Terms & Conditions Section - only visible when enabled in settings */}
-            {universalSettings.showTcs && (
+            {invoice.showTcs && (
               <>
                 <div className="h-px bg-hw-border" />
                 <div className="flex flex-col gap-1.5">
@@ -885,6 +1192,7 @@ export function LiveInvoicePreview({
         selectedJobIds={invoice.selectedJobIds}
         levelOfDetail={invoice.levelOfDetail}
         onSave={handleEditJobsSave}
+        onChange={handleEditJobsSave}
       />
     </div>
   );

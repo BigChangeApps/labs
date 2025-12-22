@@ -90,7 +90,7 @@ export function JobLineDetailModal({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[90vh]">
-        <DrawerHeader className="border-b border-[rgba(26,28,46,0.12)]">
+        <DrawerHeader className="border-b border-hw-border">
           <div className="flex items-center justify-between">
             <div>
               <DrawerTitle className="text-lg font-bold text-[#0B2642]">
@@ -100,7 +100,7 @@ export function JobLineDetailModal({
                 <p className="text-sm text-[#73777D] mt-1">{jobDate}</p>
               )}
             </div>
-            <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)]">
+            <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-hw-brand/20">
               <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">
                 {selectedCount} of {totalCount} lines
               </span>
@@ -109,9 +109,9 @@ export function JobLineDetailModal({
         </DrawerHeader>
 
         <div className="flex-1 overflow-auto p-6">
-          <div className="border border-[rgba(26,28,46,0.12)] rounded-lg overflow-hidden">
+          <div className="border border-hw-border rounded-lg overflow-hidden">
             {/* Table Header */}
-            <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-[rgba(26,28,46,0.12)]">
+            <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-hw-border">
               <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} />
               <span className="flex-1 text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
                 Description
@@ -128,7 +128,7 @@ export function JobLineDetailModal({
             </div>
 
             {/* Table Body */}
-            <div className="divide-y divide-[rgba(26,28,46,0.08)]">
+            <div className="divide-y divide-hw-border">
               {localLineItems.map((item) => (
                 <div
                   key={item.id}
@@ -159,7 +159,7 @@ export function JobLineDetailModal({
           </div>
         </div>
 
-        <DrawerFooter className="border-t border-[rgba(26,28,46,0.12)]">
+        <DrawerFooter className="border-t border-hw-border">
           <div className="flex gap-3 justify-end">
             <Button variant="outline" onClick={handleCancel}>
               Cancel
