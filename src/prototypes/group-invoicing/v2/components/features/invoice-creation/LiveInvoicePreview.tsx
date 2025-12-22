@@ -13,6 +13,8 @@ import {
   Settings,
   Plus,
   Trash2,
+  Send,
+  CheckCircle,
 } from "lucide-react";
 import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 import { format } from "date-fns";
@@ -826,12 +828,31 @@ export function LiveInvoicePreview({
                 >
                   Send invoice
                 </Button>
-                <Button
-                  size="sm"
-                  className="rounded-l-none border-l border-white/20 px-1"
-                >
-                  <ChevronDown className="h-5 w-5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="rounded-l-none border-l border-white/20 px-1"
+                    >
+                      <ChevronDown className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={onSendInvoice} className="gap-2 cursor-pointer">
+                      <Send className="h-4 w-4" />
+                      Send invoice
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2 cursor-pointer">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark as sent
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="gap-2 cursor-pointer text-red-600 focus:text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                      Delete invoice
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>

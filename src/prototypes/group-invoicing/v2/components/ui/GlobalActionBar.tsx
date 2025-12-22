@@ -1,5 +1,12 @@
-import { Settings, ChevronDown } from "lucide-react";
+import { Settings, ChevronDown, Send, CheckCircle, Trash2, FileText } from "lucide-react";
 import { Button } from "@/registry/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/registry/ui/dropdown-menu";
 import { formatCurrency } from "../../lib/mock-data";
 
 interface GlobalActionBarProps {
@@ -7,6 +14,9 @@ interface GlobalActionBarProps {
   totalAmount: number;
   onOpenSettings: () => void;
   onSendAll: () => void;
+  onMarkAsSent?: () => void;
+  onSaveAsDraft?: () => void;
+  onDeleteAll?: () => void;
   hasSentInvoices?: boolean;
   hideSettingsButton?: boolean;
 }
@@ -16,6 +26,9 @@ export function GlobalActionBar({
   totalAmount,
   onOpenSettings,
   onSendAll,
+  onMarkAsSent,
+  onSaveAsDraft,
+  onDeleteAll,
   hasSentInvoices = false,
   hideSettingsButton = false,
 }: GlobalActionBarProps) {
@@ -53,7 +66,7 @@ export function GlobalActionBar({
           </p>
         </div>
 
-        {/* Right - Send All Split Button */}
+        {/* Right - Send All Split Button with Dropdown */}
         <div className="flex items-stretch rounded-button overflow-hidden shadow-[0_0_0_1px_rgba(7,98,229,0.8)]">
           <Button
             onClick={onSendAll}
@@ -63,12 +76,40 @@ export function GlobalActionBar({
           >
             {buttonText}
           </Button>
-          <Button
-            size="sm"
-            className="rounded-l-none border-l border-white/20 px-1"
-          >
-            <ChevronDown className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                className="rounded-l-none border-l border-white/20 px-1"
+              >
+                <ChevronDown className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={onSendAll} disabled={invoiceCount === 0}>
+                <Send className="h-4 w-4 mr-2" />
+                Send all invoices
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onMarkAsSent} disabled={invoiceCount === 0}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark as sent
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onSaveAsDraft}>
+                <FileText className="h-4 w-4 mr-2" />
+                Save as draft
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={onDeleteAll} 
+                disabled={invoiceCount === 0}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete all
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
