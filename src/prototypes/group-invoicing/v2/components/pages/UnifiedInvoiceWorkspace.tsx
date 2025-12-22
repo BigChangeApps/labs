@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronRight, CheckCircle2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Settings } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { InvoiceCardList } from "../features/invoice-creation/InvoiceCardList";
 import { LiveInvoicePreview } from "../features/invoice-creation/LiveInvoicePreview";
@@ -101,6 +101,9 @@ export interface InvoiceData {
   selectedJobIds: Set<string>;
   selectedGroupLines: Set<string>;
   customLines: CustomLineItem[];
+  showLogo: boolean;
+  showTcs: boolean;
+  customLine: boolean;
 }
 
 export interface UniversalSettings {
@@ -185,7 +188,8 @@ function convertJobToJobWithLines(job: Job, index: number): JobWithLines {
 function generateInvoiceCards(
   jobs: Job[],
   breakdown: BreakdownLevel,
-  defaultLevelOfDetail: LevelOfDetail
+  defaultLevelOfDetail: LevelOfDetail,
+  displaySettings: { showLogo: boolean; showTcs: boolean; customLine: boolean } = { showLogo: false, showTcs: false, customLine: false }
 ): InvoiceData[] {
   let groupedJobs: Record<string, Job[]> = {};
 
@@ -271,6 +275,9 @@ function generateInvoiceCards(
         selectedJobIds,
         selectedGroupLines,
         customLines: [],
+        showLogo: displaySettings.showLogo,
+        showTcs: displaySettings.showTcs,
+        customLine: displaySettings.customLine,
       };
     }
   );
@@ -376,7 +383,8 @@ export function UnifiedInvoiceWorkspace() {
     generateInvoiceCards(
       selectedJobs,
       breakdownLevel,
-      universalSettings.levelOfDetail
+      universalSettings.levelOfDetail,
+      { showLogo: universalSettings.showLogo, showTcs: universalSettings.showTcs, customLine: universalSettings.customLine }
     )
   );
 
@@ -455,27 +463,30 @@ export function UnifiedInvoiceWorkspace() {
   const handleSettingsChange = useCallback(
     (newSettings: UniversalSettings, applyToAll: boolean = true) => {
       const previousSettings = universalSettings;
-      setUniversalSettings(newSettings);
-
-      // If contact level changed, regenerate all invoices
-      if (newSettings.contactLevel !== previousSettings.contactLevel) {
-        const newBreakdown = newSettings.contactLevel as BreakdownLevel;
-        const newInvoices = generateInvoiceCards(
-          selectedJobs,
-          newBreakdown,
-          newSettings.levelOfDetail
-        );
-        setInvoices(newInvoices);
-        // Set the first invoice as active
-        if (newInvoices.length > 0) {
-          setActiveInvoiceId(newInvoices[0].id);
-        }
-        return;
-      }
 
       // Apply settings based on applyToAll flag
       if (applyToAll) {
-        // Apply to non-overridden invoices (original behavior)
+        // Update universal settings only when applying to all
+        setUniversalSettings(newSettings);
+
+        // If contact level changed, regenerate all invoices
+        if (newSettings.contactLevel !== previousSettings.contactLevel) {
+          const newBreakdown = newSettings.contactLevel as BreakdownLevel;
+          const newInvoices = generateInvoiceCards(
+            selectedJobs,
+            newBreakdown,
+            newSettings.levelOfDetail,
+            { showLogo: newSettings.showLogo, showTcs: newSettings.showTcs, customLine: newSettings.customLine }
+          );
+          setInvoices(newInvoices);
+          // Set the first invoice as active
+          if (newInvoices.length > 0) {
+            setActiveInvoiceId(newInvoices[0].id);
+          }
+          return;
+        }
+
+        // Apply to non-overridden invoices
         setInvoices((prev) =>
           prev.map((inv) => {
             if (!inv.isOverridden) {
@@ -484,13 +495,16 @@ export function UnifiedInvoiceWorkspace() {
                 levelOfDetail: newSettings.levelOfDetail,
                 currency: newSettings.currency,
                 bankAccount: newSettings.bankAccount,
+                showLogo: newSettings.showLogo,
+                showTcs: newSettings.showTcs,
+                customLine: newSettings.customLine,
               };
             }
             return inv;
           })
         );
       } else {
-        // Apply only to the active invoice
+        // Apply only to the active invoice (don't update universalSettings)
         setInvoices((prev) =>
           prev.map((inv) => {
             if (inv.id === activeInvoiceId) {
@@ -499,6 +513,9 @@ export function UnifiedInvoiceWorkspace() {
                 levelOfDetail: newSettings.levelOfDetail,
                 currency: newSettings.currency,
                 bankAccount: newSettings.bankAccount,
+                showLogo: newSettings.showLogo,
+                showTcs: newSettings.showTcs,
+                customLine: newSettings.customLine,
                 isOverridden: true,
               };
             }
@@ -597,14 +614,27 @@ export function UnifiedInvoiceWorkspace() {
           </div>
         </div>
 
-        {/* Right - Save as draft */}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleSaveDraft}
-        >
-          {isSaved ? "Save group draft" : "Save as draft"}
-        </Button>
+        {/* Right - Settings (when sidebar collapsed) and Save as draft */}
+        <div className="flex items-center gap-4">
+          {!showInlinePanel && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setSettingsModalOpen(true)}
+              className="gap-1"
+            >
+              <Settings className="h-4 w-4" />
+              Invoice settings
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSaveDraft}
+          >
+            {isSaved ? "Save group draft" : "Save as draft"}
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -644,7 +674,7 @@ export function UnifiedInvoiceWorkspace() {
         onOpenSettings={() => setSettingsModalOpen(true)}
         onSendAll={handleSendAll}
         hasSentInvoices={hasSentInvoices}
-        hideSettingsButton={showInlinePanel}
+        hideSettingsButton
       />
 
       {/* Settings Modal */}

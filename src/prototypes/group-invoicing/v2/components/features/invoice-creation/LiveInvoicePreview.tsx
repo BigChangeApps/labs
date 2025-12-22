@@ -862,7 +862,7 @@ export function LiveInvoicePreview({
         <div className="w-full max-w-[900px] bg-white shadow-modal">
           <div className="p-6 flex flex-col gap-6">
             {/* Logo Section - only visible when enabled in settings */}
-            {universalSettings.showLogo && (
+            {invoice.showLogo && (
               <LogoUploader
                 logo={invoice.logo}
                 onLogoChange={(logo) => onUpdateInvoice({ logo })}
@@ -1051,7 +1051,7 @@ export function LiveInvoicePreview({
                     customLines: invoice.customLines.filter((l) => l.id !== lineId),
                   });
                 }}
-                showAddButton={universalSettings.customLine}
+                showAddButton={invoice.customLine}
               />
             </div>
 
@@ -1155,7 +1155,7 @@ export function LiveInvoicePreview({
             </div>
 
             {/* Terms & Conditions Section - only visible when enabled in settings */}
-            {universalSettings.showTcs && (
+            {invoice.showTcs && (
               <>
                 <div className="h-px bg-hw-border" />
                 <div className="flex flex-col gap-1.5">
@@ -1182,6 +1182,7 @@ export function LiveInvoicePreview({
         selectedJobIds={invoice.selectedJobIds}
         levelOfDetail={invoice.levelOfDetail}
         onSave={handleEditJobsSave}
+        onChange={handleEditJobsSave}
       />
     </div>
   );
