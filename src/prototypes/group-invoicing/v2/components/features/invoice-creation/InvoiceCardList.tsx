@@ -141,7 +141,7 @@ export function InvoiceCardList({
 }: InvoiceCardListProps) {
   return (
     <div className="w-[400px] min-w-[350px] max-w-[500px] shrink-0 bg-white border-r border-hw-border overflow-auto">
-      <div className="p-8 flex flex-col gap-6">
+      <div className="p-6 flex flex-col gap-6">
         {/* Back Link */}
         <Button
           variant="ghost"

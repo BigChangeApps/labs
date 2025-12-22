@@ -7,7 +7,7 @@ import { LiveInvoicePreview } from "../features/invoice-creation/LiveInvoicePrev
 import { GlobalActionBar } from "../ui/GlobalActionBar";
 import { InvoiceSettingsModal } from "../features/invoice-creation/InvoiceSettingsModal";
 import { InlineSettingsPanel } from "../features/invoice-creation/InlineSettingsPanel";
-import { formatCurrency, type Job } from "../../lib/mock-data";
+import { formatCurrency, contactBillingAddresses, type Job } from "../../lib/mock-data";
 import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 import { useMediaQuery } from "@/registry/hooks/use-media-query";
 
@@ -250,8 +250,8 @@ function generateInvoiceCards(
         selectedJobIds.add(job.id);
       });
 
-      // Get address from first job's site
-      const address = baseJob.site || "Address not available";
+      // Get billing address from contact (parent company)
+      const address = contactBillingAddresses[baseJob.parent] || baseJob.site || "Address not available";
 
       return {
         id: `invoice-${groupIndex}`,
@@ -263,7 +263,7 @@ function generateInvoiceCards(
         originalJobIds: groupJobs.map((job) => job.id),
         title: "Fire extinguisher service",
         reference: `243452`,
-        issueDate: "",
+        issueDate: new Date().toISOString().split("T")[0],
         dueDate: "",
         bankAccount: "barclays",
         currency: "gbp",

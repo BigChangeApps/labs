@@ -5,11 +5,11 @@ import {
   X,
   Building2,
   ChevronDown,
-  Pencil,
   Info,
   Download,
   Printer,
   ExternalLink,
+  Eye,
   Settings,
   Plus,
   Trash2,
@@ -380,7 +380,7 @@ function JobsTable({
     return (
       <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
           <div className="flex-1">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Name
@@ -447,7 +447,7 @@ function JobsTable({
     return (
       <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
           <div className="flex-1">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Name
@@ -520,7 +520,7 @@ function JobsTable({
   return (
     <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
       {/* Table Header */}
-      <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-muted border-b border-hw-border">
+      <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
         <div className="flex-1">
           <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
             Name
@@ -706,7 +706,7 @@ export function LiveInvoicePreview({
 
   return (
     <div className="flex-1 bg-gray-50 overflow-auto">
-      <div className="p-8 flex flex-col items-center gap-4 text-hw-surface-subtle">
+      <div className="p-6 flex flex-col items-center gap-4 text-hw-surface-subtle">
         {/* Sent Invoice Banner */}
         {isSent && (
           <div className="w-full max-w-[900px] flex items-start gap-2 p-3 bg-green-50 rounded-md border border-green-200">
@@ -803,6 +803,10 @@ export function LiveInvoicePreview({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[180px]">
                 <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 cursor-pointer">
                   <Download className="h-4 w-4" />
                   Download as PDF
                 </DropdownMenuItem>
@@ -859,7 +863,7 @@ export function LiveInvoicePreview({
         </div>
 
         {/* Invoice Document */}
-        <div className="w-full max-w-[900px] bg-white shadow-modal">
+        <div className="w-full max-w-[900px] bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)]">
           <div className="p-6 flex flex-col gap-6">
             {/* Logo Section - only visible when enabled in settings */}
             {invoice.showLogo && (
@@ -873,17 +877,23 @@ export function LiveInvoicePreview({
             <div className="flex items-start justify-between">
               {/* From Section */}
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                <span className="text-base font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
                   From:
                 </span>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-bold text-hw-text tracking-[-0.14px] leading-5">
+                  <span className="text-2xl font-bold text-hw-text tracking-[-0.14px] leading-6">
                     BigChange Ltd
                   </span>
                   <span className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px] leading-4">
                     123 Business Street
                   </span>
                 </div>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
+                >
+                  Edit
+                </button>
               </div>
 
               {/* Right side - Dates and References - Editable */}
@@ -991,22 +1001,28 @@ export function LiveInvoicePreview({
 
             {/* Bill To Section */}
             <div className="flex flex-col gap-2 max-w-[400px]">
-              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                 Bill To:
               </span>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                  Boots Pharmacy
+              <div className="flex flex-col gap-1">
+                <span className="text-xl font-bold text-hw-text tracking-[-0.14px] leading-6">
+                  {invoice.name}
                 </span>
-                <span className="text-sm font-normal text-hw-text tracking-[-0.14px] leading-5">
+                <span className="text-sm font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
                   {invoice.address}
                 </span>
               </div>
+              <button
+                type="button"
+                className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
+              >
+                Edit
+              </button>
             </div>
 
             {/* Invoice Title - Editable */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                 Invoice title
               </span>
               <div className="inline-flex items-center h-9 px-3 py-1 bg-hw-surface border border-transparent ring-1 ring-hw-border shadow-input w-fit rounded-input focus-within:border-hw-focus focus-within:ring-hw-focus/30 focus-within:ring-4 transition-[color,box-shadow]">
@@ -1021,19 +1037,16 @@ export function LiveInvoicePreview({
             </div>
 
             {/* Jobs Section */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-base font-medium text-hw-text tracking-[-0.16px] leading-6">
+                <span className="text-base font-medium text-hw-text-secondary tracking-[-0.16px] leading-6">
                   Jobs
                 </span>
                 <button
                   onClick={() => setEditJobsModalOpen(true)}
-                  className="flex items-center gap-1 px-1 py-1 rounded-button bg-white shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:shadow-[0px_0px_0px_1px_rgba(11,38,66,0.16)] transition-shadow"
+                  className="text-sm font-medium text-hw-brand hover:underline transition-colors"
                 >
-                  <Pencil className="h-3.5 w-3.5 text-hw-text" />
-                  <span className="text-xs font-medium text-hw-text tracking-[-0.12px] leading-4 px-0.5">
-                    Edit jobs
-                  </span>
+                  Edit jobs
                 </button>
               </div>
               <JobsTable
@@ -1064,7 +1077,7 @@ export function LiveInvoicePreview({
               <div className="flex flex-col gap-6 flex-1 min-w-[250px]">
                 {/* Notes Section */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  <label className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                     Notes
                   </label>
                   <Textarea

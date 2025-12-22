@@ -69,7 +69,7 @@ function SettingsSelect({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+      <span className="text-xs font-medium text-hw-text tracking-[-0.12px] leading-4">
         {label}
       </span>
       <Popover open={open} onOpenChange={setOpen}>
@@ -125,7 +125,7 @@ function SettingsToggle({
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-xs font-semibold text-hw-text-secondary uppercase tracking-wide mb-3">
+    <h3 className="text-xs font-medium text-hw-text-secondary uppercase tracking-wide mb-3">
       {children}
     </h3>
   );
@@ -159,7 +159,7 @@ export function InlineSettingsPanel({
   )?.label || "Partial";
 
   return (
-    <div className="w-[320px] bg-hw-surface border-l border-hw-border flex flex-col h-full overflow-hidden">
+    <div className="w-[380px] bg-hw-surface border-l border-hw-border flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 border-b border-hw-border shrink-0">
         <h2 className="text-sm font-semibold text-hw-text tracking-[-0.14px] leading-5">
@@ -176,7 +176,7 @@ export function InlineSettingsPanel({
             <div className="flex flex-col gap-4">
               {/* Level of Detail */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+                <span className="text-xs font-medium text-hw-text tracking-[-0.12px] leading-4">
                   Level of detail
                 </span>
                 <Popover open={levelOfDetailOpen} onOpenChange={setLevelOfDetailOpen}>
