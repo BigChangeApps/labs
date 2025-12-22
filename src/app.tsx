@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "@/home";
-import TokensPage from "@/tokens";
 import AssetAttributesV1App from "@/prototypes/asset-attributes/v1/App";
 import AssetAttributesV2App from "@/prototypes/asset-attributes/v2/App";
 import AssetServiceAgreementsV1App from "@/prototypes/asset-service-agreements/v1/App";
@@ -10,7 +9,6 @@ import PlaygroundApp from "@/playground/App";
 import { ComponentsShowcase } from "@/pages/components-showcase";
 import { DevBar } from "@/components/DevBar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { PublicLanding } from "@/components/PublicLanding";
 
 function App() {
   const showInternal = import.meta.env.VITE_SHOW_INTERNAL !== "false";
@@ -19,8 +17,7 @@ function App() {
     <BrowserRouter>
       {showInternal && <DevBar />}
       <Routes>
-        <Route path="/" element={showInternal ? <Home /> : <PublicLanding />} />
-        {showInternal && <Route path="/tokens" element={<TokensPage />} />}
+        <Route path="/" element={<Home />} />
         {/* Component playground and registry (internal only) */}
         {showInternal && (
           <>

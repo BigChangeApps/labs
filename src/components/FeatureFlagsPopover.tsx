@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Flag } from "lucide-react";
+import { Flag, Link, Check } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
 import { Label } from "@/registry/ui/label";
@@ -8,6 +8,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/registry/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/registry/ui/tooltip";
 
 export interface FeatureFlag {
   id: string;
@@ -80,18 +86,90 @@ export const prototypeFlags: PrototypeFlags = {
 };
 
 /**
- * Hook to get a feature flag value from localStorage.
- * Returns the current value and updates reactively.
+ * Get a flag value from URL query parameters.
+ * Supports: ?flagId=true or ?flagId=false or ?flagId=1 or ?flagId=0
+ */
+function getFlagFromUrl(flagId: string): boolean | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get(flagId);
+  if (value === null) return null;
+  return value === "true" || value === "1";
+}
+
+/**
+ * Production URL for shareable links.
+ */
+const PRODUCTION_URL = "https://labs.poc.bigchange.com";
+
+/**
+ * Generate a shareable URL with the given flag values.
+ */
+export function generateFlagUrl(
+  basePath: string,
+  flagValues: Record<string, boolean>,
+  flags: FeatureFlag[]
+): string {
+  const params = new URLSearchParams();
+
+  // Only include flags that differ from defaults
+  flags.forEach((flag) => {
+    const currentValue = flagValues[flag.id];
+    if (currentValue !== flag.defaultValue) {
+      params.set(flag.id, currentValue ? "1" : "0");
+    }
+  });
+
+  const queryString = params.toString();
+  const baseUrl = PRODUCTION_URL + basePath;
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+}
+
+/**
+ * Apply URL flags to localStorage (called once on page load).
+ * This allows URL params to override stored values.
+ */
+export function applyUrlFlagsToStorage(flags: FeatureFlag[]): void {
+  if (typeof window === "undefined") return;
+
+  flags.forEach((flag) => {
+    const urlValue = getFlagFromUrl(flag.id);
+    if (urlValue !== null) {
+      localStorage.setItem(`flag_${flag.id}`, String(urlValue));
+    }
+  });
+
+  // Notify listeners that flags may have changed
+  window.dispatchEvent(new Event("featureFlagsChanged"));
+}
+
+/**
+ * Hook to get a feature flag value.
+ * Priority: URL params > localStorage > default value
  */
 export function useFeatureFlag(flagId: string, defaultValue: boolean = true): boolean {
   const [value, setValue] = useState<boolean>(() => {
     if (typeof window === "undefined") return defaultValue;
+
+    // Check URL first
+    const urlValue = getFlagFromUrl(flagId);
+    if (urlValue !== null) return urlValue;
+
+    // Fall back to localStorage
     const stored = localStorage.getItem(`flag_${flagId}`);
     return stored === null ? defaultValue : stored === "true";
   });
 
   useEffect(() => {
     const handleChange = () => {
+      // Check URL first
+      const urlValue = getFlagFromUrl(flagId);
+      if (urlValue !== null) {
+        setValue(urlValue);
+        return;
+      }
+
+      // Fall back to localStorage
       const stored = localStorage.getItem(`flag_${flagId}`);
       setValue(stored === null ? defaultValue : stored === "true");
     };
@@ -115,9 +193,13 @@ interface FeatureFlagsPopoverProps {
 
 export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
   // Find flags for current prototype
-  const flags = Object.entries(prototypeFlags).find(([prefix]) =>
+  const flagEntry = Object.entries(prototypeFlags).find(([prefix]) =>
     currentPath.startsWith(prefix)
-  )?.[1];
+  );
+  const flags = flagEntry?.[1];
+  const prototypePath = flagEntry?.[0];
+
+  const [copied, setCopied] = useState(false);
 
   // Track flag values in state
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>(() => {
@@ -127,15 +209,28 @@ export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
       if (typeof window === "undefined") {
         initial[flag.id] = flag.defaultValue;
       } else {
-        const stored = localStorage.getItem(`flag_${flag.id}`);
-        initial[flag.id] = stored === null ? flag.defaultValue : stored === "true";
+        // URL params take priority over localStorage
+        const urlValue = getFlagFromUrl(flag.id);
+        if (urlValue !== null) {
+          initial[flag.id] = urlValue;
+        } else {
+          const stored = localStorage.getItem(`flag_${flag.id}`);
+          initial[flag.id] = stored === null ? flag.defaultValue : stored === "true";
+        }
       }
     });
     return initial;
   });
 
+  // Apply URL flags to localStorage on mount
+  useEffect(() => {
+    if (flags) {
+      applyUrlFlagsToStorage(flags);
+    }
+  }, [flags]);
+
   // Don't render if no flags for this prototype
-  if (!flags || flags.length === 0) return null;
+  if (!flags || flags.length === 0 || !prototypePath) return null;
 
   const handleToggle = (flagId: string) => {
     const newValue = !flagValues[flagId];
@@ -147,6 +242,13 @@ export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
     if (flagId === "showCategoryAddButton") {
       window.dispatchEvent(new Event("categoryAddButtonToggle"));
     }
+  };
+
+  const handleCopyLink = async () => {
+    const url = generateFlagUrl(prototypePath, flagValues, flags);
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const enabledCount = Object.values(flagValues).filter(Boolean).length;
@@ -168,8 +270,35 @@ export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start" side="top" sideOffset={8}>
         <div className="space-y-4">
-          <div className="space-y-1">
+          <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Feature Flags</h4>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2 text-xs"
+                    onClick={handleCopyLink}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Link className="h-3.5 w-3.5" />
+                        Copy link
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Copy shareable link with current flags</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="space-y-3">
             {flags.map((flag) => (
