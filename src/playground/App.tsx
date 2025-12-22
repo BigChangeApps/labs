@@ -6,6 +6,7 @@ import { Layout } from "./components/layout";
 import { getFirstComponent } from "./lib/registry";
 
 // Component demos
+import { CategoryGroupEditorDemo } from "./components/category-group-editor";
 import { CategorySearchDemo } from "./components/category-search";
 import { NavigationDemo } from "./components/navigation";
 
@@ -39,6 +40,7 @@ function PlaygroundApp() {
                   )
                 }
               />
+              <Route path="category-group-editor" element={<CategoryGroupEditorDemo />} />
               <Route path="category-search" element={<CategorySearchDemo />} />
               <Route path="navigation" element={<NavigationDemo />} />
             </Route>

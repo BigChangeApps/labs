@@ -4,6 +4,13 @@ import type { ComponentMetadata } from "../types";
 // (Individual component showcases are at /components)
 export const components: ComponentMetadata[] = [
   {
+    id: "category-group-editor",
+    title: "Category Group Editor",
+    category: "forms",
+    path: "/playground/category-group-editor",
+    description: "Add categories, create groups targeting all or selected items, and explore edit flows",
+  },
+  {
     id: "button-variants",
     title: "Button Variants",
     category: "data-display",
