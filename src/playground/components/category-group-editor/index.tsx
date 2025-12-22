@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, X, Pencil, ChevronLeft, Search, Grid3X3, CircleCheck } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, ChevronLeft, Search, Grid3X3, CircleCheck } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Card } from "@/registry/ui/card";
 import { Checkbox } from "@/registry/ui/checkbox";
@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/registry/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/registry/ui/dropdown-menu";
 import { cn } from "@/registry/lib/utils";
 
 type TargetType = "all" | "selected";
@@ -149,9 +155,9 @@ export function CategoryGroupEditorDemo() {
       setIsEditing(true);
       setTargetType(group.targetType);
       setSelectedAssetIds(group.selectedAssetIds);
-      // "Selected" → go straight to picker (common case: tweak selection)
-      // "All" → show type selector (only action is to switch to Selected)
-      setModalStep(group.targetType === "selected" ? "choose-assets" : "target");
+      // "All" → type selector (can switch to "Selected")
+      // "Selected" → choose-assets with back button to change type
+      setModalStep(group.targetType === "all" ? "target" : "choose-assets");
       resetFilters();
       setShowGroupModal(true);
     }
@@ -320,14 +326,22 @@ export function CategoryGroupEditorDemo() {
                   {category.assets.length} total assets
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => removeCategory(category.id)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => removeCategory(category.id)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Groups */}
@@ -349,24 +363,26 @@ export function CategoryGroupEditorDemo() {
                       )}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => openEditGroupModal(category.id, group.id)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => removeGroup(category.id, group.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEditGroupModal(category.id, group.id)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => removeGroup(category.id, group.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
 
@@ -488,16 +504,14 @@ export function CategoryGroupEditorDemo() {
               {/* Choose Assets Step */}
               <DialogHeader className="p-4 pb-4 border-b space-y-0">
                 <div className="flex items-center gap-3">
-                  {!isEditing && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={handleBack}
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleBack}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
                   <DialogTitle className="text-lg font-semibold">
                     {isEditing ? "Edit selection" : "Choose assets"}
                   </DialogTitle>
@@ -602,15 +616,9 @@ export function CategoryGroupEditorDemo() {
                   {selectedAssetIds.length} assets selected
                 </span>
                 <div className="flex gap-2">
-                  {isEditing ? (
-                    <Button variant="outline" onClick={() => setShowGroupModal(false)}>
-                      Cancel
-                    </Button>
-                  ) : (
-                    <Button variant="outline" onClick={handleBack}>
-                      Back
-                    </Button>
-                  )}
+                  <Button variant="outline" onClick={() => setShowGroupModal(false)}>
+                    Cancel
+                  </Button>
                   <Button
                     onClick={() => saveGroup()}
                     disabled={selectedAssetIds.length === 0}
