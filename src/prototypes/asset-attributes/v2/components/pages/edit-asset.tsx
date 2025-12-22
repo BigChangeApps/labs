@@ -306,7 +306,7 @@ export function EditAsset() {
       reference: (data["global-customer-reference"] as string) || "",
       categoryId: categoryId,
       categoryName: categoryName,
-      condition: (data["global-condition"] as string) || "Good",
+      condition: (data["global-condition"] as "Excellent" | "Good" | "Fair" | "Poor") || "Good",
       location: (data["global-location"] as string) || "",
       manufacturer: manufacturerName,
       model: modelName,
