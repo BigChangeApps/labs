@@ -9,11 +9,13 @@ export interface PrototypeVersion {
   createdAt: string;
 }
 
+export type PrototypeArea = "Asset Management" | "Finance" | "Scheduling" | "CRM" | "Reporting" | "Settings";
+
 export interface PrototypeMetadata {
   id: string; // "asset-attributes"
   title: string; // "Asset Attributes Management"
   description: string; // General description
-  thumbnail: string;
+  area: PrototypeArea;
   deviceType?: DeviceType;
   visibility: PrototypeVisibility;
   versions: PrototypeVersion[];
@@ -25,7 +27,7 @@ export const prototypes: PrototypeMetadata[] = [
     title: "Asset Attributes Management",
     description:
       "Comprehensive asset attribute configuration system with category management, drag-and-drop reordering, and manufacturer management.",
-    thumbnail: "/thumbnails/asset-attributes-v2.png", // Use latest version thumbnail
+    area: "Asset Management",
     deviceType: "desktop",
     visibility: "public",
     versions: [
@@ -51,7 +53,7 @@ export const prototypes: PrototypeMetadata[] = [
     id: "asset-service-agreements",
     title: "Asset Service Agreements",
     description: "Service agreement management for assets.",
-    thumbnail: "/thumbnails/asset-service-agreements-v1.png",
+    area: "Asset Management",
     deviceType: "desktop",
     visibility: "public",
     versions: [
@@ -69,7 +71,7 @@ export const prototypes: PrototypeMetadata[] = [
     title: "Group Invoicing",
     description:
       "Bulk invoice creation and management with job grouping, invoice preview, and batch processing workflows.",
-    thumbnail: "/thumbnails/group-invoicing-v2.png",
+    area: "Finance",
     deviceType: "desktop",
     visibility: "public",
     versions: [
