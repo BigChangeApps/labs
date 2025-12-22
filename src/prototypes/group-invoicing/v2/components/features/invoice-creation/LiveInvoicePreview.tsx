@@ -10,7 +10,11 @@ import {
   Download,
   Printer,
   ExternalLink,
+  Settings,
+  Plus,
+  Trash2,
 } from "lucide-react";
+import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Textarea } from "@/registry/ui/textarea";
@@ -36,6 +40,7 @@ import type {
   Attachment,
   UniversalSettings,
   LevelOfDetail,
+  CustomLineItem,
 } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface LiveInvoicePreviewProps {
@@ -137,11 +142,47 @@ function JobsTable({
   jobs,
   selectedJobIds,
   levelOfDetail,
+  customLines = [],
+  onAddCustomLine,
+  onRemoveCustomLine,
+  showAddButton = false,
 }: {
   jobs: JobWithLines[];
   selectedJobIds: Set<string>;
   levelOfDetail: "summary" | "partial" | "detailed";
+  customLines?: CustomLineItem[];
+  onAddCustomLine?: (line: CustomLineItem) => void;
+  onRemoveCustomLine?: (lineId: string) => void;
+  showAddButton?: boolean;
 }) {
+  const [isAddingLine, setIsAddingLine] = useState(false);
+  const [newLine, setNewLine] = useState<Omit<CustomLineItem, "id">>({
+    category: "labour",
+    description: "",
+    quantity: 1,
+    unitPrice: 0,
+  });
+
+  const handleAddLine = () => {
+    if (!newLine.description || newLine.unitPrice <= 0) return;
+    
+    onAddCustomLine?.({
+      id: `custom-${Date.now()}`,
+      ...newLine,
+    });
+    
+    setNewLine({
+      category: "labour",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+    });
+    setIsAddingLine(false);
+  };
+
+  const customLinesTotal = useMemo(() => {
+    return customLines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+  }, [customLines]);
   // Calculate overall total for summary view
   const overallTotal = useMemo(() => {
     let total = 0;
@@ -236,6 +277,102 @@ function JobsTable({
     return map[category];
   };
 
+  // Custom line row component
+  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => (
+    <div className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white group">
+      <div className="flex-1 flex items-center gap-2.5">
+        <JobTypeDot category={getLineItemColor(line.category)} />
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {line.description}
+        </span>
+        <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
+          Custom
+        </span>
+      </div>
+      <div className="w-[100px] text-right">
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {formatCurrency(line.unitPrice)}
+        </span>
+      </div>
+      <div className="w-[100px] text-right flex items-center justify-end gap-2">
+        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+          {formatCurrency(line.quantity * line.unitPrice)}
+        </span>
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // Add line form component
+  const AddLineForm = () => (
+    <div className="border-t border-hw-border p-4 bg-hw-surface-subtle">
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-3">
+          <div className="flex flex-col gap-1.5 w-[120px]">
+            <label className="text-xs font-medium text-hw-text-secondary">Category</label>
+            <select
+              value={newLine.category}
+              onChange={(e) => setNewLine({ ...newLine, category: e.target.value as "labour" | "materials" | "other" })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm"
+            >
+              <option value="labour">Labour</option>
+              <option value="materials">Materials</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-xs font-medium text-hw-text-secondary">Description</label>
+            <input
+              type="text"
+              placeholder="Enter description..."
+              value={newLine.description}
+              onChange={(e) => setNewLine({ ...newLine, description: e.target.value })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 items-end">
+          <div className="flex flex-col gap-1.5 w-20">
+            <label className="text-xs font-medium text-hw-text-secondary">Quantity</label>
+            <input
+              type="number"
+              min="1"
+              value={newLine.quantity}
+              onChange={(e) => setNewLine({ ...newLine, quantity: parseInt(e.target.value) || 1 })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5 w-32">
+            <label className="text-xs font-medium text-hw-text-secondary">Unit price</label>
+            <input
+              type="number"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              value={newLine.unitPrice || ""}
+              onChange={(e) => setNewLine({ ...newLine, unitPrice: parseFloat(e.target.value) || 0 })}
+              className="h-9 px-3 rounded-input ring-1 ring-hw-border bg-white text-sm text-hw-text"
+            />
+          </div>
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={() => setIsAddingLine(false)}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleAddLine} disabled={!newLine.description || newLine.unitPrice <= 0}>
+            Add
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
     return (
@@ -278,6 +415,27 @@ function JobsTable({
             </span>
           </div>
         </div>
+
+        {/* Custom Lines */}
+        {customLines.map((line) => (
+          <CustomLineRow
+            key={line.id}
+            line={line}
+            onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+          />
+        ))}
+
+        {/* Add Line Button or Form */}
+        {showAddButton && !isAddingLine && (
+          <button
+            onClick={() => setIsAddingLine(true)}
+            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+          >
+            <Plus className="h-4 w-4" />
+            Add line
+          </button>
+        )}
+        {isAddingLine && <AddLineForm />}
       </div>
     );
   }
@@ -331,6 +489,27 @@ function JobsTable({
             </div>
           </div>
         ))}
+
+        {/* Custom Lines */}
+        {customLines.map((line) => (
+          <CustomLineRow
+            key={line.id}
+            line={line}
+            onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+          />
+        ))}
+
+        {/* Add Line Button or Form */}
+        {showAddButton && !isAddingLine && (
+          <button
+            onClick={() => setIsAddingLine(true)}
+            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+          >
+            <Plus className="h-4 w-4" />
+            Add line
+          </button>
+        )}
+        {isAddingLine && <AddLineForm />}
       </div>
     );
   }
@@ -381,6 +560,27 @@ function JobsTable({
           </div>
         </div>
       ))}
+
+      {/* Custom Lines */}
+      {customLines.map((line) => (
+        <CustomLineRow
+          key={line.id}
+          line={line}
+          onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
+        />
+      ))}
+
+      {/* Add Line Button or Form */}
+      {showAddButton && !isAddingLine && (
+        <button
+          onClick={() => setIsAddingLine(true)}
+          className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-hw-brand hover:bg-hw-surface-subtle transition-colors border-t border-hw-border"
+        >
+          <Plus className="h-4 w-4" />
+          Add line
+        </button>
+      )}
+      {isAddingLine && <AddLineForm />}
     </div>
   );
 }
@@ -427,6 +627,8 @@ export function LiveInvoicePreview({
 }: LiveInvoicePreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editJobsModalOpen, setEditJobsModalOpen] = useState(false);
+  const [perInvoiceSettingsOpen, setPerInvoiceSettingsOpen] = useState(false);
+  const showPerInvoiceSettings = useFeatureFlag("showPerInvoiceSettings", false);
 
   // Handle saving changes from the Edit Jobs modal
   const handleEditJobsSave = (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => {
@@ -501,7 +703,7 @@ export function LiveInvoicePreview({
   };
 
   return (
-    <div className="flex-1 bg-muted overflow-auto">
+    <div className="flex-1 bg-gray-50 overflow-auto">
       <div className="p-8 flex flex-col items-center gap-4 text-hw-surface-subtle">
         {/* Sent Invoice Banner */}
         {isSent && (
@@ -526,7 +728,69 @@ export function LiveInvoicePreview({
               {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
             </span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            {/* Per-invoice Settings button - only shown when flag is enabled */}
+            {showPerInvoiceSettings && (
+              <Popover open={perInvoiceSettingsOpen} onOpenChange={setPerInvoiceSettingsOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="secondary" size="sm" className="gap-1.5">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-4" align="end">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-sm font-medium text-hw-text">Invoice Settings</h4>
+                      <p className="text-xs text-hw-text-secondary">Settings for this invoice only</p>
+                    </div>
+                    
+                    {/* Level of Detail */}
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-hw-text-secondary">Level of detail</span>
+                      <div className="flex gap-2">
+                        {(["summary", "partial", "detailed"] as const).map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => {
+                              onUpdateInvoice({ levelOfDetail: level, isOverridden: true });
+                            }}
+                            className={cn(
+                              "flex-1 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors capitalize",
+                              invoice.levelOfDetail === level
+                                ? "bg-hw-brand/10 border-hw-brand text-hw-brand"
+                                : "bg-hw-surface border-hw-border text-hw-text hover:bg-hw-surface-subtle"
+                            )}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="h-px bg-hw-border" />
+
+                    {/* Reset button */}
+                    {invoice.isOverridden && (
+                      <button
+                        onClick={() => {
+                          onUpdateInvoice({ 
+                            levelOfDetail: universalSettings.levelOfDetail,
+                            isOverridden: false 
+                          });
+                          setPerInvoiceSettingsOpen(false);
+                        }}
+                        className="text-xs text-hw-text-secondary hover:text-hw-text transition-colors text-left"
+                      >
+                        Reset to group settings
+                      </button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
             {/* Actions dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -755,6 +1019,18 @@ export function LiveInvoicePreview({
                 jobs={invoice.jobs}
                 selectedJobIds={invoice.selectedJobIds}
                 levelOfDetail={invoice.levelOfDetail}
+                customLines={invoice.customLines}
+                onAddCustomLine={(line) => {
+                  onUpdateInvoice({
+                    customLines: [...invoice.customLines, line],
+                  });
+                }}
+                onRemoveCustomLine={(lineId) => {
+                  onUpdateInvoice({
+                    customLines: invoice.customLines.filter((l) => l.id !== lineId),
+                  });
+                }}
+                showAddButton={universalSettings.customLine}
               />
             </div>
 

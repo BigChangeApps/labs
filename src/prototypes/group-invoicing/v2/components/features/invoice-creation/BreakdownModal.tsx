@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { X, ArrowLeft, Brain } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,13 +25,13 @@ interface BreakdownModalProps {
 
 function StatusBadge({ count, label, variant }: { count: number; label: string; variant: "scheduled" | "progress" | "complete" }) {
   const variantClasses = {
-    scheduled: "bg-sky-100 border-sky-200 text-hw-text",
-    progress: "bg-sky-600 border-sky-600 text-white hover:bg-sky-600",
-    complete: "bg-green-700 border-green-700 text-white hover:bg-green-700",
+    scheduled: "bg-[#e6f3fa] border-[rgba(2,136,209,0.2)] text-[#0b2642]",
+    progress: "bg-[#0288d1] border-[#0288d1] text-white",
+    complete: "bg-[#2e7d32] border-[#2e7d32] text-white",
   };
 
   return (
-    <Badge variant="secondary" className={cn("px-1.5 py-0.5", variantClasses[variant])}>
+    <Badge variant="secondary" className={cn("px-1.5 py-0.5 text-xs font-medium tracking-[-0.12px] rounded-full", variantClasses[variant])}>
       {count} {label}
     </Badge>
   );
@@ -158,73 +158,66 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
       <DialogContent className="w-[680px] max-w-[680px] h-[555px] p-0 gap-0 overflow-hidden !rounded-modal sm:!rounded-modal border border-hw-border shadow-modal flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
         {/* Sticky Header */}
         <div className="px-6 py-4 bg-hw-surface-subtle border-b border-hw-border shrink-0 flex flex-row items-start justify-between gap-2.5">
-          <div className="flex flex-col gap-2.5 flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <Brain className="size-4 shrink-0 text-hw-text-secondary" />
-              <p className="text-sm font-normal text-hw-text-secondary tracking-[-0.14px]">
-                Step {step}/2
-              </p>
-            </div>
-            <h2 className="text-base font-normal text-hw-text tracking-[-0.16px]">
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            <p className="text-sm font-normal text-[#73777d] tracking-[-0.14px] leading-5">
+              Step {step}/2
+            </p>
+            <h2 className="text-base font-normal text-[#0b2642] tracking-[-0.16px] leading-6">
               {step === 1 ? "Select your grouping" : "Select your structure"}
             </h2>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
             onClick={() => onOpenChange(false)}
-            className="size-6 p-0"
+            className="size-6 p-0.5 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
-            <X className="h-5 w-5" />
-          </Button>
+            <X className="size-5 text-[#0b2642]" />
+          </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
           {/* Summary Section */}
-          <div className="px-6 py-5">
-            <div className="bg-hw-surface-subtle rounded-card p-5">
-              {/* Stats Row */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                <div>
-                  <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">Total jobs selected</p>
-                  <p className="text-sm font-bold text-hw-text mt-1">{summary.totalJobs}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">Left to invoice</p>
-                  <p className="text-sm font-bold text-hw-text mt-1">{formatCurrency(summary.leftToInvoice)}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">Parent contacts</p>
-                  <p className="text-sm font-medium text-hw-text tracking-[-0.14px] mt-1 truncate" title={summary.parentContacts.join(", ")}>
-                    {parentContactsDisplay}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">Sites</p>
-                  <p className="text-sm font-medium text-hw-text tracking-[-0.14px] mt-1">{summary.siteCount}</p>
-                </div>
+          <div className="bg-hw-surface-subtle rounded-card p-5 flex flex-col gap-3">
+            {/* Stats Row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">Total jobs selected</p>
+                <p className="text-sm font-medium text-[#0b2642] tracking-[-0.14px] leading-5">{summary.totalJobs}</p>
               </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">Left to invoice</p>
+                <p className="text-sm font-medium text-[#0b2642] tracking-[-0.14px] leading-5">{formatCurrency(summary.leftToInvoice)}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">Parent contacts</p>
+                <p className="text-sm font-medium text-[#0b2642] tracking-[-0.14px] leading-5 truncate" title={summary.parentContacts.join(", ")}>
+                  {parentContactsDisplay}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">Sites</p>
+                <p className="text-sm font-medium text-[#0b2642] tracking-[-0.14px] leading-5">{summary.siteCount}</p>
+              </div>
+            </div>
 
-              {/* Status Badges */}
-              <div className="flex gap-2 flex-wrap mt-4">
-                {summary.statusCounts.scheduled > 0 && (
-                  <StatusBadge count={summary.statusCounts.scheduled} label="Scheduled" variant="scheduled" />
-                )}
-                {summary.statusCounts.inProgress > 0 && (
-                  <StatusBadge count={summary.statusCounts.inProgress} label="In progress" variant="progress" />
-                )}
-                {summary.statusCounts.complete > 0 && (
-                  <StatusBadge count={summary.statusCounts.complete} label="Complete" variant="complete" />
-                )}
-              </div>
+            {/* Status Badges */}
+            <div className="flex gap-2 flex-wrap">
+              {summary.statusCounts.scheduled > 0 && (
+                <StatusBadge count={summary.statusCounts.scheduled} label="Scheduled" variant="scheduled" />
+              )}
+              {summary.statusCounts.inProgress > 0 && (
+                <StatusBadge count={summary.statusCounts.inProgress} label="In progress" variant="progress" />
+              )}
+              {summary.statusCounts.complete > 0 && (
+                <StatusBadge count={summary.statusCounts.complete} label="Complete" variant="complete" />
+              )}
             </div>
           </div>
 
           {/* Step 1: Breakdown Options */}
           {step === 1 && (
-            <div className="px-6 pb-5">
-              <p className="text-sm font-normal text-hw-text mb-4 tracking-[-0.14px]">How should we group your Invoices?</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-normal text-[#0b2642] tracking-[-0.14px] leading-5">How should we group your Invoices?</p>
               <RadioGroup
                 value={breakdownLevel}
                 onValueChange={(value) => setBreakdownLevel(value as BreakdownLevel)}
@@ -237,25 +230,30 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                       key={option.id}
                       htmlFor={`breakdown-${option.id}`}
                       className={cn(
-                        "flex-1 flex gap-3 p-4 rounded-card transition-all text-left border h-[91px] cursor-pointer font-normal",
+                        "w-[226px] flex items-start gap-3 p-4 rounded-[10px] transition-all text-left border min-h-[80px] cursor-pointer font-normal",
                         isSelected
-                          ? "border-hw-brand bg-hw-brand/16"
-                          : "border-hw-border bg-white hover:border-hw-border/50"
+                          ? "border-[#086dff] bg-[rgba(8,109,255,0.16)]"
+                          : "border-[#e5e5e5] bg-white hover:border-[#d4d4d4]"
                       )}
                     >
                       <RadioGroupItem
                         value={option.id}
                         id={`breakdown-${option.id}`}
-                        className="shrink-0 mt-0.5"
+                        className={cn(
+                          "shrink-0 bg-white mt-0.5",
+                          isSelected 
+                            ? "border-[rgba(2,136,209,0.2)] text-[#086dff]" 
+                            : "border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
+                        )}
                       />
-                      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                      <div className="flex-1 min-w-0 flex flex-col gap-1">
                         <p className={cn(
-                          "text-sm font-medium tracking-[-0.14px]",
-                          isSelected ? "text-hw-brand" : "text-hw-text"
+                          "text-sm font-medium tracking-[-0.14px] leading-5",
+                          isSelected ? "text-[#086dff]" : "text-[#1a1c2e]"
                         )}>
                           {option.title}
                         </p>
-                        <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">
+                        <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">
                           {option.description}
                         </p>
                       </div>
@@ -268,48 +266,51 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
 
           {/* Step 2: Level of Detail Options */}
           {step === 2 && (
-            <div className="px-6 pb-5">
-              <div className="flex flex-col gap-4">
-                <p className="text-sm font-normal text-hw-text tracking-[-0.14px]">Choose your invoice structure</p>
-                <RadioGroup
-                  value={levelOfDetail}
-                  onValueChange={(value) => setLevelOfDetail(value as LevelOfDetail)}
-                  className="flex gap-4"
-                >
-                  {levelOfDetailOptions.map((option) => {
-                    const isSelected = levelOfDetail === option.id;
-                    return (
-                      <Label
-                        key={option.id}
-                        htmlFor={`detail-${option.id}`}
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-normal text-[#0b2642] tracking-[-0.14px] leading-5">Choose your invoice structure</p>
+              <RadioGroup
+                value={levelOfDetail}
+                onValueChange={(value) => setLevelOfDetail(value as LevelOfDetail)}
+                className="flex gap-3"
+              >
+                {levelOfDetailOptions.map((option) => {
+                  const isSelected = levelOfDetail === option.id;
+                  return (
+                    <Label
+                      key={option.id}
+                      htmlFor={`detail-${option.id}`}
+                      className={cn(
+                        "flex-1 flex items-start gap-3 p-4 rounded-[10px] transition-all text-left border min-h-[80px] cursor-pointer font-normal",
+                        isSelected
+                          ? "border-[#086dff] bg-[rgba(8,109,255,0.16)]"
+                          : "border-[#e5e5e5] bg-white hover:border-[#d4d4d4]"
+                      )}
+                    >
+                      <RadioGroupItem
+                        value={option.id}
+                        id={`detail-${option.id}`}
                         className={cn(
-                          "flex-1 flex gap-3 p-4 rounded-card transition-all text-left border h-[91px] cursor-pointer font-normal",
-                          isSelected
-                            ? "border-hw-brand bg-hw-brand/16"
-                            : "border-hw-border bg-white hover:border-hw-border/50"
+                          "shrink-0 bg-white mt-0.5",
+                          isSelected 
+                            ? "border-[rgba(2,136,209,0.2)] text-[#086dff]" 
+                            : "border-[#e5e5e5] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
                         )}
-                      >
-                        <RadioGroupItem
-                          value={option.id}
-                          id={`detail-${option.id}`}
-                          className="shrink-0 mt-0.5"
-                        />
-                        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                          <p className={cn(
-                            "text-sm font-medium tracking-[-0.14px]",
-                            isSelected ? "text-hw-brand" : "text-hw-text"
-                          )}>
-                            {option.title}
-                          </p>
-                          <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">
-                            {option.description}
-                          </p>
-                        </div>
-                      </Label>
-                    );
-                  })}
-                </RadioGroup>
-              </div>
+                      />
+                      <div className="flex-1 min-w-0 flex flex-col gap-1">
+                        <p className={cn(
+                          "text-sm font-medium tracking-[-0.14px] leading-5",
+                          isSelected ? "text-[#086dff]" : "text-[#1a1c2e]"
+                        )}>
+                          {option.title}
+                        </p>
+                        <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">
+                          {option.description}
+                        </p>
+                      </div>
+                    </Label>
+                  );
+                })}
+              </RadioGroup>
             </div>
           )}
         </div>
@@ -318,7 +319,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
         <div className="px-6 py-4 border-t border-hw-border flex items-center justify-between bg-hw-surface-subtle shrink-0">
           {step === 1 ? (
             <>
-              <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">
+              <p className="text-xs font-normal text-[#73777d] tracking-[-0.12px] leading-4">
                 This will create {invoiceCount} invoice{invoiceCount !== 1 ? "s" : ""}
               </p>
               <Button

@@ -154,14 +154,12 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[680px] max-w-[680px] h-[555px] p-0 gap-0 overflow-hidden !rounded-[8px] sm:!rounded-[8px] border border-hw-border shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
         {/* Sticky Header */}
-        <div className="px-6 py-4 bg-[#F8F9FC] border-b border-hw-border shrink-0 flex flex-row items-start justify-between gap-2.5">
-          <div className="flex flex-col gap-2.5 flex-1 min-w-0">
+        <div className="px-6 py-4 bg-hw-surface-subtle border-b border-hw-border shrink-0 flex flex-row items-start justify-between gap-2.5">
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <img 
-                src="/brain-icon.png" 
-                alt="" 
-                className="size-4 shrink-0"
-              />
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0">
+                <path d="M10 2.5C7.23858 2.5 5 4.73858 5 7.5C5 8.16304 5.26339 8.79893 5.73223 9.26777L6.25 9.78553V11.6667C6.25 12.1269 6.62313 12.5 7.08333 12.5H7.5V13.3333C7.5 13.7936 7.87313 14.1667 8.33333 14.1667H10M10 2.5C12.7614 2.5 15 4.73858 15 7.5C15 8.16304 14.7366 8.79893 14.2678 9.26777L13.75 9.78553V11.6667C13.75 12.1269 13.3769 12.5 12.9167 12.5H12.5V13.3333C12.5 13.7936 12.1269 14.1667 11.6667 14.1667H10M10 2.5V5M10 14.1667V17.5M7.5 7.5H5M15 7.5H12.5M8.33333 5.83333C8.33333 6.29357 7.9602 6.66667 7.5 6.66667C7.0398 6.66667 6.66667 6.29357 6.66667 5.83333C6.66667 5.37313 7.0398 5 7.5 5C7.9602 5 8.33333 5.37313 8.33333 5.83333ZM13.3333 5.83333C13.3333 6.29357 12.9602 6.66667 12.5 6.66667C12.0398 6.66667 11.6667 6.29357 11.6667 5.83333C11.6667 5.37313 12.0398 5 12.5 5C12.9602 5 13.3333 5.37313 13.3333 5.83333Z" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
               <p className="text-sm font-normal text-[#73777D] tracking-[-0.14px]">
                 Step {step}/2
               </p>
@@ -182,7 +180,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
         <div className="flex-1 overflow-y-auto">
           {/* Summary Section */}
           <div className="px-6 py-5">
-            <div className="bg-[#F8F9FC] rounded-[8px] p-5">
+            <div className="bg-hw-surface-subtle rounded-[8px] p-5">
               {/* Stats Row */}
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
@@ -224,7 +222,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
           {step === 1 && (
             <div className="px-6 pb-5">
               <p className="text-sm font-normal text-[#0B2642] mb-4 tracking-[-0.14px]">How should we group your Invoices?</p>
-              <div className="flex gap-4">
+              <div className="flex gap-6">
                 {breakdownOptions.map((option) => {
                   const isSelected = breakdownLevel === option.id;
                   return (
@@ -232,30 +230,30 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                       key={option.id}
                       onClick={() => setBreakdownLevel(option.id)}
                       className={cn(
-                        "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                        "w-[226px] flex gap-3 p-4 rounded-[10px] transition-all text-left border",
                         isSelected
                           ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                          : "border-hw-border bg-white hover:border-hw-border"
+                          : "border-[#E5E5E5] bg-white hover:border-gray-300"
                       )}
                     >
                       <div className={cn(
-                        "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
+                        "size-4 shrink-0 rounded-full border flex items-center justify-center",
                         isSelected
-                          ? "border-hw-brand/20"
-                          : "border-[#E5E5E5] bg-white"
+                          ? "border-[rgba(2,136,209,0.2)] bg-white"
+                          : "border-[#E5E5E5] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
                       )}>
                         {isSelected && (
                           <div className="size-2 rounded-full bg-[#086DFF]" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                      <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-px">
                         <p className={cn(
-                          "text-sm font-medium tracking-[-0.14px]",
+                          "text-sm font-medium tracking-[-0.14px] leading-5",
                           isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
                         )}>
                           {option.title}
                         </p>
-                        <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+                        <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px] leading-4">
                           {option.description}
                         </p>
                       </div>
@@ -271,7 +269,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
             <div className="px-6 pb-5">
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">Choose your invoice structure</p>
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                   {levelOfDetailOptions.map((option) => {
                     const isSelected = levelOfDetail === option.id;
                     return (
@@ -279,30 +277,30 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                         key={option.id}
                         onClick={() => setLevelOfDetail(option.id)}
                         className={cn(
-                          "flex-1 flex gap-3 p-4 rounded-[8px] transition-all text-left border h-[91px]",
+                          "flex-1 flex gap-3 p-4 rounded-[10px] transition-all text-left border",
                           isSelected
                             ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                            : "border-hw-border bg-white hover:border-hw-border"
+                            : "border-[#E5E5E5] bg-white hover:border-gray-300"
                         )}
                       >
                         <div className={cn(
-                          "size-4 shrink-0 rounded-full border mt-0.5 flex items-center justify-center",
+                          "size-4 shrink-0 rounded-full border flex items-center justify-center",
                           isSelected
-                            ? "border-hw-brand/20"
-                            : "border-hw-border bg-white"
+                            ? "border-[rgba(2,136,209,0.2)] bg-white"
+                            : "border-[#E5E5E5] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
                         )}>
                           {isSelected && (
                             <div className="size-2 rounded-full bg-[#086DFF]" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                        <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-px">
                           <p className={cn(
-                            "text-sm font-medium tracking-[-0.14px]",
+                            "text-sm font-medium tracking-[-0.14px] leading-5",
                             isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
                           )}>
                             {option.title}
                           </p>
-                          <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">
+                          <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px] leading-4">
                             {option.description}
                           </p>
                         </div>
@@ -316,7 +314,7 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
         </div>
 
         {/* Sticky Footer */}
-        <div className="px-6 py-4 border-t border-hw-border flex items-center justify-between bg-[#F8F9FC] shrink-0">
+        <div className="px-6 py-4 border-t border-hw-border flex items-center justify-between bg-hw-surface-subtle shrink-0">
           {step === 1 ? (
             <>
               <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">

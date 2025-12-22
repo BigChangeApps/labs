@@ -6,7 +6,10 @@ import { InvoiceCardList } from "../features/invoice-creation/InvoiceCardList";
 import { LiveInvoicePreview } from "../features/invoice-creation/LiveInvoicePreview";
 import { GlobalActionBar } from "../ui/GlobalActionBar";
 import { InvoiceSettingsModal } from "../features/invoice-creation/InvoiceSettingsModal";
+import { InlineSettingsPanel } from "../features/invoice-creation/InlineSettingsPanel";
 import { formatCurrency, type Job } from "../../lib/mock-data";
+import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
+import { useMediaQuery } from "@/registry/hooks/use-media-query";
 
 // Toast notification component for sent invoices
 function InvoiceSentToast({
@@ -68,6 +71,14 @@ export interface Attachment {
   type: string;
 }
 
+export interface CustomLineItem {
+  id: string;
+  category: "labour" | "materials" | "other";
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export interface InvoiceData {
   id: string;
   invoiceNumber: number;
@@ -89,6 +100,7 @@ export interface InvoiceData {
   isOverridden: boolean;
   selectedJobIds: Set<string>;
   selectedGroupLines: Set<string>;
+  customLines: CustomLineItem[];
 }
 
 export interface UniversalSettings {
@@ -258,6 +270,7 @@ function generateInvoiceCards(
         isOverridden: false,
         selectedJobIds,
         selectedGroupLines,
+        customLines: [],
       };
     }
   );
@@ -266,6 +279,14 @@ function generateInvoiceCards(
 export function UnifiedInvoiceWorkspace() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Feature flags
+  const showApplyToAllCheckbox = useFeatureFlag("showApplyToAllCheckbox", false);
+  const showInlineSettings = useFeatureFlag("showInlineSettings", false);
+  
+  // Responsive: Only show inline panel on large screens (1280px+)
+  const isLargeScreen = useMediaQuery("(min-width: 1280px)");
+  const showInlinePanel = showInlineSettings && isLargeScreen;
 
   // #region agent log
   // #endregion
@@ -406,6 +427,11 @@ export function UnifiedInvoiceWorkspace() {
           }
         }
       });
+
+      // Include custom lines in totals
+      invoice.customLines.forEach((line) => {
+        subtotal += line.quantity * line.unitPrice;
+      });
     });
 
     const vatRate = 0.2;
@@ -427,7 +453,7 @@ export function UnifiedInvoiceWorkspace() {
 
   // Handle universal settings change
   const handleSettingsChange = useCallback(
-    (newSettings: UniversalSettings) => {
+    (newSettings: UniversalSettings, applyToAll: boolean = true) => {
       const previousSettings = universalSettings;
       setUniversalSettings(newSettings);
 
@@ -447,22 +473,41 @@ export function UnifiedInvoiceWorkspace() {
         return;
       }
 
-      // Apply to non-overridden invoices
-      setInvoices((prev) =>
-        prev.map((inv) => {
-          if (!inv.isOverridden) {
-            return {
-              ...inv,
-              levelOfDetail: newSettings.levelOfDetail,
-              currency: newSettings.currency,
-              bankAccount: newSettings.bankAccount,
-            };
-          }
-          return inv;
-        })
-      );
+      // Apply settings based on applyToAll flag
+      if (applyToAll) {
+        // Apply to non-overridden invoices (original behavior)
+        setInvoices((prev) =>
+          prev.map((inv) => {
+            if (!inv.isOverridden) {
+              return {
+                ...inv,
+                levelOfDetail: newSettings.levelOfDetail,
+                currency: newSettings.currency,
+                bankAccount: newSettings.bankAccount,
+              };
+            }
+            return inv;
+          })
+        );
+      } else {
+        // Apply only to the active invoice
+        setInvoices((prev) =>
+          prev.map((inv) => {
+            if (inv.id === activeInvoiceId) {
+              return {
+                ...inv,
+                levelOfDetail: newSettings.levelOfDetail,
+                currency: newSettings.currency,
+                bankAccount: newSettings.bankAccount,
+                isOverridden: true,
+              };
+            }
+            return inv;
+          })
+        );
+      }
     },
-    [universalSettings, selectedJobs]
+    [universalSettings, selectedJobs, activeInvoiceId]
   );
 
   // Handle send all invoices
@@ -573,7 +618,7 @@ export function UnifiedInvoiceWorkspace() {
           onBackClick={() => navigate("/group-invoicing/v2")}
         />
 
-        {/* Right Panel - Live Invoice Preview */}
+        {/* Middle/Right Panel - Live Invoice Preview */}
         <LiveInvoicePreview
           invoice={activeInvoice}
           onUpdateInvoice={(updates) => updateInvoice(activeInvoice.id, updates)}
@@ -581,6 +626,15 @@ export function UnifiedInvoiceWorkspace() {
           onSendInvoice={() => handleSendInvoice(activeInvoice.id)}
           isSent={sentInvoiceIds.has(activeInvoice.id)}
         />
+
+        {/* Right Panel - Inline Settings (when flag enabled) */}
+        {showInlinePanel && (
+          <InlineSettingsPanel
+            settings={universalSettings}
+            onSettingsChange={handleSettingsChange}
+            showApplyToAllCheckbox={showApplyToAllCheckbox}
+          />
+        )}
       </div>
 
       {/* Global Action Bar */}
@@ -590,6 +644,7 @@ export function UnifiedInvoiceWorkspace() {
         onOpenSettings={() => setSettingsModalOpen(true)}
         onSendAll={handleSendAll}
         hasSentInvoices={hasSentInvoices}
+        hideSettingsButton={showInlinePanel}
       />
 
       {/* Settings Modal */}
@@ -598,6 +653,7 @@ export function UnifiedInvoiceWorkspace() {
         onOpenChange={setSettingsModalOpen}
         settings={universalSettings}
         onSettingsChange={handleSettingsChange}
+        showApplyToAllCheckbox={showApplyToAllCheckbox}
       />
 
       {/* Toast Notification */}

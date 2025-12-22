@@ -8,6 +8,7 @@ interface GlobalActionBarProps {
   onOpenSettings: () => void;
   onSendAll: () => void;
   hasSentInvoices?: boolean;
+  hideSettingsButton?: boolean;
 }
 
 export function GlobalActionBar({
@@ -16,6 +17,7 @@ export function GlobalActionBar({
   onOpenSettings,
   onSendAll,
   hasSentInvoices = false,
+  hideSettingsButton = false,
 }: GlobalActionBarProps) {
   // Determine button text based on whether some invoices have been sent
   const buttonText = hasSentInvoices
@@ -27,16 +29,18 @@ export function GlobalActionBar({
       <div className="flex items-center justify-between">
         {/* Left - Invoice Settings and Summary */}
         <div className="flex items-center gap-8">
-          {/* Invoice Settings Button */}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onOpenSettings}
-            className="gap-1"
-          >
-            <Settings className="h-4 w-4" />
-            Invoice settings
-          </Button>
+          {/* Invoice Settings Button - hidden when inline settings are shown */}
+          {!hideSettingsButton && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onOpenSettings}
+              className="gap-1"
+            >
+              <Settings className="h-4 w-4" />
+              Invoice settings
+            </Button>
+          )}
 
           {/* Summary with mixed typography */}
           <p className="text-sm font-medium text-hw-text tracking-[-0.14px]">

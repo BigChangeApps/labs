@@ -27,7 +27,8 @@ interface InvoiceSettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   settings: UniversalSettings;
-  onSettingsChange: (settings: UniversalSettings) => void;
+  onSettingsChange: (settings: UniversalSettings, applyToAll: boolean) => void;
+  showApplyToAllCheckbox?: boolean;
 }
 
 const levelOfDetailOptions: { id: LevelOfDetail; label: string }[] = [
@@ -140,20 +141,28 @@ export function InvoiceSettingsModal({
   onOpenChange,
   settings,
   onSettingsChange,
+  showApplyToAllCheckbox = false,
 }: InvoiceSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
   const [levelOfDetailOpen, setLevelOfDetailOpen] = useState(false);
+  const [applyToAll, setApplyToAll] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["breakdown", "finance", "display"]);
 
   useEffect(() => {
     if (open) {
       setLocalSettings(settings);
+      setExpandedSections(["breakdown", "finance", "display"]); // All sections expanded when modal opens
     }
   }, [open, settings]);
 
   const handleSave = () => {
-    onSettingsChange(localSettings);
+    onSettingsChange(localSettings, showApplyToAllCheckbox ? applyToAll : true);
     onOpenChange(false);
-    toast.success("Settings applied successfully");
+    toast.success(
+      showApplyToAllCheckbox && !applyToAll 
+        ? "Settings applied to current invoice" 
+        : "Settings applied successfully"
+    );
   };
 
   const handleCancel = () => {
@@ -183,7 +192,7 @@ export function InvoiceSettingsModal({
 
         {/* Scrollable Accordion Sections */}
         <div className="flex-1 overflow-y-auto">
-          <Accordion type="multiple" defaultValue={[]} className="w-full">
+          <Accordion type="multiple" value={expandedSections} onValueChange={setExpandedSections} className="w-full">
             {/* Breakdown settings */}
             <AccordionItem value="breakdown" className="border-b border-hw-border px-4">
               <AccordionTrigger className="text-sm font-medium text-hw-text hover:no-underline py-4">
@@ -347,11 +356,30 @@ export function InvoiceSettingsModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-hw-surface-subtle px-5 py-4 flex items-center justify-end gap-3 border-t border-hw-border shrink-0">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Apply settings</Button>
+        <div className="bg-hw-surface-subtle px-5 py-4 flex items-center justify-between border-t border-hw-border shrink-0">
+          {showApplyToAllCheckbox ? (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="apply-to-all"
+                checked={applyToAll}
+                onCheckedChange={(checked) => setApplyToAll(checked === true)}
+              />
+              <label
+                htmlFor="apply-to-all"
+                className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 cursor-pointer"
+              >
+                Apply to all invoices
+              </label>
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Apply settings</Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

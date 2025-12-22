@@ -128,7 +128,7 @@ function FilterDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-transparent ring-1 ring-hw-border text-sm font-medium shadow-input hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
+            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-hw-border text-sm font-medium hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
             hasSelection ? "text-hw-brand" : "text-hw-text"
           )}
         >
@@ -190,7 +190,7 @@ function DateFilterDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-transparent ring-1 ring-hw-border text-sm font-medium shadow-input hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
+            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-hw-border text-sm font-medium hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
             hasValue ? "text-hw-brand" : "text-hw-text"
           )}
         >
@@ -511,7 +511,7 @@ export function JobsReadyToInvoice() {
       </header>
 
       {/* Main Content */}
-      <main className={cn("p-6 bg-hw-surface-subtle", selectedJobs.size > 0 && "pb-24")}>
+      <main className={cn("p-6 bg-gray-100", selectedJobs.size > 0 && "pb-24")}>
         {/* Filters */}
         <div className="mb-4 flex items-center gap-2">
           <div className="flex-1 max-w-[300px]">
