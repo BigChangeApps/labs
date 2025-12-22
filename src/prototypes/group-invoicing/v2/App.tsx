@@ -14,11 +14,23 @@ function BulkInvoicingApp() {
   const location = useLocation();
   fetch('http://127.0.0.1:7242/ingest/cf7df69f-f856-4874-ac6a-b53ffb85f438',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:14',message:'v2 App RENDER',data:{pathname:location.pathname,note:'GlobalActionBar only on /workspace route'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
   // #endregion
+
+  // Show DevBar when VITE_SHOW_INTERNAL is not "false" (dev mode)
+  const showDevBar = import.meta.env.VITE_SHOW_INTERNAL !== "false";
+  // Show PrototypeBanner when VITE_SHOW_INTERNAL is "false" (production mode)
+  const showBanner = import.meta.env.VITE_SHOW_INTERNAL === "false";
+
   return (
     <TooltipProvider>
       <div className="h-screen bg-hw-background flex flex-col overflow-hidden">
         <PrototypeBanner deviceType="desktop" />
-        <main className="flex-1 min-h-0">
+        <main
+          className="flex-1 min-h-0"
+          style={{
+            paddingTop: showBanner ? 61 : 0,
+            paddingBottom: showDevBar ? 40 : 0,
+          }}
+        >
           <Routes>
             <Route index element={<JobsReadyToInvoice />} />
             <Route path="create" element={<BulkInvoiceCreation />} />

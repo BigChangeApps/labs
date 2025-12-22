@@ -419,7 +419,7 @@ function SiteInvoiceCard({
   const total = subtotal * (1 + vatRate);
 
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(26,28,46,0.12),0px_1px_2px_-1px_rgba(26,28,46,0.08),0px_2px_4px_0px_rgba(26,28,46,0.06)] p-6">
+    <div className="bg-white rounded-lg border border-hw-border p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-1">
@@ -525,7 +525,7 @@ function OverviewPanel({
   onStructureChange: (structure: BreakdownLevel) => void;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
       {/* Header */}
       <div className="px-4 pt-6 pb-3">
         <div className="flex items-center justify-between mb-1">

@@ -76,7 +76,7 @@ const jobTypeIcons = {
 function StatusBadge({ status }: { status: Job["status"] }) {
   const variants = {
     Scheduled:
-      "bg-[#e6f3fa] border border-[rgba(2,136,209,0.2)] text-[#0b2642]",
+      "bg-[#e6f3fa] border border-hw-brand/20 text-[#0b2642]",
     "In progress":
       "bg-[#0288d1] border border-[#0288d1] text-white",
     Invoiced: "bg-[#2e7d32] border border-[#2e7d32] text-white",
@@ -128,21 +128,21 @@ function FilterDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center gap-1 px-3 py-1.5 h-8 rounded-md bg-white border border-[rgba(16,25,41,0.1)] text-sm font-medium hover:bg-gray-50 transition-colors",
-            hasSelection ? "text-[#086DFF]" : "text-[#0B2642]"
+            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-hw-border text-sm font-medium hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
+            hasSelection ? "text-hw-brand" : "text-hw-text"
           )}
         >
           {hasSelection ? selected : label}
           {hasSelection ? (
             <X 
-              className="h-3.5 w-3.5 text-[#086DFF] hover:text-[#0B2642]" 
+              className="h-3.5 w-3.5 text-hw-brand hover:text-hw-text" 
               onClick={(e) => {
                 e.stopPropagation();
                 onClear();
               }}
             />
           ) : (
-            <ChevronDown className="h-4 w-4 text-[#475467]" />
+            <ChevronDown className="h-4 w-4 text-hw-text-secondary" />
           )}
         </button>
       </PopoverTrigger>
@@ -190,21 +190,21 @@ function DateFilterDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "flex items-center gap-1 px-3 py-1.5 h-8 rounded-md bg-white border border-[rgba(16,25,41,0.1)] text-sm font-medium hover:bg-gray-50 transition-colors",
-            hasValue ? "text-[#086DFF]" : "text-[#0B2642]"
+            "flex items-center gap-1 px-3 py-1 h-8 rounded-input bg-hw-surface border border-hw-border text-sm font-medium hover:bg-hw-surface-hover transition-[color,box-shadow] focus-visible:outline-none focus-visible:border-hw-focus focus-visible:ring-hw-focus/30 focus-visible:ring-4",
+            hasValue ? "text-hw-brand" : "text-hw-text"
           )}
         >
           {hasValue ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : label}
           {hasValue ? (
             <X 
-              className="h-3.5 w-3.5 text-[#086DFF] hover:text-[#0B2642]" 
+              className="h-3.5 w-3.5 text-hw-brand hover:text-hw-text" 
               onClick={(e) => {
                 e.stopPropagation();
                 onClear();
               }}
             />
           ) : (
-            <ChevronDown className="h-4 w-4 text-[#475467]" />
+            <ChevronDown className="h-4 w-4 text-hw-text-secondary" />
           )}
         </button>
       </PopoverTrigger>
@@ -484,7 +484,7 @@ export function JobsReadyToInvoice() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-6 border-b border-[rgba(16,25,41,0.1)] px-6">
+        <div className="flex items-center gap-6 border-b border-hw-border px-6">
           <button
             onClick={() => setActiveTab("jobs")}
             className={cn(
@@ -511,7 +511,7 @@ export function JobsReadyToInvoice() {
       </header>
 
       {/* Main Content */}
-      <main className={cn("p-6", selectedJobs.size > 0 && "pb-24")}>
+      <main className={cn("p-6 bg-[var(--color-white)]", selectedJobs.size > 0 && "pb-24")}>
         {/* Filters */}
         <div className="mb-4 flex items-center gap-2">
           <div className="flex-1 max-w-[300px]">
@@ -522,7 +522,7 @@ export function JobsReadyToInvoice() {
                 placeholder="Search by job ref, contact or order number"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 h-8 text-sm bg-white border border-[rgba(16,25,41,0.1)] placeholder:text-[#73777D]"
+                className="pl-8 h-8 text-sm bg-white border border-hw-border placeholder:text-[#73777D]"
               />
             </div>
           </div>
@@ -568,17 +568,17 @@ export function JobsReadyToInvoice() {
                 Clear all ({activeFilterCount})
               </button>
             )}
-            <button className="flex items-center justify-center size-8 rounded-md border border-[rgba(16,25,41,0.1)] hover:bg-gray-50">
+            <button className="flex items-center justify-center size-8 rounded-md border border-hw-border hover:bg-gray-50">
               <Download className="h-4 w-4 text-[#0B2642]" />
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div className="rounded-lg bg-white border border-[rgba(16,25,41,0.1)] overflow-hidden">
+        <div className="rounded-lg bg-white border border-hw-border overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-white hover:bg-white border-b border-[rgba(16,25,41,0.1)]">
+              <TableRow className="bg-white hover:bg-white border-b border-hw-border">
                 <TableHead className="w-12 h-11 px-4">
                   <Checkbox
                     checked={allPaginatedSelected || (somePaginatedSelected ? "indeterminate" : false)}
@@ -658,7 +658,7 @@ export function JobsReadyToInvoice() {
                     <TableRow
                       key={job.id}
                       className={cn(
-                        "border-b border-[rgba(16,25,41,0.1)]",
+                        "border-b border-hw-border",
                         isSelected ? "bg-[#f0f6ff] hover:bg-[#e6f0ff]" : "bg-white hover:bg-[#FAFAFA]"
                       )}
                     >
@@ -723,7 +723,7 @@ export function JobsReadyToInvoice() {
           </Table>
 
           {/* Table Footer */}
-          <div className="border-t border-[rgba(16,25,41,0.1)] bg-white px-4 py-3 flex items-center justify-between">
+          <div className="border-t border-hw-border bg-white px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[#475467]">Items per page:</span>
               <Popover open={itemsPerPageOpen} onOpenChange={setItemsPerPageOpen}>

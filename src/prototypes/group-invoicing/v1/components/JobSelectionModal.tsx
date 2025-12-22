@@ -69,7 +69,7 @@ const jobTypeIcons = {
 function StatusBadge({ status }: { status: Job["status"] }) {
   const variants = {
     Scheduled:
-      "bg-[#e6f3fa] border border-[rgba(2,136,209,0.2)] text-[#0b2642]",
+      "bg-[#e6f3fa] border border-hw-brand/20 text-[#0b2642]",
     "In progress":
       "bg-[#0288d1] border border-[#0288d1] text-white",
     Invoiced: "bg-[#2e7d32] border border-[#2e7d32] text-white",
@@ -181,9 +181,9 @@ export function JobSelectionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[1157px] max-w-[1157px] max-h-[90vh] p-0 gap-0 overflow-hidden rounded-lg border border-[rgba(26,28,46,0.12)] shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
+      <DialogContent className="w-[1157px] max-w-[1157px] max-h-[90vh] p-0 gap-0 overflow-hidden rounded-lg border border-hw-border shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] flex flex-col [&[data-state=open]]:duration-200 [&[data-state=open]]:animate-in [&[data-state=open]]:fade-in-0 [&[data-state=closed]]:duration-150 [&[data-state=closed]]:animate-out [&[data-state=closed]]:fade-out-0">
         {/* Header */}
-        <div className="px-6 py-6 bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] flex items-center justify-between shrink-0">
+        <div className="px-6 py-6 bg-[#F8F9FC] border-b border-hw-border flex items-center justify-between shrink-0">
           <h2 className="text-base font-semibold text-[#0B2642] tracking-[-0.16px]">
             Select jobs
           </h2>
@@ -198,7 +198,7 @@ export function JobSelectionModal({
         </div>
 
         {/* Search Bar */}
-        <div className="px-4 py-6 border-b border-[rgba(26,28,46,0.12)] shrink-0">
+        <div className="px-4 py-6 border-b border-hw-border shrink-0">
           <div className="relative max-w-[260px]">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#73777D]" />
             <Input
@@ -209,7 +209,7 @@ export function JobSelectionModal({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-8 h-7 text-sm bg-white border border-[rgba(16,25,41,0.1)] placeholder:text-[#73777D]"
+              className="pl-8 h-7 text-sm bg-white border border-hw-border placeholder:text-[#73777D]"
             />
           </div>
         </div>
@@ -219,7 +219,7 @@ export function JobSelectionModal({
           <div className="flex-1 overflow-y-auto">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-[#FCFCFD]">
-                <TableRow className="border-b border-[rgba(26,28,46,0.12)] hover:bg-transparent">
+                <TableRow className="border-b border-hw-border hover:bg-transparent">
                   <TableHead className="w-12 h-10 px-3">
                     <Checkbox
                       checked={allPaginatedSelected || (somePaginatedSelected ? "indeterminate" : false)}
@@ -273,7 +273,7 @@ export function JobSelectionModal({
                       <TableRow
                         key={job.id}
                         className={cn(
-                          "border-b border-[rgba(26,28,46,0.12)] h-11",
+                          "border-b border-hw-border h-11",
                           isSelected
                             ? "bg-[rgba(8,109,255,0.08)] hover:bg-[rgba(8,109,255,0.12)]"
                             : "bg-white hover:bg-[#FAFAFA]"
@@ -344,7 +344,7 @@ export function JobSelectionModal({
           </div>
 
           {/* Table Footer with Pagination */}
-          <div className="border-t border-[rgba(26,28,46,0.12)] bg-white px-4 py-3 flex items-center justify-between shrink-0">
+          <div className="border-t border-hw-border bg-white px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[#0B2642]">Items per page:</span>
               <select
@@ -373,7 +373,7 @@ export function JobSelectionModal({
         </div>
 
         {/* Footer with Confirm Button */}
-        <div className="px-6 py-4 border-t border-[rgba(26,28,46,0.12)] flex items-center justify-end bg-[#F8F9FC] shrink-0">
+        <div className="px-6 py-4 border-t border-hw-border flex items-center justify-end bg-[#F8F9FC] shrink-0">
           <Button
             variant="default"
             size="default"

@@ -95,7 +95,7 @@ export function DevBar() {
   const currentBrand = brandConfig[brand];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-10 z-50 bg-background/95 backdrop-blur-sm border-t border-border/40 flex items-center justify-between px-4 gap-4">
+    <div className="fixed bottom-0 left-0 right-0 h-10 z-40 bg-background/95 backdrop-blur-sm border-t border-border/40 flex items-center justify-between px-4 gap-4">
       {/* Left section: global toggles */}
       <div className="flex items-center gap-2">
         {/* Dark mode toggle */}

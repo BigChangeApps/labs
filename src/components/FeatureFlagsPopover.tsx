@@ -25,6 +25,26 @@ export interface PrototypeFlags {
  * Add new flags here when needed for demos.
  */
 export const prototypeFlags: PrototypeFlags = {
+  "/group-invoicing/v2": [
+    {
+      id: "showApplyToAllCheckbox",
+      name: "Apply to all checkbox",
+      description: "Show 'Apply to all invoices' checkbox in settings",
+      defaultValue: false,
+    },
+    {
+      id: "showPerInvoiceSettings",
+      name: "Per-invoice settings",
+      description: "Show Settings button above each invoice",
+      defaultValue: false,
+    },
+    {
+      id: "showInlineSettings",
+      name: "Inline settings panel",
+      description: "Show settings panel on workspace without button",
+      defaultValue: false,
+    },
+  ],
   "/asset-attributes/v2": [
     {
       id: "showCategoryAddButton",

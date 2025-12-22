@@ -189,7 +189,7 @@ function StacksIcon() {
 // Status badge component
 function DraftBadge() {
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-[rgba(16,25,41,0.1)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-hw-border">
       <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px]">Draft</span>
     </div>
   );
@@ -222,20 +222,20 @@ function LinesBadge({
 }) {
   if (isPartial && selected !== undefined) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-[rgba(2,136,209,0.2)] w-fit">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(8,109,255,0.08)] border border-hw-brand/20 w-fit">
         <span className="text-sm font-medium text-[#0288d1] tracking-[-0.14px]">{selected} of {total} lines</span>
       </div>
     );
   }
   if (isInactive) {
     return (
-      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-[rgba(26,28,46,0.12)] w-fit">
+      <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(26,28,46,0.05)] border border-hw-border w-fit">
         <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
       </div>
     );
   }
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)] w-fit">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-hw-border w-fit">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{total} lines</span>
     </div>
   );
@@ -244,7 +244,7 @@ function LinesBadge({
 // Job type badge
 function JobTypeBadge({ type }: { type: string }) {
   return (
-    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-[rgba(26,28,46,0.12)]">
+    <div className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-white border border-hw-border">
       <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">{type}</span>
     </div>
   );
@@ -364,7 +364,7 @@ function NestedJobCard({
   const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
   
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
         <Checkbox 
           checked={checked}
@@ -420,8 +420,8 @@ function GroupJobCard({
   const totalValue = childJobsValue + (groupLinesSelected ? groupLinesValue : 0);
 
   return (
-    <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
-      <div className="bg-[#F8F9FC] border-b border-[rgba(26,28,46,0.12)] px-3 py-3">
+    <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
+      <div className="bg-[#F8F9FC] border-b border-hw-border px-3 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StacksIcon />
@@ -440,7 +440,7 @@ function GroupJobCard({
       <div className="p-4 space-y-3">
         {/* Group-level lines */}
         {onGroupLinesSelectionChange && (
-          <div className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+          <div className="bg-white rounded-lg border border-hw-border overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-3">
               <Checkbox 
                 checked={groupLinesSelected}
@@ -652,7 +652,7 @@ function InvoiceCard({
             const isPartial = job.selectedLinesCount > 0 && job.selectedLinesCount < job.linesCount;
             
             return (
-              <div key={job.id} className="bg-white rounded-lg border border-[rgba(26,28,46,0.12)] overflow-hidden">
+              <div key={job.id} className="bg-white rounded-lg border border-hw-border overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-3">
                   <Checkbox 
                     checked={isSelected}
@@ -725,7 +725,7 @@ function InvoiceCard({
           <span className="text-sm font-medium text-[#555D66] tracking-[-0.14px]">Total</span>
           <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(cardSubtotal + cardVat)}</span>
         </div>
-        <div className="flex items-center justify-between pt-2 border-t border-[rgba(16,25,41,0.1)]">
+        <div className="flex items-center justify-between pt-2 border-t border-hw-border">
           <span className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">Amount due</span>
           <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(cardTotal)}</span>
         </div>
@@ -891,7 +891,7 @@ function UniversalSettingsPanel({
       </div>
 
       {/* Footer with Totals */}
-      <div className="bg-[#F8F9FC] border-t border-[rgba(26,28,46,0.12)] px-5 py-4 space-y-4">
+      <div className="bg-[#F8F9FC] border-t border-hw-border px-5 py-4 space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Sub-total</span>
@@ -1279,7 +1279,7 @@ export function BulkInvoiceCreation() {
   return (
     <div className="min-h-screen bg-[#FCFCFD]">
       {/* Subheader */}
-      <header className="sticky top-0 z-10 bg-white border-b border-[rgba(16,25,41,0.1)]">
+      <header className="sticky top-0 z-10 bg-white border-b border-hw-border">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
