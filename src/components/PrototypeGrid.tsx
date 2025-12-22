@@ -20,8 +20,14 @@ export function PrototypeGrid({ prototypes }: PrototypeGridProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {prototypes.map((prototype) => (
-        <PrototypeCard key={prototype.id} prototype={prototype} />
+      {prototypes.map((prototype, index) => (
+        <div
+          key={prototype.id}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <PrototypeCard prototype={prototype} />
+        </div>
       ))}
     </div>
   );

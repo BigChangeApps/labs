@@ -12,6 +12,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from "@/registry/ui/tooltip";
 
 export interface FeatureFlag {
@@ -271,31 +272,33 @@ export function FeatureFlagsPopover({ currentPath }: FeatureFlagsPopoverProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Feature Flags</h4>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 gap-1.5 px-2 text-xs"
-                  onClick={handleCopyLink}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Link className="h-3.5 w-3.5" />
-                      Copy link
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p>Copy shareable link with current flags</p>
-              </TooltipContent>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2 text-xs"
+                    onClick={handleCopyLink}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Link className="h-3.5 w-3.5" />
+                        Copy link
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Copy shareable link with current flags</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="space-y-3">
             {flags.map((flag) => (
