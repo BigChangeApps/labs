@@ -46,6 +46,13 @@ function InvoiceSentToast({
 export type LevelOfDetail = "summary" | "partial" | "detailed";
 export type BreakdownLevel = "contact" | "site" | "job";
 
+// Finance settings that can be applied at job or line level
+export interface JobLineFinance {
+  nominalCode: string;
+  departmentCode: string;
+  inherited: boolean; // true if using invoice-level default
+}
+
 export interface JobWithLines {
   id: string;
   jobRef: string;
@@ -62,6 +69,8 @@ export interface JobWithLines {
   time?: string;
   resource?: string;
   vehicle?: string;
+  // V3: Job-level finance settings
+  finance?: JobLineFinance;
 }
 
 export interface Attachment {
@@ -104,6 +113,8 @@ export interface InvoiceData {
   showLogo: boolean;
   showTcs: boolean;
   customLine: boolean;
+  // V3: Default finance settings for this invoice
+  defaultFinance: JobLineFinance;
 }
 
 export interface UniversalSettings {
@@ -166,6 +177,21 @@ function convertJobToJobWithLines(job: Job, index: number): JobWithLines {
   const categories = ["External", "Internal"] as const;
   const category = categories[index % 2];
 
+  // V3: Simulate some jobs having custom finance (every 3rd job)
+  // This demonstrates the override functionality
+  const hasCustomFinance = index % 3 === 1;
+  const financeSettings: JobLineFinance = hasCustomFinance
+    ? {
+        nominalCode: "5002", // Different from default 5001
+        departmentCode: "HS49302", // Different from default HS49301
+        inherited: false,
+      }
+    : {
+        nominalCode: "5001",
+        departmentCode: "HS49301",
+        inherited: true,
+      };
+
   return {
     id: job.id,
     jobRef: job.jobRef,
@@ -181,6 +207,8 @@ function convertJobToJobWithLines(job: Job, index: number): JobWithLines {
     time: job.time,
     resource: job.resource,
     vehicle: job.vehicle,
+    // V3: Job-level finance settings
+    finance: financeSettings,
   };
 }
 
@@ -278,6 +306,12 @@ function generateInvoiceCards(
         showLogo: displaySettings.showLogo,
         showTcs: displaySettings.showTcs,
         customLine: displaySettings.customLine,
+        // V3: Default finance settings for the invoice
+        defaultFinance: {
+          nominalCode: "5001",
+          departmentCode: "HS49301",
+          inherited: false,
+        },
       };
     }
   );

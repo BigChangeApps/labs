@@ -33,6 +33,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/registry/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/registry/ui/select";
 import { cn } from "@/registry/lib/utils";
 import { formatCurrency } from "../../../lib/mock-data";
 import { EditJobsModal } from "../job-selection/EditJobsModal";
@@ -43,6 +50,7 @@ import type {
   UniversalSettings,
   LevelOfDetail,
   CustomLineItem,
+  JobLineFinance,
 } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface LiveInvoicePreviewProps {
@@ -128,6 +136,115 @@ function JobTypeDot({ category }: { category: "blue" | "orange" | "purple" }) {
   return <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", colors[category])} />;
 }
 
+// Finance options for dropdowns
+const nominalCodeOptions = [
+  { id: "5001", label: "5001 - Sales Revenue" },
+  { id: "5002", label: "5002 - Service Revenue" },
+  { id: "5003", label: "5003 - Parts Revenue" },
+];
+
+const departmentOptions = [
+  { id: "HS49301", label: "HS/49301 - Field Services" },
+  { id: "HS49302", label: "HS/49302 - Maintenance" },
+  { id: "HS49303", label: "HS/49303 - Installation" },
+];
+
+// Job finance row component - expandable finance settings per job
+function JobFinanceRow({
+  jobId,
+  jobRef,
+  finance,
+  defaultFinance,
+  onFinanceChange,
+}: {
+  jobId: string;
+  jobRef: string;
+  finance?: JobLineFinance;
+  defaultFinance: JobLineFinance;
+  onFinanceChange: (jobId: string, finance: JobLineFinance) => void;
+}) {
+  const currentFinance = finance || { ...defaultFinance, inherited: true };
+  const isInherited = currentFinance.inherited;
+
+  const handleNominalChange = (value: string) => {
+    onFinanceChange(jobId, {
+      ...currentFinance,
+      nominalCode: value,
+      inherited: false,
+    });
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    onFinanceChange(jobId, {
+      ...currentFinance,
+      departmentCode: value,
+      inherited: false,
+    });
+  };
+
+  const handleResetToDefault = () => {
+    onFinanceChange(jobId, {
+      ...defaultFinance,
+      inherited: true,
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-2 bg-hw-surface-subtle border-t border-hw-border">
+      <div className="flex items-center gap-2 min-w-[120px]">
+        <span className="text-xs font-medium text-hw-text-secondary">
+          {jobRef}
+        </span>
+        {!isInherited && (
+          <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+            Override
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-hw-text-secondary">Nominal:</span>
+          <Select value={currentFinance.nominalCode} onValueChange={handleNominalChange}>
+            <SelectTrigger className="h-7 w-[140px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {nominalCodeOptions.map((opt) => (
+                <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-hw-text-secondary">Dept:</span>
+          <Select value={currentFinance.departmentCode} onValueChange={handleDepartmentChange}>
+            <SelectTrigger className="h-7 w-[160px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {departmentOptions.map((opt) => (
+                <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {!isInherited && (
+        <button
+          onClick={handleResetToDefault}
+          className="text-xs text-hw-text-secondary hover:text-hw-text underline"
+        >
+          Reset
+        </button>
+      )}
+    </div>
+  );
+}
+
 // Line item type for detailed view
 interface LineItemRow {
   id: string;
@@ -148,6 +265,8 @@ function JobsTable({
   onAddCustomLine,
   onRemoveCustomLine,
   showAddButton = false,
+  defaultFinance,
+  onJobFinanceChange,
 }: {
   jobs: JobWithLines[];
   selectedJobIds: Set<string>;
@@ -156,8 +275,11 @@ function JobsTable({
   onAddCustomLine?: (line: CustomLineItem) => void;
   onRemoveCustomLine?: (lineId: string) => void;
   showAddButton?: boolean;
+  defaultFinance?: JobLineFinance;
+  onJobFinanceChange?: (jobId: string, finance: JobLineFinance) => void;
 }) {
   const [isAddingLine, setIsAddingLine] = useState(false);
+  const [showFinanceSettings, setShowFinanceSettings] = useState(false);
   const [newLine, setNewLine] = useState<Omit<CustomLineItem, "id">>({
     category: "labour",
     description: "",
@@ -198,6 +320,21 @@ function JobsTable({
     });
     return total;
   }, [jobs, selectedJobIds]);
+
+  // Get selected jobs for finance display (V3)
+  const selectedJobs = useMemo(() => {
+    return jobs.filter(job => {
+      if (job.isGroupJob && job.childJobs) {
+        return job.childJobs.some(child => selectedJobIds.has(child.id));
+      }
+      return selectedJobIds.has(job.id);
+    });
+  }, [jobs, selectedJobIds]);
+
+  // Check if any jobs have overridden finance (V3)
+  const hasFinanceOverrides = useMemo(() => {
+    return jobs.some(job => job.finance && !job.finance.inherited);
+  }, [jobs]);
 
   // Generate table rows based on levelOfDetail
   const { partialRows, detailedRows } = useMemo(() => {
@@ -546,6 +683,12 @@ function JobsTable({
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
               {row.jobRef}
             </span>
+            {/* Show override indicator if job has custom finance */}
+            {jobs.find(j => j.id === row.id)?.finance && !jobs.find(j => j.id === row.id)?.finance?.inherited && (
+              <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                Custom finance
+              </span>
+            )}
           </div>
           <div className="w-[100px] text-right">
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
@@ -568,6 +711,49 @@ function JobsTable({
           onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
         />
       ))}
+
+      {/* Finance Settings Toggle - V3 Feature */}
+      {defaultFinance && onJobFinanceChange && (
+        <button
+          onClick={() => setShowFinanceSettings(!showFinanceSettings)}
+          className={cn(
+            "w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium transition-colors border-t border-hw-border",
+            showFinanceSettings ? "bg-hw-surface-subtle text-hw-text" : "text-hw-text-secondary hover:bg-hw-surface-subtle"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span>Job finance settings</span>
+            {hasFinanceOverrides && (
+              <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                {jobs.filter(j => j.finance && !j.finance.inherited).length} overrides
+              </span>
+            )}
+          </div>
+          <ChevronDown className={cn("h-4 w-4 transition-transform", showFinanceSettings && "rotate-180")} />
+        </button>
+      )}
+
+      {/* Finance Settings Panel - V3 Feature */}
+      {showFinanceSettings && defaultFinance && onJobFinanceChange && (
+        <div className="border-t border-hw-border">
+          <div className="px-3 py-2 bg-hw-surface-subtle border-b border-hw-border">
+            <span className="text-xs font-medium text-hw-text-secondary">
+              Default: Nominal {defaultFinance.nominalCode} / Dept {defaultFinance.departmentCode}
+            </span>
+          </div>
+          {selectedJobs.map((job) => (
+            <JobFinanceRow
+              key={job.id}
+              jobId={job.id}
+              jobRef={job.jobRef}
+              finance={job.finance}
+              defaultFinance={defaultFinance}
+              onFinanceChange={onJobFinanceChange}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Add Line Button or Form */}
       {showAddButton && !isAddingLine && (
@@ -1062,6 +1248,14 @@ export function LiveInvoicePreview({
                   });
                 }}
                 showAddButton={invoice.customLine}
+                defaultFinance={invoice.defaultFinance}
+                onJobFinanceChange={(jobId, finance) => {
+                  // Update the job's finance settings
+                  const updatedJobs = invoice.jobs.map((job) =>
+                    job.id === jobId ? { ...job, finance } : job
+                  );
+                  onUpdateInvoice({ jobs: updatedJobs });
+                }}
               />
             </div>
 

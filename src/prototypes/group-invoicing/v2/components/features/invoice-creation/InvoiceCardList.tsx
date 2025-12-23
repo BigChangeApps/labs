@@ -123,7 +123,15 @@ function InvoiceCard({
           </p>
 
           {/* Jobs badge */}
-          <Badge variant="secondary" className="self-start bg-hw-brand/8 text-hw-brand border-hw-brand/20">
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "self-start",
+              isActive 
+                ? "bg-hw-brand/8 text-hw-brand border-hw-brand/20" 
+                : "bg-hw-surface-subtle border-hw-border text-hw-text-secondary"
+            )}
+          >
             {selected}/{totalJobs} Jobs
           </Badge>
         </div>
