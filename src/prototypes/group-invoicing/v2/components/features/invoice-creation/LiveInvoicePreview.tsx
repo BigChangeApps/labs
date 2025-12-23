@@ -205,7 +205,7 @@ function JobFinanceRow({
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-hw-text-secondary">Nominal:</span>
           <Select value={currentFinance.nominalCode} onValueChange={handleNominalChange}>
-            <SelectTrigger className="h-7 w-[140px] text-xs">
+            <SelectTrigger className="h-7 w-[140px] text-xs text-hw-text">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -220,7 +220,7 @@ function JobFinanceRow({
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-hw-text-secondary">Dept:</span>
           <Select value={currentFinance.departmentCode} onValueChange={handleDepartmentChange}>
-            <SelectTrigger className="h-7 w-[160px] text-xs">
+            <SelectTrigger className="h-7 w-[160px] text-xs text-hw-text">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -711,7 +711,7 @@ function JobsTable({
                   value={lineFinance.nominalCode} 
                   onValueChange={(value) => handleLineFinanceChange(row.id, row.jobId, 'nominalCode', value)}
                 >
-                  <SelectTrigger className="h-7 text-xs px-2">
+                  <SelectTrigger className="h-7 text-xs px-2 text-hw-text font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -728,7 +728,7 @@ function JobsTable({
                   value={lineFinance.departmentCode} 
                   onValueChange={(value) => handleLineFinanceChange(row.id, row.jobId, 'departmentCode', value)}
                 >
-                  <SelectTrigger className="h-7 text-xs px-2">
+                  <SelectTrigger className="h-7 text-xs px-2 text-hw-text font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
