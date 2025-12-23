@@ -254,6 +254,9 @@ interface LineItemRow {
   total: number;
   category: "labour" | "materials" | "other";
   selected: boolean;
+  // V3: Line-level finance
+  finance?: JobLineFinance;
+  jobId: string; // Track which job this line belongs to
 }
 
 // Jobs table component for the invoice preview
@@ -359,11 +362,12 @@ function JobsTable({
             const labourAmount = child.leftToInvoice * 0.6;
             const materialsAmount = child.leftToInvoice * 0.3;
             const otherAmount = child.leftToInvoice * 0.1;
+            const childFinance = child.finance;
             
             detailed.push(
-              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
-              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
-              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: child.id, finance: childFinance },
+              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: child.id, finance: childFinance },
+              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: child.id, finance: childFinance }
             );
             
             categoryIndex++;
@@ -384,11 +388,12 @@ function JobsTable({
           const labourAmount = job.leftToInvoice * 0.6;
           const materialsAmount = job.leftToInvoice * 0.3;
           const otherAmount = job.leftToInvoice * 0.1;
+          const jobFinance = job.finance;
           
           detailed.push(
-            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
-            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
-            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: job.id, finance: jobFinance },
+            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: job.id, finance: jobFinance },
+            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: job.id, finance: jobFinance }
           );
           
           categoryIndex++;
@@ -509,6 +514,56 @@ function JobsTable({
     </div>
   );
 
+  // Reusable Finance Settings Section for all views
+  const FinanceSettingsSection = () => {
+    if (!defaultFinance || !onJobFinanceChange) return null;
+    
+    return (
+      <>
+        {/* Finance Settings Toggle - V3 Feature */}
+        <button
+          onClick={() => setShowFinanceSettings(!showFinanceSettings)}
+          className={cn(
+            "w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium transition-colors border-t border-hw-border",
+            showFinanceSettings ? "bg-hw-surface-subtle text-hw-text" : "text-hw-text-secondary hover:bg-hw-surface-subtle"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span>Job finance settings</span>
+            {hasFinanceOverrides && (
+              <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                {jobs.filter(j => j.finance && !j.finance.inherited).length} overrides
+              </span>
+            )}
+          </div>
+          <ChevronDown className={cn("h-4 w-4 transition-transform", showFinanceSettings && "rotate-180")} />
+        </button>
+
+        {/* Finance Settings Panel - V3 Feature */}
+        {showFinanceSettings && (
+          <div className="border-t border-hw-border">
+            <div className="px-3 py-2 bg-hw-surface-subtle border-b border-hw-border">
+              <span className="text-xs font-medium text-hw-text-secondary">
+                Default: Nominal {defaultFinance.nominalCode} / Dept {defaultFinance.departmentCode}
+              </span>
+            </div>
+            {selectedJobs.map((job) => (
+              <JobFinanceRow
+                key={job.id}
+                jobId={job.id}
+                jobRef={job.jobRef}
+                finance={job.finance}
+                defaultFinance={defaultFinance}
+                onFinanceChange={onJobFinanceChange}
+              />
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
+
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
     return (
@@ -561,6 +616,9 @@ function JobsTable({
           />
         ))}
 
+        {/* Finance Settings - V3 Feature */}
+        <FinanceSettingsSection />
+
         {/* Add Line Button or Form */}
         {showAddButton && !isAddingLine && (
           <button
@@ -576,55 +634,125 @@ function JobsTable({
     );
   }
 
-  // DETAILED VIEW - Line items without checkboxes (selection via Edit Jobs button)
+  // Handler for line-level finance changes
+  const handleLineFinanceChange = (lineId: string, jobId: string, field: 'nominalCode' | 'departmentCode', value: string) => {
+    // For now, we update the parent job's finance since lines inherit from jobs
+    // In a full implementation, we'd track line-level overrides separately
+    if (onJobFinanceChange && defaultFinance) {
+      const job = jobs.find(j => j.id === jobId);
+      const currentFinance = job?.finance || defaultFinance;
+      onJobFinanceChange(jobId, {
+        ...currentFinance,
+        [field]: value,
+        inherited: false,
+      });
+    }
+  };
+
+  // DETAILED VIEW - Line items with inline finance dropdowns
   if (levelOfDetail === "detailed") {
     return (
       <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
+        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
           <div className="flex-1">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Name
             </span>
           </div>
-          <div className="w-[100px]" />
-          <div className="w-[100px] text-right">
+          <div className="w-[80px]">
+            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              Nominal
+            </span>
+          </div>
+          <div className="w-[100px]">
+            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              Dept
+            </span>
+          </div>
+          <div className="w-[90px] text-right">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Unit price
             </span>
           </div>
-          <div className="w-[100px] text-right">
+          <div className="w-[90px] text-right">
             <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
               Total
             </span>
           </div>
         </div>
 
-        {/* Detailed Rows */}
-        {detailedRows.map((row) => (
-          <div
-            key={row.id}
-            className="flex items-center gap-5 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
-          >
-            <div className="flex-1 flex items-center gap-2.5">
-              <JobTypeDot category={getLineItemColor(row.category)} />
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {row.description}
-              </span>
+        {/* Detailed Rows with inline finance dropdowns */}
+        {detailedRows.map((row) => {
+          const lineFinance = row.finance || defaultFinance || { nominalCode: "5001", departmentCode: "HS49301", inherited: true };
+          const isOverridden = row.finance && !row.finance.inherited;
+          
+          return (
+            <div
+              key={row.id}
+              className={cn(
+                "flex items-center gap-3 min-h-[44px] pl-3 pr-4 bg-white border-b border-hw-border/50 last:border-b-0",
+                isOverridden && "bg-orange-50/30"
+              )}
+            >
+              <div className="flex-1 flex items-center gap-2.5 min-w-0">
+                <JobTypeDot category={getLineItemColor(row.category)} />
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 truncate">
+                  {row.description}
+                </span>
+                {isOverridden && (
+                  <span className="text-[9px] font-medium text-orange-600 bg-orange-100 px-1 py-0.5 rounded shrink-0">
+                    Override
+                  </span>
+                )}
+              </div>
+              <div className="w-[80px]">
+                <Select 
+                  value={lineFinance.nominalCode} 
+                  onValueChange={(value) => handleLineFinanceChange(row.id, row.jobId, 'nominalCode', value)}
+                >
+                  <SelectTrigger className="h-7 text-xs px-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nominalCodeOptions.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        {opt.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[100px]">
+                <Select 
+                  value={lineFinance.departmentCode} 
+                  onValueChange={(value) => handleLineFinanceChange(row.id, row.jobId, 'departmentCode', value)}
+                >
+                  <SelectTrigger className="h-7 text-xs px-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departmentOptions.map((opt) => (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        {opt.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[90px] text-right">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(row.unitPrice)}
+                </span>
+              </div>
+              <div className="w-[90px] text-right">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(row.total)}
+                </span>
+              </div>
             </div>
-            <div className="w-[100px]" />
-            <div className="w-[100px] text-right">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(row.unitPrice)}
-              </span>
-            </div>
-            <div className="w-[100px] text-right">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(row.total)}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Custom Lines */}
         {customLines.map((line) => (
@@ -634,6 +762,9 @@ function JobsTable({
             onRemove={onRemoveCustomLine ? () => onRemoveCustomLine(line.id) : undefined}
           />
         ))}
+
+        {/* Finance Settings - V3 Feature */}
+        <FinanceSettingsSection />
 
         {/* Add Line Button or Form */}
         {showAddButton && !isAddingLine && (
@@ -712,48 +843,8 @@ function JobsTable({
         />
       ))}
 
-      {/* Finance Settings Toggle - V3 Feature */}
-      {defaultFinance && onJobFinanceChange && (
-        <button
-          onClick={() => setShowFinanceSettings(!showFinanceSettings)}
-          className={cn(
-            "w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium transition-colors border-t border-hw-border",
-            showFinanceSettings ? "bg-hw-surface-subtle text-hw-text" : "text-hw-text-secondary hover:bg-hw-surface-subtle"
-          )}
-        >
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span>Job finance settings</span>
-            {hasFinanceOverrides && (
-              <span className="text-[10px] font-medium text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
-                {jobs.filter(j => j.finance && !j.finance.inherited).length} overrides
-              </span>
-            )}
-          </div>
-          <ChevronDown className={cn("h-4 w-4 transition-transform", showFinanceSettings && "rotate-180")} />
-        </button>
-      )}
-
-      {/* Finance Settings Panel - V3 Feature */}
-      {showFinanceSettings && defaultFinance && onJobFinanceChange && (
-        <div className="border-t border-hw-border">
-          <div className="px-3 py-2 bg-hw-surface-subtle border-b border-hw-border">
-            <span className="text-xs font-medium text-hw-text-secondary">
-              Default: Nominal {defaultFinance.nominalCode} / Dept {defaultFinance.departmentCode}
-            </span>
-          </div>
-          {selectedJobs.map((job) => (
-            <JobFinanceRow
-              key={job.id}
-              jobId={job.id}
-              jobRef={job.jobRef}
-              finance={job.finance}
-              defaultFinance={defaultFinance}
-              onFinanceChange={onJobFinanceChange}
-            />
-          ))}
-        </div>
-      )}
+      {/* Finance Settings - V3 Feature */}
+      <FinanceSettingsSection />
 
       {/* Add Line Button or Form */}
       {showAddButton && !isAddingLine && (
