@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, ChevronDown, X, AlertTriangle, Minus, List, ListTree, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
@@ -29,17 +29,56 @@ interface InvoiceSettingsModalProps {
   settings: UniversalSettings;
   onSettingsChange: (settings: UniversalSettings, applyToAll: boolean) => void;
   showApplyToAllCheckbox?: boolean;
+  financeOverrideCount?: number;
+  onResetFinanceOverrides?: () => void;
+  invoiceCountByGrouping?: {
+    contact: number;
+    site: number;
+  };
 }
 
-const levelOfDetailOptions: { id: LevelOfDetail; label: string }[] = [
-  { id: "summary", label: "Summary" },
-  { id: "partial", label: "Partial" },
-  { id: "detailed", label: "Detailed" },
+interface RadioCardOption<T extends string> {
+  id: T;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  badge?: string;
+}
+
+const levelOfDetailOptions: RadioCardOption<LevelOfDetail>[] = [
+  { 
+    id: "summary", 
+    label: "Summary",
+    description: "One combined total per job",
+    icon: <Minus className="h-4 w-4" />,
+  },
+  { 
+    id: "partial", 
+    label: "Partial",
+    description: "Groups by category (Labour, Materials, Other)",
+    icon: <List className="h-4 w-4" />,
+  },
+  { 
+    id: "detailed", 
+    label: "Detailed",
+    description: "Every individual line item",
+    icon: <ListTree className="h-4 w-4" />,
+  },
 ];
 
-const contactLevelOptions = [
-  { id: "contact", label: "Contact (1 invoice)" },
-  { id: "site", label: "Site (per site)" },
+const contactLevelOptions: RadioCardOption<string>[] = [
+  { 
+    id: "contact", 
+    label: "Contact",
+    description: "Combine all jobs into a single invoice",
+    icon: <Building2 className="h-4 w-4" />,
+  },
+  { 
+    id: "site", 
+    label: "Site",
+    description: "Separate invoice for each site location",
+    icon: <MapPin className="h-4 w-4" />,
+  },
 ];
 
 const bankAccountOptions = [
@@ -136,24 +175,141 @@ function SettingsToggle({
   );
 }
 
+function SettingsRadioCard<T extends string>({
+  option,
+  selected,
+  onChange,
+}: {
+  option: RadioCardOption<T>;
+  selected: boolean;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(option.id)}
+      className={cn(
+        "w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+        selected
+          ? "border-hw-brand bg-hw-brand/5 ring-1 ring-hw-brand"
+          : "border-hw-border bg-hw-surface hover:border-hw-border-hover hover:bg-hw-surface-subtle"
+      )}
+    >
+      <div
+        className={cn(
+          "shrink-0 mt-0.5 p-1.5 rounded-md",
+          selected ? "bg-hw-brand/10 text-hw-brand" : "bg-hw-surface-subtle text-hw-text-secondary"
+        )}
+      >
+        {option.icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={cn(
+              "text-sm font-medium tracking-[-0.14px] leading-5",
+              selected ? "text-hw-brand" : "text-hw-text"
+            )}
+          >
+            {option.label}
+          </span>
+          <div
+            className={cn(
+              "shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
+              selected ? "border-hw-brand bg-hw-brand" : "border-hw-border"
+            )}
+          >
+            {selected && <Check className="h-2.5 w-2.5 text-white" />}
+          </div>
+        </div>
+        <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4 mt-0.5">
+          {option.description}
+        </p>
+        {option.badge && (
+          <span className="inline-block mt-1.5 text-xs font-medium text-hw-text-secondary bg-hw-surface-subtle px-1.5 py-0.5 rounded">
+            {option.badge}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function SettingsRadioGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  warning,
+}: {
+  label: string;
+  options: RadioCardOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  warning?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+        {label}
+      </span>
+      <div className="flex flex-col gap-2">
+        {options.map((option) => (
+          <SettingsRadioCard
+            key={option.id}
+            option={option}
+            selected={value === option.id}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+      {warning && (
+        <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md border border-amber-200 mt-1">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+          <span className="text-xs font-medium text-amber-800 tracking-[-0.12px] leading-4">
+            {warning}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function InvoiceSettingsModal({
   open,
   onOpenChange,
   settings,
   onSettingsChange,
   showApplyToAllCheckbox = false,
+  financeOverrideCount = 0,
+  onResetFinanceOverrides,
+  invoiceCountByGrouping = { contact: 1, site: 1 },
 }: InvoiceSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
-  const [levelOfDetailOpen, setLevelOfDetailOpen] = useState(false);
   const [applyToAll, setApplyToAll] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<string[]>(["breakdown", "finance", "display"]);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["breakdown", "finance"]);
 
   useEffect(() => {
     if (open) {
       setLocalSettings(settings);
-      setExpandedSections(["breakdown", "finance", "display"]); // All sections expanded when modal opens
+      setExpandedSections(["breakdown", "finance"]); // Display settings collapsed by default
     }
   }, [open, settings]);
+
+  // Check if changing contact level will restructure invoices
+  const willRestructure = localSettings.contactLevel !== settings.contactLevel;
+  const currentInvoiceCount = settings.contactLevel === "contact" 
+    ? invoiceCountByGrouping.contact 
+    : invoiceCountByGrouping.site;
+  const newInvoiceCount = localSettings.contactLevel === "contact"
+    ? invoiceCountByGrouping.contact
+    : invoiceCountByGrouping.site;
+
+  // Build contact level options with dynamic badges
+  const contactLevelOptionsWithBadges = contactLevelOptions.map((option) => ({
+    ...option,
+    badge: `Creates ${option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site} invoice${(option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site) === 1 ? "" : "s"}`,
+  }));
 
   const handleSave = () => {
     onSettingsChange(localSettings, showApplyToAllCheckbox ? applyToAll : true);
@@ -169,10 +325,6 @@ export function InvoiceSettingsModal({
     setLocalSettings(settings);
     onOpenChange(false);
   };
-
-  const levelOfDetailLabel = levelOfDetailOptions.find(
-    (opt) => opt.id === localSettings.levelOfDetail
-  )?.label || "Partial";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -201,51 +353,28 @@ export function InvoiceSettingsModal({
               <AccordionContent className="px-2 pb-6">
                 <div className="flex flex-col gap-6">
                   {/* Level of Detail */}
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                      Level of detail (for all invoices)
-                    </span>
-                    <Popover open={levelOfDetailOpen} onOpenChange={setLevelOfDetailOpen}>
-                      <PopoverTrigger asChild>
-                        <button className="flex items-center justify-between w-full h-9 px-3 py-1 bg-hw-surface rounded-input ring-1 ring-hw-border shadow-input transition-shadow text-left">
-                          <span className="text-sm text-hw-text-secondary tracking-[-0.14px] leading-5">
-                            {levelOfDetailLabel}
-                          </span>
-                          <ChevronDown className="h-5 w-5 text-hw-text" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" align="start">
-                        {levelOfDetailOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            onClick={() => {
-                              setLocalSettings((prev) => ({
-                                ...prev,
-                                levelOfDetail: option.id,
-                              }));
-                              setLevelOfDetailOpen(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-hw-surface-subtle transition-colors text-left",
-                              localSettings.levelOfDetail === option.id ? "bg-hw-surface-subtle text-hw-brand" : "text-hw-text"
-                            )}
-                          >
-                            <span>{option.label}</span>
-                            {localSettings.levelOfDetail === option.id && <Check className="h-4 w-4 text-hw-brand" />}
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <SettingsRadioGroup
+                    label="Level of detail"
+                    options={levelOfDetailOptions}
+                    value={localSettings.levelOfDetail}
+                    onChange={(value) =>
+                      setLocalSettings((prev) => ({ ...prev, levelOfDetail: value }))
+                    }
+                  />
 
-                  {/* Contact Level */}
-                  <SettingsSelect
-                    label="Contact Level"
+                  {/* Invoice Grouping (Contact Level) */}
+                  <SettingsRadioGroup
+                    label="Invoice grouping"
+                    options={contactLevelOptionsWithBadges}
                     value={localSettings.contactLevel}
                     onChange={(value) =>
                       setLocalSettings((prev) => ({ ...prev, contactLevel: value }))
                     }
-                    options={contactLevelOptions}
+                    warning={
+                      willRestructure && currentInvoiceCount !== newInvoiceCount
+                        ? `This will restructure invoices (${currentInvoiceCount} → ${newInvoiceCount})`
+                        : undefined
+                    }
                   />
 
                   {/* Custom Line */}
@@ -260,13 +389,23 @@ export function InvoiceSettingsModal({
               </AccordionContent>
             </AccordionItem>
 
-            {/* Finance settings */}
+            {/* Invoice Finance Defaults */}
             <AccordionItem value="finance" className="border-b border-hw-border px-4">
               <AccordionTrigger className="text-sm font-medium text-hw-text hover:no-underline py-4">
-                Finance settings
+                <div className="flex items-center gap-2">
+                  <span>Invoice finance defaults</span>
+                  {financeOverrideCount > 0 && (
+                    <span className="text-xs font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                      {financeOverrideCount} custom
+                    </span>
+                  )}
+                </div>
               </AccordionTrigger>
               <AccordionContent className="px-2 pb-6">
                 <div className="flex flex-col gap-4">
+                  <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">
+                    Applied to all jobs unless overridden individually
+                  </p>
                   <SettingsSelect
                     label="Bank Account"
                     value={localSettings.bankAccount}
@@ -299,6 +438,26 @@ export function InvoiceSettingsModal({
                     }
                     options={departmentOptions}
                   />
+
+                  {/* Override count indicator */}
+                  {financeOverrideCount > 0 && (
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-md border border-amber-200">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium text-amber-800 tracking-[-0.14px] leading-5">
+                          {financeOverrideCount} {financeOverrideCount === 1 ? "job has" : "jobs have"} custom settings
+                        </span>
+                        {onResetFinanceOverrides && (
+                          <button
+                            onClick={onResetFinanceOverrides}
+                            className="text-xs font-medium text-amber-700 hover:text-amber-900 underline text-left transition-colors"
+                          >
+                            Reset all to defaults
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

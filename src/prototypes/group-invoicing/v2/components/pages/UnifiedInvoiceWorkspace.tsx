@@ -4,9 +4,9 @@ import { ChevronRight, CheckCircle2, Settings } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { InvoiceCardList } from "../features/invoice-creation/InvoiceCardList";
 import { LiveInvoicePreview } from "../features/invoice-creation/LiveInvoicePreview";
-import { GlobalActionBar } from "../ui/GlobalActionBar";
 import { InvoiceSettingsModal } from "../features/invoice-creation/InvoiceSettingsModal";
 import { InlineSettingsPanel } from "../features/invoice-creation/InlineSettingsPanel";
+import { FinanceResetDialog } from "../features/invoice-creation/FinanceResetDialog";
 import { formatCurrency, contactBillingAddresses, type Job } from "../../lib/mock-data";
 import { useFeatureFlag } from "@/components/FeatureFlagsPopover";
 import { useMediaQuery } from "@/registry/hooks/use-media-query";
@@ -323,7 +323,7 @@ export function UnifiedInvoiceWorkspace() {
   
   // Feature flags
   const showApplyToAllCheckbox = useFeatureFlag("showApplyToAllCheckbox", false);
-  const showInlineSettings = useFeatureFlag("showInlineSettings", false);
+  const showInlineSettings = useFeatureFlag("showInlineSettings", true);
   
   // Responsive: Only show inline panel on large screens (1280px+)
   const isLargeScreen = useMediaQuery("(min-width: 1280px)");
@@ -439,8 +439,92 @@ export function UnifiedInvoiceWorkspace() {
   // Track if group has been saved
   const [isSaved, setIsSaved] = useState(false);
 
+  // Finance reset dialog state
+  const [financeResetDialogOpen, setFinanceResetDialogOpen] = useState(false);
+  const [pendingFinanceSettings, setPendingFinanceSettings] = useState<UniversalSettings | null>(null);
+
   // Check if any invoices have been sent
   const hasSentInvoices = sentInvoiceIds.size > 0;
+
+  // Get customer name from the first job's parent
+  const customerName = selectedJobs[0]?.parent || "Head Office";
+
+  // Count jobs with overridden finance settings across all invoices
+  const { financeOverrideCount, jobsUsingDefaultCount } = useMemo(() => {
+    let overrideCount = 0;
+    let defaultCount = 0;
+    invoices.forEach((invoice) => {
+      invoice.jobs.forEach((job) => {
+        if (job.finance && !job.finance.inherited) {
+          overrideCount++;
+        } else {
+          defaultCount++;
+        }
+      });
+    });
+    return { financeOverrideCount: overrideCount, jobsUsingDefaultCount: defaultCount };
+  }, [invoices]);
+
+  // Calculate invoice counts for each grouping type
+  const invoiceCountByGrouping = useMemo(() => {
+    // Count unique contacts (parent companies)
+    const uniqueContacts = new Set(selectedJobs.map((job) => job.parent));
+    // Count unique sites
+    const uniqueSites = new Set(selectedJobs.map((job) => job.site || job.parent));
+    
+    return {
+      contact: uniqueContacts.size,
+      site: uniqueSites.size,
+    };
+  }, [selectedJobs]);
+
+  // Reset all finance overrides to use invoice defaults
+  const handleResetFinanceOverrides = useCallback(() => {
+    setInvoices((prev) =>
+      prev.map((invoice) => ({
+        ...invoice,
+        jobs: invoice.jobs.map((job) => ({
+          ...job,
+          finance: {
+            nominalCode: invoice.defaultFinance.nominalCode,
+            departmentCode: invoice.defaultFinance.departmentCode,
+            inherited: true,
+          },
+        })),
+      }))
+    );
+  }, []);
+
+  // Apply pending finance settings (after dialog confirmation)
+  const applyFinanceSettings = useCallback((settings: UniversalSettings, resetOverrides: boolean) => {
+    setUniversalSettings(settings);
+    
+    // Update all invoices with new default finance settings
+    setInvoices((prev) =>
+      prev.map((invoice) => ({
+        ...invoice,
+        defaultFinance: {
+          nominalCode: settings.nominalCode,
+          departmentCode: settings.departmentCode,
+          inherited: false,
+        },
+        jobs: invoice.jobs.map((job) => {
+          // If resetting overrides or job was using default, update to new default
+          if (resetOverrides || (job.finance && job.finance.inherited)) {
+            return {
+              ...job,
+              finance: {
+                nominalCode: settings.nominalCode,
+                departmentCode: settings.departmentCode,
+                inherited: true,
+              },
+            };
+          }
+          return job;
+        }),
+      }))
+    );
+  }, []);
 
   // Get active invoice
   const activeInvoice = useMemo(
@@ -498,6 +582,18 @@ export function UnifiedInvoiceWorkspace() {
     (newSettings: UniversalSettings, applyToAll: boolean = true) => {
       const previousSettings = universalSettings;
 
+      // Check if finance settings (nominal code or department) changed
+      const financeSettingsChanged = 
+        newSettings.nominalCode !== previousSettings.nominalCode ||
+        newSettings.departmentCode !== previousSettings.departmentCode;
+
+      // If finance settings changed and there are overrides, show confirmation dialog
+      if (financeSettingsChanged && financeOverrideCount > 0 && applyToAll) {
+        setPendingFinanceSettings(newSettings);
+        setFinanceResetDialogOpen(true);
+        return;
+      }
+
       // Apply settings based on applyToAll flag
       if (applyToAll) {
         // Update universal settings only when applying to all
@@ -518,6 +614,11 @@ export function UnifiedInvoiceWorkspace() {
             setActiveInvoiceId(newInvoices[0].id);
           }
           return;
+        }
+
+        // If finance settings changed (and no overrides, or dialog confirmed), apply them
+        if (financeSettingsChanged) {
+          applyFinanceSettings(newSettings, false);
         }
 
         // Apply to non-overridden invoices
@@ -558,8 +659,24 @@ export function UnifiedInvoiceWorkspace() {
         );
       }
     },
-    [universalSettings, selectedJobs, activeInvoiceId]
+    [universalSettings, selectedJobs, activeInvoiceId, financeOverrideCount, applyFinanceSettings]
   );
+
+  // Handle finance reset dialog - keep custom settings
+  const handleKeepCustomFinance = useCallback(() => {
+    if (pendingFinanceSettings) {
+      applyFinanceSettings(pendingFinanceSettings, false);
+      setPendingFinanceSettings(null);
+    }
+  }, [pendingFinanceSettings, applyFinanceSettings]);
+
+  // Handle finance reset dialog - reset all to default
+  const handleResetAllFinance = useCallback(() => {
+    if (pendingFinanceSettings) {
+      applyFinanceSettings(pendingFinanceSettings, true);
+      setPendingFinanceSettings(null);
+    }
+  }, [pendingFinanceSettings, applyFinanceSettings]);
 
   // Handle send all invoices
   const handleSendAll = useCallback(() => {
@@ -680,6 +797,11 @@ export function UnifiedInvoiceWorkspace() {
           onSelectInvoice={setActiveInvoiceId}
           sentInvoiceIds={sentInvoiceIds}
           onBackClick={() => navigate("/group-invoicing/v2")}
+          totals={totals}
+          invoiceCount={unsentCount}
+          onSendAll={handleSendAll}
+          hasSentInvoices={hasSentInvoices}
+          customerName={customerName}
         />
 
         {/* Middle/Right Panel - Live Invoice Preview */}
@@ -697,19 +819,12 @@ export function UnifiedInvoiceWorkspace() {
             settings={universalSettings}
             onSettingsChange={handleSettingsChange}
             showApplyToAllCheckbox={showApplyToAllCheckbox}
+            financeOverrideCount={financeOverrideCount}
+            onResetFinanceOverrides={handleResetFinanceOverrides}
+            invoiceCountByGrouping={invoiceCountByGrouping}
           />
         )}
       </div>
-
-      {/* Global Action Bar */}
-      <GlobalActionBar
-        invoiceCount={unsentCount}
-        totalAmount={totals.total}
-        onOpenSettings={() => setSettingsModalOpen(true)}
-        onSendAll={handleSendAll}
-        hasSentInvoices={hasSentInvoices}
-        hideSettingsButton
-      />
 
       {/* Settings Modal */}
       <InvoiceSettingsModal
@@ -718,6 +833,19 @@ export function UnifiedInvoiceWorkspace() {
         settings={universalSettings}
         onSettingsChange={handleSettingsChange}
         showApplyToAllCheckbox={showApplyToAllCheckbox}
+        financeOverrideCount={financeOverrideCount}
+        onResetFinanceOverrides={handleResetFinanceOverrides}
+        invoiceCountByGrouping={invoiceCountByGrouping}
+      />
+
+      {/* Finance Reset Confirmation Dialog */}
+      <FinanceResetDialog
+        open={financeResetDialogOpen}
+        onOpenChange={setFinanceResetDialogOpen}
+        jobsUsingDefault={jobsUsingDefaultCount}
+        jobsWithOverrides={financeOverrideCount}
+        onKeepCustom={handleKeepCustomFinance}
+        onResetAll={handleResetAllFinance}
       />
 
       {/* Toast Notification */}
