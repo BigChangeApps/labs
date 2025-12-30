@@ -2,13 +2,34 @@ import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/registry/ui/button";
 import { Checkbox } from "@/registry/ui/checkbox";
 import { Switch } from "@/registry/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/registry/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/registry/ui/select";
 import {
   Dialog,
   DialogContent,
 } from "@/registry/ui/dialog";
 import { cn } from "@/registry/lib/utils";
 import { formatCurrency } from "../../../lib/mock-data";
-import type { JobWithLines, LevelOfDetail } from "../../pages/UnifiedInvoiceWorkspace";
+import type { JobWithLines, LevelOfDetail, JobLineFinance } from "../../pages/UnifiedInvoiceWorkspace";
+
+// Finance options for dropdowns
+const nominalCodeOptions = [
+  { id: "5001", label: "5001 - Sales Revenue" },
+  { id: "5002", label: "5002 - Service Revenue" },
+  { id: "5003", label: "5003 - Parts Revenue" },
+];
+
+const departmentOptions = [
+  { id: "HS49301", label: "HS/49301 - Field Services" },
+  { id: "HS49302", label: "HS/49302 - Maintenance" },
+  { id: "HS49303", label: "HS/49303 - Installation" },
+];
 
 interface EditJobsModalProps {
   open: boolean;
@@ -16,7 +37,12 @@ interface EditJobsModalProps {
   jobs: JobWithLines[];
   selectedJobIds: Set<string>;
   levelOfDetail: LevelOfDetail;
-  onSave: (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => void;
+  defaultFinance: JobLineFinance;
+  onSave: (
+    selectedJobIds: Set<string>,
+    levelOfDetail: LevelOfDetail,
+    updatedJobs: JobWithLines[]
+  ) => void;
   onChange?: (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => void;
 }
 
@@ -61,22 +87,160 @@ interface LineItem {
   jobId: string;
 }
 
+// Job finance row component for editing per-job finance settings
+function JobFinanceRow({
+  job,
+  defaultFinance,
+  onFinanceChange,
+}: {
+  job: JobWithLines;
+  defaultFinance: JobLineFinance;
+  onFinanceChange: (jobId: string, finance: JobLineFinance) => void;
+}) {
+  const currentFinance = job.finance || { ...defaultFinance, inherited: true };
+  const isInherited = currentFinance.inherited;
+
+  const handleToggleMode = (useDefault: boolean) => {
+    if (useDefault) {
+      onFinanceChange(job.id, {
+        ...defaultFinance,
+        inherited: true,
+      });
+    } else {
+      onFinanceChange(job.id, {
+        ...currentFinance,
+        inherited: false,
+      });
+    }
+  };
+
+  const handleNominalChange = (value: string) => {
+    onFinanceChange(job.id, {
+      ...currentFinance,
+      nominalCode: value,
+      inherited: false,
+    });
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    onFinanceChange(job.id, {
+      ...currentFinance,
+      departmentCode: value,
+      inherited: false,
+    });
+  };
+
+  return (
+    <div className="border-t border-hw-border">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-hw-text">
+            Job {job.jobRef}
+          </span>
+          {!isInherited && (
+            <span className="text-[10px] font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+              Custom
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="px-4 pb-4">
+        <RadioGroup
+          value={isInherited ? "default" : "custom"}
+          onValueChange={(value) => handleToggleMode(value === "default")}
+          className="flex flex-col gap-3"
+        >
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <div className="pt-0.5">
+              <RadioGroupItem value="default" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className={cn(
+                "text-sm font-medium transition-colors",
+                isInherited ? "text-hw-text" : "text-hw-text-secondary"
+              )}>
+                Use invoice default
+              </span>
+              <span className="text-xs text-hw-text-secondary">
+                Nominal {defaultFinance.nominalCode} / Dept {defaultFinance.departmentCode.replace('HS', 'HS/')}
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <div className="pt-0.5">
+              <RadioGroupItem value="custom" />
+            </div>
+            <div className="flex-1">
+              <span className={cn(
+                "text-sm font-medium transition-colors",
+                !isInherited ? "text-hw-text" : "text-hw-text-secondary"
+              )}>
+                Custom settings
+              </span>
+              
+              {!isInherited && (
+                <div className="mt-3 flex gap-3">
+                  <div className="flex flex-col gap-1.5 w-[200px]">
+                    <span className="text-xs font-medium text-hw-text">Nominal code</span>
+                    <Select value={currentFinance.nominalCode} onValueChange={handleNominalChange}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Select nominal code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nominalCodeOptions.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id} className="text-sm">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-1.5 w-[200px]">
+                    <span className="text-xs font-medium text-hw-text">Department</span>
+                    <Select value={currentFinance.departmentCode} onValueChange={handleDepartmentChange}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departmentOptions.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id} className="text-sm">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </label>
+        </RadioGroup>
+      </div>
+    </div>
+  );
+}
+
 export function EditJobsModal({
   open,
   onOpenChange,
   jobs,
   selectedJobIds,
   levelOfDetail,
+  defaultFinance,
   onSave,
   onChange,
 }: EditJobsModalProps) {
   const [showAllLines, setShowAllLines] = useState(false);
   // Track internal selection state that can differ from props
   const [internalSelectedJobIds, setInternalSelectedJobIds] = useState<Set<string>>(() => new Set(selectedJobIds));
+  // Track internal job state with finance changes
+  const [internalJobs, setInternalJobs] = useState<JobWithLines[]>(() => [...jobs]);
   
   // Get first selected job for display
   const selectedJob = useMemo(() => {
-    for (const job of jobs) {
+    for (const job of internalJobs) {
       if (job.isGroupJob && job.childJobs) {
         for (const child of job.childJobs) {
           if (internalSelectedJobIds.has(child.id)) {
@@ -87,21 +251,46 @@ export function EditJobsModal({
         return job;
       }
     }
-    return jobs[0];
-  }, [jobs, internalSelectedJobIds]);
+    return internalJobs[0];
+  }, [internalJobs, internalSelectedJobIds]);
 
   // Reset internal state when modal opens
   useEffect(() => {
     if (open) {
       setInternalSelectedJobIds(new Set(selectedJobIds));
+      setInternalJobs([...jobs]);
     }
-  }, [open, selectedJobIds]);
+  }, [open, selectedJobIds, jobs]);
+
+  // Handle job finance change
+  const handleJobFinanceChange = (jobId: string, finance: JobLineFinance) => {
+    setInternalJobs((prev) =>
+      prev.map((job) =>
+        job.id === jobId ? { ...job, finance } : job
+      )
+    );
+  };
+
+  // Get selected jobs for finance settings display
+  const selectedJobsForFinance = useMemo(() => {
+    return internalJobs.filter((job) => {
+      if (job.isGroupJob && job.childJobs) {
+        return job.childJobs.some((child) => internalSelectedJobIds.has(child.id));
+      }
+      return internalSelectedJobIds.has(job.id);
+    });
+  }, [internalJobs, internalSelectedJobIds]);
+
+  // Count jobs with custom finance
+  const customFinanceCount = useMemo(() => {
+    return selectedJobsForFinance.filter((job) => job.finance && !job.finance.inherited).length;
+  }, [selectedJobsForFinance]);
 
   // Generate line items based on jobs and selection state
   const lineItems = useMemo(() => {
     const items: LineItem[] = [];
     
-    jobs.forEach((job) => {
+    internalJobs.forEach((job) => {
       const processJob = (j: JobWithLines) => {
         if (internalSelectedJobIds.has(j.id) || showAllLines) {
           const descriptions = [
@@ -134,7 +323,7 @@ export function EditJobsModal({
     });
     
     return items;
-  }, [jobs, internalSelectedJobIds, showAllLines]);
+  }, [internalJobs, internalSelectedJobIds, showAllLines]);
 
   // Calculate totals
   const { selectedCount, totalAmount } = useMemo(() => {
@@ -171,7 +360,7 @@ export function EditJobsModal({
   };
 
   const handleSave = () => {
-    onSave(internalSelectedJobIds, levelOfDetail);
+    onSave(internalSelectedJobIds, levelOfDetail, internalJobs);
     onOpenChange(false);
   };
 
@@ -304,6 +493,32 @@ export function EditJobsModal({
             </div>
           ))}
         </div>
+
+        {/* Finance Settings Section */}
+        {selectedJobsForFinance.length > 0 && (
+          <div className="bg-hw-surface-subtle border-t border-hw-border">
+            <div className="px-4 py-3 flex items-center gap-2">
+              <span className="text-sm font-medium text-hw-text">
+                Finance Settings
+              </span>
+              {customFinanceCount > 0 && (
+                <span className="text-[10px] font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                  {customFinanceCount} custom
+                </span>
+              )}
+            </div>
+            <div className="bg-white max-h-[200px] overflow-y-auto">
+              {selectedJobsForFinance.map((job) => (
+                <JobFinanceRow
+                  key={job.id}
+                  job={job}
+                  defaultFinance={defaultFinance}
+                  onFinanceChange={handleJobFinanceChange}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-3 h-14">

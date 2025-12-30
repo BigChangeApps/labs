@@ -822,6 +822,7 @@ export function UnifiedInvoiceWorkspace() {
             financeOverrideCount={financeOverrideCount}
             onResetFinanceOverrides={handleResetFinanceOverrides}
             invoiceCountByGrouping={invoiceCountByGrouping}
+            invoiceCount={invoices.length}
           />
         )}
       </div>
@@ -836,6 +837,7 @@ export function UnifiedInvoiceWorkspace() {
         financeOverrideCount={financeOverrideCount}
         onResetFinanceOverrides={handleResetFinanceOverrides}
         invoiceCountByGrouping={invoiceCountByGrouping}
+        invoiceCount={invoices.length}
       />
 
       {/* Finance Reset Confirmation Dialog */}

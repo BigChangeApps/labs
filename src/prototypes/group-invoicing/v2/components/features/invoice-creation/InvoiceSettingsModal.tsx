@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Check, ChevronDown, X, AlertTriangle, Minus, List, ListTree, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from "@/registry/ui/popover";
 import { cn } from "@/registry/lib/utils";
+import { ApplySettingsConfirmationDialog } from "./ApplySettingsConfirmationDialog";
 import type { UniversalSettings, LevelOfDetail } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface InvoiceSettingsModalProps {
@@ -35,6 +36,7 @@ interface InvoiceSettingsModalProps {
     contact: number;
     site: number;
   };
+  invoiceCount?: number;
 }
 
 interface RadioCardOption<T extends string> {
@@ -284,10 +286,11 @@ export function InvoiceSettingsModal({
   financeOverrideCount = 0,
   onResetFinanceOverrides,
   invoiceCountByGrouping = { contact: 1, site: 1 },
+  invoiceCount = 1,
 }: InvoiceSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
-  const [applyToAll, setApplyToAll] = useState(true);
   const [expandedSections, setExpandedSections] = useState<string[]>(["breakdown", "finance"]);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -311,14 +314,43 @@ export function InvoiceSettingsModal({
     badge: `Creates ${option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site} invoice${(option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site) === 1 ? "" : "s"}`,
   }));
 
-  const handleSave = () => {
-    onSettingsChange(localSettings, showApplyToAllCheckbox ? applyToAll : true);
-    onOpenChange(false);
-    toast.success(
-      showApplyToAllCheckbox && !applyToAll 
-        ? "Settings applied to current invoice" 
-        : "Settings applied successfully"
+  // Check if settings have changed from the original
+  const hasChanges = useMemo(() => {
+    return (
+      localSettings.levelOfDetail !== settings.levelOfDetail ||
+      localSettings.contactLevel !== settings.contactLevel ||
+      localSettings.bankAccount !== settings.bankAccount ||
+      localSettings.currency !== settings.currency ||
+      localSettings.nominalCode !== settings.nominalCode ||
+      localSettings.departmentCode !== settings.departmentCode ||
+      localSettings.showLogo !== settings.showLogo ||
+      localSettings.showTcs !== settings.showTcs ||
+      localSettings.customLine !== settings.customLine
     );
+  }, [localSettings, settings]);
+
+  const handleSave = () => {
+    // If there are changes and feature flag is enabled, show confirmation dialog
+    if (hasChanges && showApplyToAllCheckbox && invoiceCount > 1) {
+      setConfirmDialogOpen(true);
+    } else {
+      // Apply directly if no changes or only one invoice
+      onSettingsChange(localSettings, true);
+      onOpenChange(false);
+      toast.success("Settings applied successfully");
+    }
+  };
+
+  const handleApplyToAll = () => {
+    onSettingsChange(localSettings, true);
+    onOpenChange(false);
+    toast.success("Settings applied to all invoices");
+  };
+
+  const handleApplyToCurrentOnly = () => {
+    onSettingsChange(localSettings, false);
+    onOpenChange(false);
+    toast.success("Settings applied to current invoice");
   };
 
   const handleCancel = () => {
@@ -515,24 +547,7 @@ export function InvoiceSettingsModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-hw-surface-subtle px-5 py-4 flex items-center justify-between border-t border-hw-border shrink-0">
-          {showApplyToAllCheckbox ? (
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="apply-to-all"
-                checked={applyToAll}
-                onCheckedChange={(checked) => setApplyToAll(checked === true)}
-              />
-              <label
-                htmlFor="apply-to-all"
-                className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 cursor-pointer"
-              >
-                Apply to all invoices
-              </label>
-            </div>
-          ) : (
-            <div />
-          )}
+        <div className="bg-hw-surface-subtle px-5 py-4 flex items-center justify-end border-t border-hw-border shrink-0">
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={handleCancel}>
               Cancel
@@ -540,6 +555,17 @@ export function InvoiceSettingsModal({
             <Button onClick={handleSave}>Apply settings</Button>
           </div>
         </div>
+
+        {/* Confirmation Dialog */}
+        <ApplySettingsConfirmationDialog
+          open={confirmDialogOpen}
+          onOpenChange={setConfirmDialogOpen}
+          originalSettings={settings}
+          newSettings={localSettings}
+          invoiceCount={invoiceCount}
+          onApplyToAll={handleApplyToAll}
+          onApplyToCurrentOnly={handleApplyToCurrentOnly}
+        />
       </SheetContent>
     </Sheet>
   );

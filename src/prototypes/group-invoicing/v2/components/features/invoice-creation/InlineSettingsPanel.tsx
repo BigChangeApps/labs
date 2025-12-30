@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Check, ChevronDown, AlertTriangle, Minus, List, ListTree, Building2, MapPin } from "lucide-react";
-// NOTE: Breakdown settings UI removed but functionality preserved for future use in another location
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
@@ -17,6 +16,7 @@ import {
   AccordionTrigger,
 } from "@/registry/ui/accordion";
 import { cn } from "@/registry/lib/utils";
+import { ApplySettingsConfirmationDialog } from "./ApplySettingsConfirmationDialog";
 import type { UniversalSettings, LevelOfDetail } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface InlineSettingsPanelProps {
@@ -29,6 +29,7 @@ interface InlineSettingsPanelProps {
     contact: number;
     site: number;
   };
+  invoiceCount?: number;
 }
 
 interface RadioCardOption<T extends string> {
@@ -284,9 +285,10 @@ export function InlineSettingsPanel({
   financeOverrideCount = 0,
   onResetFinanceOverrides,
   invoiceCountByGrouping = { contact: 1, site: 1 },
+  invoiceCount = 1,
 }: InlineSettingsPanelProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
-  const [applyToAll, setApplyToAll] = useState(true);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // Sync with external settings changes
   useEffect(() => {
@@ -308,13 +310,40 @@ export function InlineSettingsPanel({
     badge: `Creates ${option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site} invoice${(option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site) === 1 ? "" : "s"}`,
   }));
 
-  const handleApply = () => {
-    onSettingsChange(localSettings, showApplyToAllCheckbox ? applyToAll : true);
-    toast.success(
-      showApplyToAllCheckbox && !applyToAll 
-        ? "Settings applied to current invoice" 
-        : "Settings applied successfully"
+  // Check if settings have changed from the original
+  const hasChanges = useMemo(() => {
+    return (
+      localSettings.levelOfDetail !== settings.levelOfDetail ||
+      localSettings.contactLevel !== settings.contactLevel ||
+      localSettings.bankAccount !== settings.bankAccount ||
+      localSettings.currency !== settings.currency ||
+      localSettings.nominalCode !== settings.nominalCode ||
+      localSettings.departmentCode !== settings.departmentCode ||
+      localSettings.showLogo !== settings.showLogo ||
+      localSettings.showTcs !== settings.showTcs ||
+      localSettings.customLine !== settings.customLine
     );
+  }, [localSettings, settings]);
+
+  const handleApply = () => {
+    // If there are changes and feature flag is enabled, show confirmation dialog
+    if (hasChanges && showApplyToAllCheckbox && invoiceCount > 1) {
+      setConfirmDialogOpen(true);
+    } else {
+      // Apply directly if no changes or only one invoice
+      onSettingsChange(localSettings, true);
+      toast.success("Settings applied successfully");
+    }
+  };
+
+  const handleApplyToAll = () => {
+    onSettingsChange(localSettings, true);
+    toast.success("Settings applied to all invoices");
+  };
+
+  const handleApplyToCurrentOnly = () => {
+    onSettingsChange(localSettings, false);
+    toast.success("Settings applied to current invoice");
   };
 
   return (
@@ -466,25 +495,21 @@ export function InlineSettingsPanel({
 
       {/* Footer */}
       <div className="px-8 pt-8 pb-8 flex flex-col gap-4 shrink-0 bg-hw-surface">
-        {showApplyToAllCheckbox && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="inline-apply-to-all"
-              checked={applyToAll}
-              onCheckedChange={(checked) => setApplyToAll(checked === true)}
-            />
-            <label
-              htmlFor="inline-apply-to-all"
-              className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 cursor-pointer"
-            >
-              Apply to all invoices
-            </label>
-          </div>
-        )}
         <Button variant="secondary" className="w-full" onClick={handleApply}>
           Apply
         </Button>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ApplySettingsConfirmationDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        originalSettings={settings}
+        newSettings={localSettings}
+        invoiceCount={invoiceCount}
+        onApplyToAll={handleApplyToAll}
+        onApplyToCurrentOnly={handleApplyToCurrentOnly}
+      />
     </div>
   );
 }
