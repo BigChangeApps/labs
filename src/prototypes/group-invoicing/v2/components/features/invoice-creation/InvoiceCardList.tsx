@@ -12,6 +12,8 @@ import { cn } from "@/registry/lib/utils";
 import { formatCurrency } from "../../../lib/mock-data";
 import type { InvoiceData } from "../../pages/UnifiedInvoiceWorkspace";
 
+type BreakdownLevel = "contact" | "site" | "job";
+
 interface InvoiceCardListProps {
   invoices: InvoiceData[];
   activeInvoiceId: string;
@@ -27,6 +29,7 @@ interface InvoiceCardListProps {
   onSendAll: () => void;
   hasSentInvoices?: boolean;
   customerName?: string;
+  breakdownLevel?: BreakdownLevel;
 }
 
 // Calculate invoice total based on selected jobs
@@ -167,6 +170,7 @@ export function InvoiceCardList({
   onSendAll,
   hasSentInvoices = false,
   customerName = "Head Office",
+  breakdownLevel = "site",
 }: InvoiceCardListProps) {
   const buttonText = hasSentInvoices
     ? "Send all remaining invoices"
@@ -288,7 +292,9 @@ export function InvoiceCardList({
             </DropdownMenu>
           </div>
           <p className="text-xs text-hw-text-secondary text-center tracking-[-0.12px] leading-4">
-            {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"} will be sent to {customerName}, split by site
+            {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"} will be sent to {customerName}
+            {breakdownLevel === "site" && ", split by site"}
+            {breakdownLevel === "job" && ", split by job"}
           </p>
         </div>
       </div>

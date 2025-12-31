@@ -802,6 +802,7 @@ export function UnifiedInvoiceWorkspace() {
           onSendAll={handleSendAll}
           hasSentInvoices={hasSentInvoices}
           customerName={customerName}
+          breakdownLevel={universalSettings.contactLevel as "contact" | "site" | "job"}
         />
 
         {/* Middle/Right Panel - Live Invoice Preview */}
