@@ -1,4 +1,5 @@
-import { FileText, Building2, ArrowLeft, ChevronDown, Send, CheckCircle, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileText, Building2, ArrowLeft, ChevronDown, Send, CheckCircle, Trash2, MapPin, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/registry/ui/button";
 import { Badge } from "@/registry/ui/badge";
 import {
@@ -8,11 +9,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/registry/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/registry/ui/dialog";
 import { cn } from "@/registry/lib/utils";
 import { formatCurrency } from "../../../lib/mock-data";
+import { SettingsRadioGroup, type RadioCardOption } from "../../ui/settings-controls";
 import type { InvoiceData } from "../../pages/UnifiedInvoiceWorkspace";
 
 type BreakdownLevel = "contact" | "site" | "job";
+
+// Invoice grouping options
+const contactLevelOptions: RadioCardOption<string>[] = [
+  { 
+    id: "contact", 
+    label: "Contact",
+    description: "Combine all jobs into a single invoice",
+    icon: <Building2 className="h-4 w-4" />,
+  },
+  { 
+    id: "site", 
+    label: "Site",
+    description: "Separate invoice for each site location",
+    icon: <MapPin className="h-4 w-4" />,
+  },
+];
 
 interface InvoiceCardListProps {
   invoices: InvoiceData[];
@@ -30,6 +55,13 @@ interface InvoiceCardListProps {
   hasSentInvoices?: boolean;
   customerName?: string;
   breakdownLevel?: BreakdownLevel;
+  // Invoice grouping props
+  contactLevel: string;
+  onContactLevelChange: (value: string) => void;
+  invoiceCountByGrouping: {
+    contact: number;
+    site: number;
+  };
 }
 
 // Calculate invoice total based on selected jobs
@@ -171,15 +203,92 @@ export function InvoiceCardList({
   hasSentInvoices = false,
   customerName = "Head Office",
   breakdownLevel = "site",
+  contactLevel,
+  onContactLevelChange,
+  invoiceCountByGrouping,
 }: InvoiceCardListProps) {
+  const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
+  const [pendingContactLevel, setPendingContactLevel] = useState(contactLevel);
+
+  // Calculate selection summary stats
+  const selectionStats = useMemo(() => {
+    let totalJobs = 0;
+    const sites = new Set<string>();
+    
+    invoices.forEach((invoice) => {
+      invoice.jobs.forEach((job) => {
+        if (job.isGroupJob && job.childJobs) {
+          job.childJobs.forEach((child) => {
+            if (invoice.selectedJobIds.has(child.id)) {
+              totalJobs++;
+              if (child.site) sites.add(child.site);
+            }
+          });
+        } else {
+          if (invoice.selectedJobIds.has(job.id)) {
+            totalJobs++;
+            if (job.site) sites.add(job.site);
+          }
+        }
+      });
+    });
+    
+    return {
+      totalJobs,
+      sitesCount: sites.size,
+    };
+  }, [invoices]);
+  
   const buttonText = hasSentInvoices
     ? "Send all remaining invoices"
     : `Send all ${invoiceCount} invoices`;
 
+  // Check if changing contact level will restructure invoices
+  const currentInvoiceCount = contactLevel === "contact" 
+    ? invoiceCountByGrouping.contact 
+    : invoiceCountByGrouping.site;
+  
+  // Build contact level options with dynamic badges
+  const contactLevelOptionsWithBadges = contactLevelOptions.map((option) => ({
+    ...option,
+    badge: `Creates ${option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site} invoice${(option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site) === 1 ? "" : "s"}`,
+  }));
+
+  // Calculate warning for restructure
+  const getRestructureWarning = (newContactLevel: string) => {
+    const newInvoiceCount = newContactLevel === "contact"
+      ? invoiceCountByGrouping.contact
+      : invoiceCountByGrouping.site;
+    if (contactLevel !== newContactLevel && currentInvoiceCount !== newInvoiceCount) {
+      return `This will restructure invoices (${currentInvoiceCount} → ${newInvoiceCount})`;
+    }
+    return undefined;
+  };
+
+  // Handle opening the modal - reset pending state to current value
+  const handleOpenModal = () => {
+    setPendingContactLevel(contactLevel);
+    setBreakdownModalOpen(true);
+  };
+
+  // Handle Done click - apply changes
+  const handleDone = () => {
+    if (pendingContactLevel !== contactLevel) {
+      onContactLevelChange(pendingContactLevel);
+    }
+    setBreakdownModalOpen(false);
+  };
+
+  // Handle cancel/close - discard changes
+  const handleClose = () => {
+    setPendingContactLevel(contactLevel);
+    setBreakdownModalOpen(false);
+  };
+
   return (
-    <div className="w-[499px] min-w-[350px] max-w-[500px] shrink-0 bg-white border-r border-hw-border flex flex-col h-full">
+    <div className="w-[420px] min-w-[320px] shrink bg-white border-r border-hw-border flex flex-col h-full">
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-auto p-8 flex flex-col gap-8">
+      <div className="flex-1 overflow-auto p-8 flex flex-col gap-6">
         {/* Back Link */}
         <Button
           variant="ghost"
@@ -191,13 +300,62 @@ export function InvoiceCardList({
           Back to invoice list
         </Button>
 
-        {/* Header with icon */}
+        {/* Selection Summary */}
+        <div className="bg-hw-surface-subtle rounded-lg p-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
+                Jobs selected
+              </span>
+              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+                {selectionStats.totalJobs}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
+                Left to invoice
+              </span>
+              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+                {formatCurrency(totals.subtotal)}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
+                Parent contact
+              </span>
+              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] truncate">
+                {customerName}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
+                Sites
+              </span>
+              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+                {selectionStats.sitesCount}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Header with icon and breakdown settings button */}
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6 text-hw-text" />
-            <h2 className="text-base font-medium text-hw-text tracking-[-0.16px] leading-6">
-              Invoices ({invoices.length})
-            </h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-6 w-6 text-hw-text" />
+              <h2 className="text-base font-medium text-hw-text tracking-[-0.16px] leading-6">
+                Invoices ({invoices.length})
+              </h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleOpenModal}
+              className="gap-1.5 text-hw-text-secondary hover:text-hw-text"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Invoice grouping
+            </Button>
           </div>
           <p className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px] leading-4">
             Select an invoice to edit
@@ -217,6 +375,32 @@ export function InvoiceCardList({
           ))}
         </div>
       </div>
+
+      {/* Invoice Grouping Modal */}
+      <Dialog open={breakdownModalOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Invoice Grouping</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-6 py-4">
+            <SettingsRadioGroup
+              label="How should invoices be grouped?"
+              options={contactLevelOptionsWithBadges}
+              value={pendingContactLevel}
+              onChange={setPendingContactLevel}
+              warning={getRestructureWarning(pendingContactLevel)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleDone}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Sticky footer with totals and CTA */}
       <div className="shrink-0 p-8 pt-0 flex flex-col gap-6">

@@ -1115,9 +1115,9 @@ export function LiveInvoicePreview({
             </div>
 
             {/* Notes and Totals Row - Side by Side */}
-            <div className="flex gap-10 items-start">
+            <div className="flex flex-wrap gap-6 items-start">
               {/* Left: Notes and Upload */}
-              <div className="flex flex-col gap-6 flex-1 min-w-[250px]">
+              <div className="flex flex-col gap-6 flex-1 min-w-[200px]">
                 {/* Notes Section */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
@@ -1167,7 +1167,7 @@ export function LiveInvoicePreview({
               </div>
 
               {/* Right: Totals Section */}
-              <div className="flex flex-col flex-1 min-w-[280px] max-w-[400px] rounded-card overflow-hidden">
+              <div className="flex flex-col flex-1 min-w-[220px] max-w-[400px] rounded-card overflow-hidden">
                 {/* Breakdown rows */}
                 <div className="flex flex-col gap-3 pt-3 pb-3">
                   <div className="flex items-center justify-between">
