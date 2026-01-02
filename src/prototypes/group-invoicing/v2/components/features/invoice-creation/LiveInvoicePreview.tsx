@@ -141,6 +141,7 @@ interface LineItemRow {
   // V3: Line-level finance
   finance?: JobLineFinance;
   jobId: string; // Track which job this line belongs to
+  jobRef: string; // Job reference number for display
 }
 
 // Jobs table component for the invoice preview
@@ -229,9 +230,9 @@ function JobsTable({
             const childFinance = child.finance;
             
             detailed.push(
-              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: child.id, finance: childFinance },
-              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: child.id, finance: childFinance },
-              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: child.id, finance: childFinance }
+              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance },
+              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance },
+              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance }
             );
             
             categoryIndex++;
@@ -255,9 +256,9 @@ function JobsTable({
           const jobFinance = job.finance;
           
           detailed.push(
-            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: job.id, finance: jobFinance },
-            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: job.id, finance: jobFinance },
-            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: job.id, finance: jobFinance }
+            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance },
+            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance },
+            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance }
           );
           
           categoryIndex++;
@@ -282,39 +283,56 @@ function JobsTable({
     return map[category];
   };
 
+  // VAT rate for calculations
+  const vatRate = 0.20;
+
   // Custom line row component
-  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => (
-    <div className="flex items-center gap-5 min-h-[40px] max-h-[56px] group">
-      <div className="flex-1 flex items-center gap-2.5 py-2">
-        <JobTypeDot category={getLineItemColor(line.category)} />
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {line.description}
-        </span>
-        <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
-          Custom
-        </span>
+  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => {
+    const lineTotal = line.quantity * line.unitPrice;
+    const lineVat = lineTotal * vatRate;
+    
+    return (
+      <div className="flex items-center gap-5 min-h-[40px] max-h-[56px] group">
+        <div className="w-[80px] flex items-center gap-2 py-2">
+          <JobTypeDot category={getLineItemColor(line.category)} />
+          <span className="text-sm text-hw-text-secondary tracking-[-0.14px] leading-5">
+            -
+          </span>
+        </div>
+        <div className="flex-1 flex items-center gap-2 py-2">
+          <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
+            {line.description}
+          </span>
+          <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
+            Custom
+          </span>
+        </div>
+        <div className="w-[90px] text-right py-2">
+          <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+            {formatCurrency(line.unitPrice)}
+          </span>
+        </div>
+        <div className="w-[90px] text-right flex items-center justify-end gap-2 py-2">
+          <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+            {formatCurrency(lineTotal)}
+          </span>
+          {onRemove && (
+            <button
+              onClick={onRemove}
+              className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
+            </button>
+          )}
+        </div>
+        <div className="w-[80px] text-right py-2">
+          <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+            {formatCurrency(lineVat)}
+          </span>
+        </div>
       </div>
-      <div className="w-[100px]" />
-      <div className="w-[100px] text-right py-2">
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {formatCurrency(line.unitPrice)}
-        </span>
-      </div>
-      <div className="w-[100px] text-right flex items-center justify-end gap-2 py-2">
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {formatCurrency(line.quantity * line.unitPrice)}
-        </span>
-        {onRemove && (
-          <button
-            onClick={onRemove}
-            className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Add line form component
   const AddLineForm = () => (
@@ -381,45 +399,65 @@ function JobsTable({
 
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
+    const summaryVat = overallTotal * vatRate;
+    
     return (
       <div className="flex flex-col overflow-hidden rounded-lg">
         {/* Table Header */}
         <div className="flex items-center gap-5 h-10 border-b border-hw-border">
-          <div className="flex-1 py-2">
+          <div className="w-[80px] py-2">
             <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
-              Name
+              Job
             </span>
           </div>
-          <div className="w-[100px]" />
-          <div className="w-[100px] text-right py-2">
+          <div className="flex-1 py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Description
+            </span>
+          </div>
+          <div className="w-[90px] text-right py-2">
             <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Unit price
             </span>
           </div>
-          <div className="w-[100px] text-right py-2">
+          <div className="w-[90px] text-right py-2">
             <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Total
+            </span>
+          </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              VAT
             </span>
           </div>
         </div>
 
         {/* Single Summary Row */}
         <div className="flex items-center gap-5 min-h-[40px] max-h-[56px]">
-          <div className="flex-1 flex items-center gap-2.5 py-2">
+          <div className="w-[80px] flex items-center gap-2 py-2">
             <JobTypeDot category="blue" />
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+              All
+            </span>
+          </div>
+          <div className="flex-1 py-2">
+            <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
               Overall work
             </span>
           </div>
-          <div className="w-[100px]" />
-          <div className="w-[100px] text-right py-2">
+          <div className="w-[90px] text-right py-2">
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
               {formatCurrency(overallTotal)}
             </span>
           </div>
-          <div className="w-[100px] text-right py-2">
+          <div className="w-[90px] text-right py-2">
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
               {formatCurrency(overallTotal)}
+            </span>
+          </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              {formatCurrency(summaryVat)}
             </span>
           </div>
         </div>
@@ -454,20 +492,15 @@ function JobsTable({
       <div className="flex flex-col overflow-hidden rounded-lg">
         {/* Table Header */}
         <div className="flex items-center gap-5 h-10 border-b border-hw-border">
+          <div className="w-[70px] py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Job
+            </span>
+          </div>
           <div className="flex-1 py-2">
             <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Line item
             </span>
-          </div>
-          <div className="w-[180px] py-2">
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
-                Finance
-              </span>
-              <span className="text-[10px] text-hw-text-secondary/70 leading-3">
-                Inherits from job settings
-              </span>
-            </div>
           </div>
           <div className="w-[90px] text-right py-2">
             <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
@@ -479,39 +512,31 @@ function JobsTable({
               Total
             </span>
           </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              VAT
+            </span>
+          </div>
         </div>
 
-        {/* Detailed Rows with inline finance display */}
+        {/* Detailed Rows with job reference */}
         {detailedRows.map((row) => {
-          const lineFinance = row.finance || defaultFinance || { nominalCode: "5001", departmentCode: "HS49301", inherited: true };
-          const isOverridden = row.finance && !row.finance.inherited;
-          
+          const rowVat = row.total * vatRate;
           return (
             <div
               key={row.id}
               className="flex items-center gap-5 min-h-[44px]"
             >
-              <div className="flex-1 flex items-center gap-2.5 min-w-0 py-2">
-                <JobTypeDot category={getLineItemColor(row.category)} />
-                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 truncate">
-                  {row.description}
+              <div className="w-[70px] py-2">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {row.jobRef}
                 </span>
               </div>
-              <div className="w-[180px] py-2">
-                {isOverridden ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-amber-700">
-                      {lineFinance.nominalCode} / {lineFinance.departmentCode.replace('HS', 'HS/')}
-                    </span>
-                    <span className="text-[9px] font-medium text-amber-700 bg-amber-100 px-1 py-0.5 rounded shrink-0">
-                      Custom
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-hw-text-secondary italic">
-                    {lineFinance.nominalCode} / {lineFinance.departmentCode.replace('HS', 'HS/')}
-                  </span>
-                )}
+              <div className="flex-1 flex items-center gap-2.5 min-w-0 py-2">
+                <JobTypeDot category={getLineItemColor(row.category)} />
+                <span className="text-sm text-hw-text tracking-[-0.14px] leading-5 truncate">
+                  {row.description}
+                </span>
               </div>
               <div className="w-[90px] text-right py-2">
                 <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
@@ -521,6 +546,11 @@ function JobsTable({
               <div className="w-[90px] text-right py-2">
                 <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                   {formatCurrency(row.total)}
+                </span>
+              </div>
+              <div className="w-[80px] text-right py-2">
+                <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                  {formatCurrency(rowVat)}
                 </span>
               </div>
             </div>
@@ -556,20 +586,29 @@ function JobsTable({
     <div className="flex flex-col overflow-hidden rounded-lg">
       {/* Table Header */}
       <div className="flex items-center gap-5 h-10 border-b border-hw-border">
-        <div className="flex-1 py-2">
+        <div className="w-[80px] py-2">
           <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
-            Name
+            Job
           </span>
         </div>
-        <div className="w-[100px]" />
-        <div className="w-[100px] text-right py-2">
+        <div className="flex-1 py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+            Description
+          </span>
+        </div>
+        <div className="w-[90px] text-right py-2">
           <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
             Unit price
           </span>
         </div>
-        <div className="w-[100px] text-right py-2">
+        <div className="w-[90px] text-right py-2">
           <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
             Total
+          </span>
+        </div>
+        <div className="w-[80px] text-right py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+            VAT
           </span>
         </div>
       </div>
@@ -578,16 +617,22 @@ function JobsTable({
       {partialRows.map((row) => {
         const jobData = jobs.find(j => j.id === row.id);
         const hasCustomFinance = jobData?.finance && !jobData.finance.inherited;
+        const rowVat = row.total * vatRate;
         
         return (
           <div
             key={row.id}
             className="flex items-center gap-5 min-h-[40px] max-h-[56px]"
           >
-            <div className="flex-1 flex items-center gap-2.5 py-2">
+            <div className="w-[80px] flex items-center gap-2 py-2">
               <JobTypeDot category={getCategoryColor(row.categoryIndex)} />
               <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                 {row.jobRef}
+              </span>
+            </div>
+            <div className="flex-1 flex items-center gap-2 py-2">
+              <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
+                Service charges
               </span>
               {/* Show override indicator if job has custom finance */}
               {hasCustomFinance && (
@@ -596,15 +641,19 @@ function JobsTable({
                 </span>
               )}
             </div>
-            <div className="w-[100px]" />
-            <div className="w-[100px] text-right py-2">
+            <div className="w-[90px] text-right py-2">
               <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                 {formatCurrency(row.unitPrice)}
               </span>
             </div>
-            <div className="w-[100px] text-right py-2">
+            <div className="w-[90px] text-right py-2">
               <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                 {formatCurrency(row.total)}
+              </span>
+            </div>
+            <div className="w-[80px] text-right py-2">
+              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                {formatCurrency(rowVat)}
               </span>
             </div>
           </div>
@@ -1191,7 +1240,7 @@ export function LiveInvoicePreview({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                      VAT (Rate)
+                      VAT (20%)
                     </span>
                     <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                       {formatCurrency(vatAmount)}
@@ -1200,7 +1249,7 @@ export function LiveInvoicePreview({
                 </div>
 
                 {/* Amount due row */}
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-3 border-t border-hw-border">
                   <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                     Amount due
                   </span>
