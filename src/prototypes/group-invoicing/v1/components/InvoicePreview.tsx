@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon, Download, Printer } from "lucide-react";
+import { X, Paperclip, FileText, Search, ChevronDown, ChevronLeft, ChevronRight, Check, MoreVertical, Building2, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/registry/ui/button";
 import { Input } from "@/registry/ui/input";
@@ -1697,241 +1697,211 @@ export function InvoicePreview() {
 
         {/* Right Panel - PDF Preview */}
         <div className="flex-1 bg-[#F9FAFD] overflow-auto flex flex-col items-center py-8 gap-4">
-          {/* Header Row - Title and Quick Actions */}
-          <div className="w-[592px] flex items-center justify-between shrink-0">
+          {/* Header Row - Title and Actions */}
+          <div className="w-[654px] flex items-center justify-between shrink-0">
             {/* Left - Site Title */}
             <div className="flex items-center gap-1">
               <Building2 className="h-4 w-4 text-[#73777D] shrink-0" />
               <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px] leading-4">
-                {invoiceData.name} ({selectedJobsCount}) – {formatCurrency(selectedTotalValue)}
+                {invoiceData.name} ({invoiceData.jobs.length} Jobs) – {formatCurrency(totalValue)}
               </span>
             </div>
             
-            {/* Right - Quick Actions */}
-            <div className="flex items-center gap-3 shrink-0">
-              <button className="inline-flex items-center gap-1 h-7 px-2 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors">
-                <Download className="h-4 w-4 text-[#0A0A0A]" />
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">PDF</span>
-              </button>
-              <button className="inline-flex items-center gap-1 h-7 px-2 bg-white rounded-md shadow-[0px_0px_0px_1px_rgba(11,38,66,0.08)] hover:bg-[#F8F9FC] transition-colors">
-                <Printer className="h-4 w-4 text-[#0A0A0A]" />
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Print</span>
-              </button>
+            {/* Right - Actions and Send Invoice */}
+            <div className="flex items-center gap-6 shrink-0">
+              <Button variant="secondary" size="sm">
+                Actions
+              </Button>
+              {/* Send Invoice Split Button */}
+              <div className="flex items-stretch rounded-md overflow-hidden shadow-[0px_0px_0px_1px_rgba(7,98,229,0.8)]">
+                <button 
+                  className="flex items-center justify-center px-2 py-1.5 bg-[#086DFF] hover:bg-[#0752cc] text-white text-sm font-medium transition-colors"
+                  onClick={handleSendInvoice}
+                >
+                  Send invoice
+                </button>
+                <button 
+                  className="flex items-center justify-center px-1 bg-[#086DFF] hover:bg-[#0752cc] border-l border-[#1A1C2E]"
+                >
+                  <ChevronDown className="h-5 w-5 text-white" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Invoice Preview Card */}
-          <div className="bg-white w-[592px] shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] relative">
+          <div className="bg-white w-[654px] rounded-modal border border-hw-border shadow-modal relative">
             {/* Inner border effect */}
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_0px_0px_1px_white,inset_0px_0px_0px_2px_rgba(229,231,235,0.4)]" />
             
-            {/* Invoice Header */}
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-start gap-10">
-                {/* Left side - Company info */}
-                <div className="flex-1 space-y-2">
-                  <h2 className="text-2xl font-extrabold text-[#0F172B] tracking-[-0.24px]">Invoice</h2>
-                  <p className="text-sm font-bold text-[#0F172B]">BigChange Ltd</p>
-                  <p className="text-xs text-[#62748E]">123 Business Street</p>
-                </div>
-                
-                {/* Right side - Invoice details */}
-                <div className="w-[204px] space-y-6">
-                  <div className="text-right">
-                    <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Invoice Number</p>
-                    <p className="text-sm font-medium text-[#0F172B] tracking-[-0.14px]">
-                      HS/{invoiceData.invoiceNumber.toString().padStart(4, "0")}
-                    </p>
+            {/* Invoice Content */}
+            <div className="p-10 flex flex-col gap-6">
+              {/* Draft Status Badge */}
+              <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#E6F3FA] border border-[rgba(2,136,209,0.2)] w-fit">
+                <span className="text-xs font-medium text-[#0B2642] tracking-[-0.12px]">Draft</span>
+              </div>
+
+              {/* Header Row - Logo + Company Info + Dates */}
+              <div className="flex items-start justify-between">
+                {/* Left side - Logo placeholder and Company name */}
+                <div className="flex flex-col gap-4">
+                  {/* Logo placeholder */}
+                  <div className="w-[114px] h-[68px] rounded-lg bg-[#F3F5F9] flex items-center justify-center">
+                    <span className="text-xs font-medium text-[#086DFF] tracking-[-0.12px]">Add logo</span>
                   </div>
-                  <div className="space-y-2 text-right">
-                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
-                      <span className="text-[#73777D]">Issue Date:</span>
-                      <span className="text-[#0B2642]">Today ({formatDisplayDate(invoiceData.issueDate)})</span>
+                  {/* Company name */}
+                  <p className="text-base font-semibold text-[#0B2642]">BigChange Ltd</p>
+                </div>
+                
+                {/* Right side - Invoice dates and details */}
+                <div className="flex flex-col gap-4 w-[284px]">
+                  {/* Issue date and Due date row */}
+                  <div className="flex items-center justify-end gap-6">
+                    <div className="flex flex-col gap-1 text-right w-[98px]">
+                      <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Issue date:</span>
+                      <span className="text-sm text-[#0B2642] tracking-[-0.14px]">DD/MM/YYYY</span>
                     </div>
-                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
-                      <span className="text-[#73777D]">Due Date:</span>
-                      <span className="text-[#0B2642]">Today ({formatDisplayDate(invoiceData.dueDate)})</span>
+                    <div className="flex flex-col gap-1 text-right w-[91px]">
+                      <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Due date:</span>
+                      <span className="text-sm text-[#0B2642] tracking-[-0.14px]">DD/MM/YYYY</span>
                     </div>
-                    <div className="flex items-center justify-end gap-2 text-xs tracking-[-0.12px]">
-                      <span className="text-[#73777D]">Reference:</span>
-                      <span className="text-[#0B2642]">{invoiceData.reference || "24155643"}</span>
+                  </div>
+                  {/* Invoice number and Reference row */}
+                  <div className="flex items-center justify-end gap-6">
+                    <div className="flex flex-col gap-1 text-right w-[128px]">
+                      <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Invoice Number:</span>
+                      <span className="text-sm text-[#0B2642] tracking-[-0.14px]">IV/24245</span>
+                    </div>
+                    <div className="flex flex-col gap-1 text-right w-[66px]">
+                      <span className="text-xs font-medium text-[#73777D] tracking-[-0.12px]">Reference:</span>
+                      <span className="text-sm text-[#0B2642] tracking-[-0.14px]">243452</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bill To */}
-              <div className="opacity-80 space-y-[7px]">
-                <p className="text-xs font-medium text-[#0F172B] tracking-[-0.12px]">Bill To:</p>
-                <div className="text-[8px] text-[#73777D] leading-[13px]">
-                  <p>{invoiceData.name}</p>
-                  <p>{invoiceData.address}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Invoice Title */}
-            <div className="px-6">
-              <p className="text-sm font-bold text-[#0B2642] tracking-[-0.14px]">{invoiceData.title || "Fire Extinguisher Servicing"}</p>
-            </div>
-
-            {/* Job Details (Read-only Preview) */}
-            <div className="p-6 space-y-6">
-              {levelOfDetail === "summary" && (() => {
-                const selectedJobs = invoiceData.jobs.filter((job) => selectedJobIdsSet.has(job.id));
-                
-                if (selectedJobs.length === 0) {
-                  return (
-                    <div className="text-center py-8 text-[#73777D] text-sm">
-                      No jobs selected. Select jobs from the list to include them in the invoice.
-                    </div>
-                  );
-                }
-                
-                return (
-                  <SummaryJobView 
-                    jobs={selectedJobs} 
-                    totalValue={selectedTotalValue}
-                    invoiceId={invoiceData.id}
-                  />
-                );
-              })()}
-              
-              {levelOfDetail === "detailed" && (() => {
-                // Filter line items to only show selected jobs
-                const selectedLineItems = lineItems.filter((item) => {
-                  const jobId = item.id.split('-line-')[0];
-                  return selectedJobIdsSet.has(jobId);
-                });
-                
-                return selectedLineItems.length > 0 ? (
-                  <DetailedJobView 
-                    lineItems={selectedLineItems}
-                    invoiceId={invoiceData.id}
-                    onLineItemToggle={(jobId, lineId) => {
-                      toggleLineItem(invoiceData.id, jobId, lineId);
-                      setInvoiceData((prev) => ({ ...prev }));
-                    }}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-[#73777D] text-sm">
-                    No jobs selected. Select jobs from the list to include them in the invoice.
+              {/* Bill To Section */}
+              <div className="bg-[#F3F5F9] rounded-lg px-6 py-4 flex items-center justify-between">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">BILL TO</span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-base font-medium text-[#0B2642] leading-6">{invoiceData.name || "Boots Pharmacy"}</span>
+                    <span className="text-xs font-normal text-[#73777D] tracking-[-0.12px]">Leeds, Victoria Gate, Harewood St, Leeds LS2 7AR</span>
                   </div>
-                );
-              })()}
-              
-              {levelOfDetail === "partial" && (() => {
-                // Filter to only show selected jobs
-                const selectedJobs = invoiceData.jobs.filter((job) => selectedJobIdsSet.has(job.id));
-                
-                if (selectedJobs.length === 0) {
-                  return (
-                    <div className="text-center py-8 text-[#73777D] text-sm">
-                      No jobs selected. Select jobs from the list to include them in the invoice.
-                    </div>
-                  );
-                }
-                
-                // Group selected jobs by category
-                const selectedJobsByCategory: Record<string, JobWithLines[]> = {
-                  "External": [],
-                  "Internal": [],
-                  "External, Internal": [],
-                };
-                
-                selectedJobs.forEach((job) => {
-                  if (selectedJobsByCategory[job.jobCategory]) {
-                    selectedJobsByCategory[job.jobCategory].push(job);
-                  }
-                });
-                
-                return (
-                  <>
-                    {Object.entries(selectedJobsByCategory).map(([category, jobs]) => {
-                      if (jobs.length === 0) return null;
-                      
-                      return (
-                        <div key={category} className="space-y-2">
-                          {jobs.map(job => {
-                            if (job.isGroupJob && job.childJobs) {
-                              return (
-                                <GroupJobCardPreview
-                                  key={job.id}
-                                  groupJob={job}
-                                  childJobs={job.childJobs}
-                                  selectedJobIds={selectedJobIdsSet}
-                                  selectedGroupLines={selectedGroupLinesSet}
-                                  showPartial={true}
-                                  selectedLineDetailFields={selectedLineDetailFields}
-                                />
-                              );
-                            }
-                            return <JobCard key={job.id} job={job} showPartial={true} selectedLineDetailFields={selectedLineDetailFields} />;
-                          })}
-                        </div>
-                      );
-                    })}
-                  </>
-                );
-              })()}
-            </div>
+                </div>
+                <button className="text-sm font-medium text-[#086DFF] hover:underline">
+                  Edit contact
+                </button>
+              </div>
 
-            {/* Totals */}
-            <div className="px-6 pb-6">
-              {/* Subtotal row */}
-              <div className="flex justify-between items-center py-3 border-t border-hw-border">
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Subtotal</span>
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(subtotal)}</span>
-              </div>
-              {/* VAT row */}
-              <div className="flex justify-between items-center py-3">
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">VAT (Rate)</span>
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(vatAmount)}</span>
-              </div>
-              {/* Total row */}
-              <div className="flex justify-between items-center py-[10px] border-t border-hw-border">
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Total</span>
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{formatCurrency(total)}</span>
-              </div>
-              {/* Amount due row */}
-              <div className="flex justify-between items-center py-3 border-t border-hw-border">
-                <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Amount due</span>
-                <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">{formatCurrency(total)}</span>
-              </div>
-            </div>
-
-            {/* Notes Section on Preview */}
-            {invoiceData.notes && (
-              <div className="px-6 pb-6">
-                <div className="border-t border-hw-border pt-4">
-                  <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Notes</p>
-                  <p className="text-sm text-[#0B2642] tracking-[-0.14px] whitespace-pre-wrap">{invoiceData.notes}</p>
+              {/* Invoice Title Input */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Invoice title</span>
+                <div className="w-[190px] px-2.5 py-1.5 bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)]">
+                  <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">{invoiceData.title || "Fire extinguisher service"}</span>
                 </div>
               </div>
-            )}
 
-            {/* Attachments Section on Preview */}
-            {invoiceData.attachments.length > 0 && (
-              <div className="px-6 pb-6">
-                <div className={cn(
-                  "pt-4",
-                  !invoiceData.notes && "border-t border-hw-border"
-                )}>
-                  <p className="text-xs font-medium text-[#73777D] tracking-[-0.12px] mb-2">Attachments</p>
-                  <div className="flex flex-wrap gap-2">
-                    {invoiceData.attachments.map((attachment) => (
-                      <div
-                        key={attachment.id}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#F8F9FC] rounded-md border border-hw-border"
-                      >
-                        <Paperclip className="h-3 w-3 text-[#73777D]" />
-                        <span className="text-xs text-[#0B2642] tracking-[-0.12px]">{attachment.name}</span>
+              {/* Jobs Section */}
+              <div className="flex flex-col gap-3">
+                {/* Jobs header */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Jobs</span>
+                  <button className="text-sm font-medium text-[#086DFF] hover:underline">
+                    Edit jobs
+                  </button>
+                </div>
+
+                {/* Jobs Table */}
+                <div className="bg-white rounded-lg shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] overflow-hidden">
+                  {/* Table Header */}
+                  <div className="flex items-center gap-5 px-3 py-2 bg-[#FCFCFD] border-b border-[rgba(16,25,41,0.1)]">
+                    <span className="flex-1 text-sm font-medium text-[#73777D] tracking-[-0.14px]">Name</span>
+                    <span className="w-[100px] text-sm font-medium text-[#73777D] tracking-[-0.14px] text-right">Unit price</span>
+                    <span className="w-[100px] text-sm font-medium text-[#73777D] tracking-[-0.14px] text-right">Total</span>
+                  </div>
+                  
+                  {/* Table Rows */}
+                  <div className="divide-y divide-[rgba(16,25,41,0.1)]">
+                    <div className="flex items-center gap-5 px-3 py-2">
+                      <div className="flex-1 flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#0E94EB]" />
+                        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Exit Sign Maintenance</span>
                       </div>
-                    ))}
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£87.70</span>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£657.75</span>
+                    </div>
+                    <div className="flex items-center gap-5 px-3 py-2">
+                      <div className="flex-1 flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#FE8640]" />
+                        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Hose Reel Service</span>
+                      </div>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£3.89</span>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£38.90</span>
+                    </div>
+                    <div className="flex items-center gap-5 px-3 py-2">
+                      <div className="flex-1 flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#8C54CA]" />
+                        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Fire Door Inspection</span>
+                      </div>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£109.99</span>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£109.99</span>
+                    </div>
+                    <div className="flex items-center gap-5 px-3 py-2">
+                      <div className="flex-1 flex items-center gap-2.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#8C54CA]" />
+                        <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Portable Appliance Testing</span>
+                      </div>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£109.99</span>
+                      <span className="w-[100px] text-sm font-medium text-[#0B2642] tracking-[-0.14px] text-right">£109.99</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
+
+              {/* Divider Line */}
+              <div className="w-full h-px bg-[#1A1C2E]" />
+
+              {/* Notes and Totals Row */}
+              <div className="flex items-start gap-10">
+                {/* Notes Section */}
+                <div className="flex-1 flex flex-col gap-6">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium text-[#73777D] tracking-[-0.14px]">Notes</span>
+                    <div className="w-full h-[66px] bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] px-2 py-2.5" />
+                  </div>
+                  <button className="flex items-center gap-1.5 text-sm font-medium text-[#0B2642] w-fit">
+                    <Paperclip className="h-4 w-4" />
+                    Upload attachments
+                  </button>
+                </div>
+
+                {/* Totals Section */}
+                <div className="w-[309px] flex flex-col rounded-md overflow-hidden">
+                  {/* Breakdown */}
+                  <div className="flex flex-col gap-3 border-t border-[rgba(16,25,41,0.1)] pt-2 pb-3">
+                    <div className="flex justify-between text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
+                      <span>Subtotal</span>
+                      <span>£6,000.00</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium text-[#0B2642] tracking-[-0.14px]">
+                      <span>VAT (Rate)</span>
+                      <span>£1,500.00</span>
+                    </div>
+                  </div>
+                  {/* Total */}
+                  <div className="flex justify-between text-sm font-medium text-[#0B2642] tracking-[-0.14px] border-t border-[rgba(16,25,41,0.1)] py-2.5">
+                    <span>Total</span>
+                    <span>£7,500.00</span>
+                  </div>
+                  {/* Amount Due */}
+                  <div className="flex justify-between items-center border-t border-[rgba(16,25,41,0.1)] py-3">
+                    <span className="text-sm font-medium text-[#0B2642] tracking-[-0.14px]">Amount due</span>
+                    <span className="text-xl font-bold text-[#0B2642] tracking-[-0.2px]">£7,500.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Page Pagination */}

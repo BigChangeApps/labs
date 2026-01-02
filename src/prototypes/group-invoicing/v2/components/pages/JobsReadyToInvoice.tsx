@@ -130,7 +130,7 @@ function FilterSelect({
       >
         <SelectTrigger
           className={cn(
-            "flex items-center gap-1 px-3 py-1.5 h-8 w-auto rounded-md bg-white border border-hw-border text-sm font-medium hover:bg-hw-surface-subtle transition-colors",
+            "flex items-center gap-1 px-3 py-1.5 h-8 w-auto rounded-md bg-white border border-hw-border text-sm font-medium hover:bg-hw-surface-subtle transition-colors ring-0 shadow-none",
             hasSelection ? "text-hw-brand" : "text-hw-text"
           )}
         >
@@ -163,6 +163,160 @@ function FilterSelect({
   );
 }
 
+// Multi-select filter with checkboxes, search, and Apply/Cancel
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  onChange,
+  onClear,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pendingSelection, setPendingSelection] = useState<string[]>(selected);
+
+  const hasSelection = selected.length > 0;
+
+  // Sync pending selection when dropdown opens
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      setPendingSelection(selected);
+      setSearchQuery("");
+    }
+    setOpen(isOpen);
+  };
+
+  const filteredOptions = options.filter(option =>
+    option.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleOption = (option: string) => {
+    setPendingSelection(prev =>
+      prev.includes(option)
+        ? prev.filter(v => v !== option)
+        : [...prev, option]
+    );
+  };
+
+  const handleApply = () => {
+    onChange(pendingSelection);
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setPendingSelection(selected);
+    setOpen(false);
+  };
+
+  const handleClearAll = () => {
+    setPendingSelection([]);
+  };
+
+  return (
+    <div className="relative">
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "flex items-center gap-1 py-1.5 h-8 rounded-md border text-sm font-medium transition-colors",
+              hasSelection
+                ? "pl-3 pr-7 bg-hw-brand/10 border-hw-border text-hw-text hover:bg-hw-brand/15 max-w-[280px]"
+                : "px-3 bg-white border-hw-border text-hw-text hover:bg-hw-surface-subtle"
+            )}
+          >
+            <span className={cn(hasSelection && "truncate")}>
+              {hasSelection ? selected.join(", ") : label}
+            </span>
+            {!hasSelection && <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />}
+          </button>
+        </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-hw-border">
+          <span className="text-sm font-semibold text-hw-text">{label}</span>
+          <button
+            onClick={handleClearAll}
+            className="text-sm font-medium text-hw-brand hover:text-hw-brand-hover"
+          >
+            Clear
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="p-3 border-b border-hw-border">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-hw-text-secondary" />
+            <Input
+              type="text"
+              placeholder=""
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 text-sm bg-white border border-hw-border"
+            />
+          </div>
+        </div>
+
+        {/* Options list */}
+        <div className="max-h-[240px] overflow-y-auto py-2">
+          {filteredOptions.map((option) => {
+            const isSelected = pendingSelection.includes(option);
+            return (
+              <button
+                key={option}
+                onClick={() => toggleOption(option)}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-hw-surface-subtle transition-colors text-left"
+              >
+                <Checkbox
+                  checked={isSelected}
+                  className="data-[state=checked]:bg-hw-brand data-[state=checked]:border-hw-brand"
+                />
+                <span className="text-hw-text">{option}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center gap-2 p-3 border-t border-hw-border">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCancel}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleApply}
+            className="flex-1"
+          >
+            Apply
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+    {hasSelection && (
+      <button
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-hw-brand/20"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClear();
+        }}
+      >
+        <X className="h-3.5 w-3.5 text-hw-text-secondary" />
+      </button>
+    )}
+    </div>
+  );
+}
+
 // Date filter dropdown
 function DateFilterDropdown({
   label,
@@ -185,7 +339,7 @@ function DateFilterDropdown({
           variant="outline"
           size="sm"
           className={cn(
-            "flex items-center gap-1 px-3 h-8 bg-white border-hw-border text-sm font-medium hover:bg-hw-surface-subtle",
+            "flex items-center gap-1 px-3 h-8 bg-white border-hw-border text-sm font-medium hover:bg-hw-surface-subtle ring-0 shadow-none",
             hasValue ? "text-hw-brand" : "text-hw-text"
           )}
         >
@@ -257,7 +411,7 @@ export function JobsReadyToInvoice() {
 
   // Filter states
   const [siteFilter, setSiteFilter] = useState<string | null>(null);
-  const [parentFilter, setParentFilter] = useState<string | null>(null);
+  const [parentFilter, setParentFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
@@ -317,9 +471,9 @@ export function JobsReadyToInvoice() {
       jobs = jobs.filter(job => job.site === siteFilter);
     }
 
-    // Apply parent filter
-    if (parentFilter) {
-      jobs = jobs.filter(job => job.parent === parentFilter);
+    // Apply parent filter (multi-select)
+    if (parentFilter.length > 0) {
+      jobs = jobs.filter(job => parentFilter.includes(job.parent));
     }
 
     // Apply status filter
@@ -365,11 +519,11 @@ export function JobsReadyToInvoice() {
   const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
   // Count active filters
-  const activeFilterCount = [siteFilter, parentFilter, statusFilter, startDateFilter, endDateFilter].filter(Boolean).length;
+  const activeFilterCount = [siteFilter, parentFilter.length > 0, statusFilter, startDateFilter, endDateFilter].filter(Boolean).length;
 
   const clearAllFilters = () => {
     setSiteFilter(null);
-    setParentFilter(null);
+    setParentFilter([]);
     setStatusFilter(null);
     setStartDateFilter("");
     setEndDateFilter("");
@@ -521,7 +675,7 @@ export function JobsReadyToInvoice() {
                 placeholder="Search by job ref, contact or order number"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 h-8 text-sm bg-white border border-hw-border placeholder:text-hw-text-secondary"
+                className="pl-8 h-8 text-sm bg-white border border-hw-border placeholder:text-hw-text-secondary ring-0 shadow-none"
               />
             </div>
           </div>
@@ -533,12 +687,12 @@ export function JobsReadyToInvoice() {
               onSelect={setSiteFilter}
               onClear={() => setSiteFilter(null)}
             />
-            <FilterSelect
+            <MultiSelectFilter
               label="Parent"
               options={filterOptions.parents}
               selected={parentFilter}
-              onSelect={setParentFilter}
-              onClear={() => setParentFilter(null)}
+              onChange={setParentFilter}
+              onClear={() => setParentFilter([])}
             />
             <DateFilterDropdown
               label="Start date"
@@ -572,7 +726,7 @@ export function JobsReadyToInvoice() {
             <Button
               variant="outline"
               size="sm"
-              className="size-8 p-0 border-hw-border hover:bg-hw-surface-subtle"
+              className="size-8 p-0 border-hw-border hover:bg-hw-surface-subtle ring-0 shadow-none"
             >
               <Download className="h-4 w-4 text-hw-text" />
             </Button>

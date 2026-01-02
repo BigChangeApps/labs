@@ -43,6 +43,7 @@ import type {
   UniversalSettings,
   LevelOfDetail,
   CustomLineItem,
+  JobLineFinance,
 } from "../../pages/UnifiedInvoiceWorkspace";
 
 interface LiveInvoicePreviewProps {
@@ -109,9 +110,9 @@ function LogoUploader({
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border border-hw-border hover:bg-hw-surface-hover transition-colors cursor-pointer"
+          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border-0 hover:bg-hw-surface-hover transition-colors cursor-pointer"
         >
-          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px]">Add logo</span>
+          <span className="text-xs font-semibold text-hw-brand tracking-[-0.12px]">Add logo</span>
         </button>
       )}
     </div>
@@ -137,6 +138,10 @@ interface LineItemRow {
   total: number;
   category: "labour" | "materials" | "other";
   selected: boolean;
+  // V3: Line-level finance
+  finance?: JobLineFinance;
+  jobId: string; // Track which job this line belongs to
+  jobRef: string; // Job reference number for display
 }
 
 // Jobs table component for the invoice preview
@@ -222,11 +227,12 @@ function JobsTable({
             const labourAmount = child.leftToInvoice * 0.6;
             const materialsAmount = child.leftToInvoice * 0.3;
             const otherAmount = child.leftToInvoice * 0.1;
+            const childFinance = child.finance;
             
             detailed.push(
-              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
-              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
-              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+              { id: `${child.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance },
+              { id: `${child.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance },
+              { id: `${child.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: child.id, jobRef: child.jobRef, finance: childFinance }
             );
             
             categoryIndex++;
@@ -247,11 +253,12 @@ function JobsTable({
           const labourAmount = job.leftToInvoice * 0.6;
           const materialsAmount = job.leftToInvoice * 0.3;
           const otherAmount = job.leftToInvoice * 0.1;
+          const jobFinance = job.finance;
           
           detailed.push(
-            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true },
-            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true },
-            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true }
+            { id: `${job.id}-labour`, description: "Labour charges", quantity: 1, unitPrice: labourAmount, total: labourAmount, category: "labour", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance },
+            { id: `${job.id}-materials`, description: "Materials and parts", quantity: 1, unitPrice: materialsAmount, total: materialsAmount, category: "materials", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance },
+            { id: `${job.id}-other`, description: "Other charges", quantity: 1, unitPrice: otherAmount, total: otherAmount, category: "other", selected: true, jobId: job.id, jobRef: job.jobRef, finance: jobFinance }
           );
           
           categoryIndex++;
@@ -276,38 +283,56 @@ function JobsTable({
     return map[category];
   };
 
+  // VAT rate for calculations
+  const vatRate = 0.20;
+
   // Custom line row component
-  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => (
-    <div className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white group">
-      <div className="flex-1 flex items-center gap-2.5">
-        <JobTypeDot category={getLineItemColor(line.category)} />
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {line.description}
-        </span>
-        <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
-          Custom
-        </span>
+  const CustomLineRow = ({ line, onRemove }: { line: CustomLineItem; onRemove?: () => void }) => {
+    const lineTotal = line.quantity * line.unitPrice;
+    const lineVat = lineTotal * vatRate;
+    
+    return (
+      <div className="flex items-center gap-5 min-h-[40px] max-h-[56px] group">
+        <div className="w-[80px] flex items-center gap-2 py-2">
+          <JobTypeDot category={getLineItemColor(line.category)} />
+          <span className="text-sm text-hw-text-secondary tracking-[-0.14px] leading-5">
+            -
+          </span>
+        </div>
+        <div className="flex-1 flex items-center gap-2 py-2">
+          <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
+            {line.description}
+          </span>
+          <span className="text-xs text-hw-text-secondary px-1.5 py-0.5 bg-hw-surface-subtle rounded">
+            Custom
+          </span>
+        </div>
+        <div className="w-[90px] text-right py-2">
+          <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+            {formatCurrency(line.unitPrice)}
+          </span>
+        </div>
+        <div className="w-[90px] text-right flex items-center justify-end gap-2 py-2">
+          <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+            {formatCurrency(lineTotal)}
+          </span>
+          {onRemove && (
+            <button
+              onClick={onRemove}
+              className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
+            </button>
+          )}
+        </div>
+        <div className="w-[80px] text-right py-2">
+          <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+            {formatCurrency(lineVat)}
+          </span>
+        </div>
       </div>
-      <div className="w-[100px] text-right">
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {formatCurrency(line.unitPrice)}
-        </span>
-      </div>
-      <div className="w-[100px] text-right flex items-center justify-end gap-2">
-        <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-          {formatCurrency(line.quantity * line.unitPrice)}
-        </span>
-        {onRemove && (
-          <button
-            onClick={onRemove}
-            className="p-1 rounded hover:bg-hw-surface-subtle opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 className="h-3.5 w-3.5 text-hw-text-secondary" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Add line form component
   const AddLineForm = () => (
@@ -374,43 +399,65 @@ function JobsTable({
 
   // SUMMARY VIEW - Single consolidated row
   if (levelOfDetail === "summary") {
+    const summaryVat = overallTotal * vatRate;
+    
     return (
-      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
+      <div className="flex flex-col overflow-hidden rounded-lg">
         {/* Table Header */}
-        <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
-          <div className="flex-1">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
-              Name
+        <div className="flex items-center gap-5 h-10 border-b border-hw-border">
+          <div className="w-[80px] py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Job
             </span>
           </div>
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+          <div className="flex-1 py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Description
+            </span>
+          </div>
+          <div className="w-[90px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Unit price
             </span>
           </div>
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+          <div className="w-[90px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Total
+            </span>
+          </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              VAT
             </span>
           </div>
         </div>
 
         {/* Single Summary Row */}
-        <div className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white">
-          <div className="flex-1 flex items-center gap-2.5">
+        <div className="flex items-center gap-5 min-h-[40px] max-h-[56px]">
+          <div className="w-[80px] flex items-center gap-2 py-2">
             <JobTypeDot category="blue" />
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+              All
+            </span>
+          </div>
+          <div className="flex-1 py-2">
+            <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
               Overall work
             </span>
           </div>
-          <div className="w-[100px] text-right">
+          <div className="w-[90px] text-right py-2">
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
               {formatCurrency(overallTotal)}
             </span>
           </div>
-          <div className="w-[100px] text-right">
+          <div className="w-[90px] text-right py-2">
             <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
               {formatCurrency(overallTotal)}
+            </span>
+          </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              {formatCurrency(summaryVat)}
             </span>
           </div>
         </div>
@@ -439,55 +486,76 @@ function JobsTable({
     );
   }
 
-  // DETAILED VIEW - Line items without checkboxes (selection via Edit Jobs button)
+  // DETAILED VIEW - Line items with finance display
   if (levelOfDetail === "detailed") {
     return (
-      <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
+      <div className="flex flex-col overflow-hidden rounded-lg">
         {/* Table Header */}
-        <div className="flex items-center gap-5 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
-          <div className="flex-1">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
-              Name
+        <div className="flex items-center gap-5 h-10 border-b border-hw-border">
+          <div className="w-[70px] py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Job
             </span>
           </div>
-          <div className="w-[100px]" />
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+          <div className="flex-1 py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              Line item
+            </span>
+          </div>
+          <div className="w-[90px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Unit price
             </span>
           </div>
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+          <div className="w-[90px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
               Total
+            </span>
+          </div>
+          <div className="w-[80px] text-right py-2">
+            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+              VAT
             </span>
           </div>
         </div>
 
-        {/* Detailed Rows */}
-        {detailedRows.map((row) => (
-          <div
-            key={row.id}
-            className="flex items-center gap-5 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
-          >
-            <div className="flex-1 flex items-center gap-2.5">
-              <JobTypeDot category={getLineItemColor(row.category)} />
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {row.description}
-              </span>
+        {/* Detailed Rows with job reference */}
+        {detailedRows.map((row) => {
+          const rowVat = row.total * vatRate;
+          return (
+            <div
+              key={row.id}
+              className="flex items-center gap-5 min-h-[44px]"
+            >
+              <div className="w-[70px] py-2">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {row.jobRef}
+                </span>
+              </div>
+              <div className="flex-1 flex items-center gap-2.5 min-w-0 py-2">
+                <JobTypeDot category={getLineItemColor(row.category)} />
+                <span className="text-sm text-hw-text tracking-[-0.14px] leading-5 truncate">
+                  {row.description}
+                </span>
+              </div>
+              <div className="w-[90px] text-right py-2">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(row.unitPrice)}
+                </span>
+              </div>
+              <div className="w-[90px] text-right py-2">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(row.total)}
+                </span>
+              </div>
+              <div className="w-[80px] text-right py-2">
+                <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                  {formatCurrency(rowVat)}
+                </span>
+              </div>
             </div>
-            <div className="w-[100px]" />
-            <div className="w-[100px] text-right">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(row.unitPrice)}
-              </span>
-            </div>
-            <div className="w-[100px] text-right">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(row.total)}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Custom Lines */}
         {customLines.map((line) => (
@@ -515,50 +583,82 @@ function JobsTable({
 
   // PARTIAL VIEW (default) - One row per job
   return (
-    <div className="bg-white rounded-lg ring-1 ring-hw-border overflow-hidden">
+    <div className="flex flex-col overflow-hidden rounded-lg">
       {/* Table Header */}
-      <div className="flex items-center gap-3 h-10 pl-3 pr-4 bg-hw-surface border-b border-hw-border">
-        <div className="flex-1">
-          <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
-            Name
+      <div className="flex items-center gap-5 h-10 border-b border-hw-border">
+        <div className="w-[80px] py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+            Job
           </span>
         </div>
-        <div className="w-[100px] text-right">
-          <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+        <div className="flex-1 py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+            Description
+          </span>
+        </div>
+        <div className="w-[90px] text-right py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
             Unit price
           </span>
         </div>
-        <div className="w-[100px] text-right">
-          <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+        <div className="w-[90px] text-right py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
             Total
+          </span>
+        </div>
+        <div className="w-[80px] text-right py-2">
+          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
+            VAT
           </span>
         </div>
       </div>
 
       {/* Partial Rows - One per job */}
-      {partialRows.map((row) => (
-        <div
-          key={row.id}
-          className="flex items-center gap-3 min-h-[40px] max-h-[56px] pl-3 pr-4 bg-white"
-        >
-          <div className="flex-1 flex items-center gap-2.5">
-            <JobTypeDot category={getCategoryColor(row.categoryIndex)} />
-            <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-              {row.jobRef}
-            </span>
+      {partialRows.map((row) => {
+        const jobData = jobs.find(j => j.id === row.id);
+        const hasCustomFinance = jobData?.finance && !jobData.finance.inherited;
+        const rowVat = row.total * vatRate;
+        
+        return (
+          <div
+            key={row.id}
+            className="flex items-center gap-5 min-h-[40px] max-h-[56px]"
+          >
+            <div className="w-[80px] flex items-center gap-2 py-2">
+              <JobTypeDot category={getCategoryColor(row.categoryIndex)} />
+              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                {row.jobRef}
+              </span>
+            </div>
+            <div className="flex-1 flex items-center gap-2 py-2">
+              <span className="text-sm text-hw-text tracking-[-0.14px] leading-5">
+                Service charges
+              </span>
+              {/* Show override indicator if job has custom finance */}
+              {hasCustomFinance && (
+                <span className="text-[10px] font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                  Custom finance
+                </span>
+              )}
+            </div>
+            <div className="w-[90px] text-right py-2">
+              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                {formatCurrency(row.unitPrice)}
+              </span>
+            </div>
+            <div className="w-[90px] text-right py-2">
+              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                {formatCurrency(row.total)}
+              </span>
+            </div>
+            <div className="w-[80px] text-right py-2">
+              <span className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                {formatCurrency(rowVat)}
+              </span>
+            </div>
           </div>
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-              {formatCurrency(row.unitPrice)}
-            </span>
-          </div>
-          <div className="w-[100px] text-right">
-            <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-              {formatCurrency(row.total)}
-            </span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Custom Lines */}
       {customLines.map((line) => (
@@ -630,11 +730,16 @@ export function LiveInvoicePreview({
   const showPerInvoiceSettings = useFeatureFlag("showPerInvoiceSettings", false);
 
   // Handle saving changes from the Edit Jobs modal
-  const handleEditJobsSave = (selectedJobIds: Set<string>, levelOfDetail: LevelOfDetail) => {
+  const handleEditJobsSave = (
+    selectedJobIds: Set<string>,
+    levelOfDetail: LevelOfDetail,
+    updatedJobs?: JobWithLines[]
+  ) => {
     onUpdateInvoice({
       selectedJobIds,
       levelOfDetail,
       isOverridden: true,
+      ...(updatedJobs && { jobs: updatedJobs }),
     });
   };
 
@@ -721,11 +826,27 @@ export function LiveInvoicePreview({
 
         {/* Header Row - Title and Quick Actions */}
         <div className="w-full max-w-[900px] flex items-center justify-between">
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            <Building2 className="h-4 w-4 text-hw-text-secondary" />
-            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px]">
-              {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
-            </span>
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="flex items-center gap-1 min-w-0">
+              <Building2 className="h-4 w-4 text-hw-text-secondary shrink-0" />
+              <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] truncate">
+                {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
+              </span>
+            </div>
+            {/* Status Badge */}
+            <div className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-full border shrink-0",
+              isSent 
+                ? "bg-green-50 border-green-200" 
+                : "bg-[#E6F3FA] border-[rgba(2,136,209,0.2)]"
+            )}>
+              <span className={cn(
+                "text-xs font-medium tracking-[-0.12px]",
+                isSent ? "text-green-700" : "text-hw-text"
+              )}>
+                {isSent ? "Sent" : "Draft"}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Per-invoice Settings button - only shown when flag is enabled */}
@@ -860,43 +981,29 @@ export function LiveInvoicePreview({
         </div>
 
         {/* Invoice Document */}
-        <div className="w-full max-w-[900px] bg-white shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)]">
-          <div className="p-6 flex flex-col gap-6">
-            {/* Logo Section - only visible when enabled in settings */}
-            {invoice.showLogo && (
-              <LogoUploader
-                logo={invoice.logo}
-                onLogoChange={(logo) => onUpdateInvoice({ logo })}
-              />
-            )}
-
-            {/* Top Section - From and Dates */}
+        <div className="w-full max-w-[900px] bg-white rounded-modal border border-hw-border shadow-modal">
+          <div className="p-10 flex flex-col gap-6">
+            {/* Top Section - Logo/Company and Dates */}
             <div className="flex items-start justify-between">
-              {/* From Section */}
-              <div className="flex flex-col gap-2">
-                <span className="text-base font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
-                  From:
+              {/* Left side - Logo and Company name */}
+              <div className="flex flex-col gap-4">
+                {/* Logo Section - only visible when enabled in settings */}
+                {invoice.showLogo && (
+                  <LogoUploader
+                    logo={invoice.logo}
+                    onLogoChange={(logo) => onUpdateInvoice({ logo })}
+                  />
+                )}
+                {/* Company name */}
+                <span className="text-xl font-bold text-hw-text">
+                  BigChange Ltd
                 </span>
-                <div className="flex flex-col gap-1">
-                  <span className="text-2xl font-bold text-hw-text tracking-[-0.14px] leading-6">
-                    BigChange Ltd
-                  </span>
-                  <span className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px] leading-4">
-                    123 Business Street
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
-                >
-                  Edit
-                </button>
               </div>
 
               {/* Right side - Dates and References - Editable */}
               <div className="flex flex-col gap-4">
                 {/* First row: Issue date & Due date */}
-                <div className="flex gap-6 justify-end">
+                <div className="flex gap-6 justify-end items-start">
                   <div className="flex flex-col gap-1 text-right w-[98px]">
                     <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
                       Issue date:
@@ -959,8 +1066,8 @@ export function LiveInvoicePreview({
                   </div>
                 </div>
                 {/* Second row: Invoice Number & Reference - Editable */}
-                <div className="flex gap-6 justify-end">
-                  <div className="flex flex-col gap-1 text-right w-[98px]">
+                <div className="flex gap-6 justify-end items-start">
+                  <div className="flex flex-col gap-1 text-right w-[128px]">
                     <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] leading-4">
                       Invoice Number:
                     </span>
@@ -997,38 +1104,40 @@ export function LiveInvoicePreview({
             </div>
 
             {/* Bill To Section */}
-            <div className="flex flex-col gap-2 max-w-[400px]">
-              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
-                Bill To:
-              </span>
-              <div className="flex flex-col gap-1">
-                <span className="text-xl font-bold text-hw-text tracking-[-0.14px] leading-6">
-                  {invoice.name}
+            <div className="bg-[#F3F5F9] rounded-lg px-6 py-4 flex items-center justify-between">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">
+                  BILL TO
                 </span>
-                <span className="text-sm font-normal text-hw-text-secondary tracking-[-0.14px] leading-5">
-                  {invoice.address}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-base font-medium text-hw-text leading-6">
+                    {invoice.name}
+                  </span>
+                  <span className="text-xs font-normal text-hw-text-secondary tracking-[-0.12px]">
+                    {invoice.address}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
-                className="text-sm font-medium text-hw-brand hover:underline transition-colors text-left w-fit"
+                className="text-sm font-medium text-hw-brand hover:underline transition-colors"
               >
-                Edit
+                Edit contact
               </button>
             </div>
 
             {/* Invoice Title - Editable */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+              <span className="text-base font-medium text-hw-text-secondary tracking-[-0.14px]">
                 Invoice title
               </span>
-              <div className="inline-flex items-center h-9 px-3 py-1 bg-hw-surface border border-transparent ring-1 ring-hw-border shadow-input w-fit rounded-input focus-within:border-hw-focus focus-within:ring-hw-focus/30 focus-within:ring-4 transition-[color,box-shadow]">
+              <div className="w-[190px] px-2.5 py-1.5 bg-white shadow-[0px_0px_0px_1px_rgba(3,7,18,0.08),0px_0.5px_2px_0px_rgba(11,38,66,0.16)] rounded-md">
                 <input
                   type="text"
                   value={invoice.title || ""}
                   onChange={(e) => onUpdateInvoice({ title: e.target.value })}
-                  placeholder="Fire extinguisher service"
-                  className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5 bg-transparent border-none outline-none placeholder:text-hw-text-secondary"
+                  placeholder="Invoice from last month..."
+                  className="text-sm font-medium text-hw-text tracking-[-0.14px] bg-transparent border-none outline-none w-full placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
             </div>
@@ -1065,16 +1174,13 @@ export function LiveInvoicePreview({
               />
             </div>
 
-            {/* Divider */}
-            <div className="h-px bg-border" style={{ backgroundClip: 'border-box', WebkitBackgroundClip: 'border-box', color: 'rgba(20, 20, 20, 1)' }} />
-
             {/* Notes and Totals Row - Side by Side */}
-            <div className="flex gap-10 items-start">
+            <div className="flex flex-wrap gap-6 items-start">
               {/* Left: Notes and Upload */}
-              <div className="flex flex-col gap-6 flex-1 min-w-[250px]">
+              <div className="flex flex-col gap-6 flex-1 min-w-[200px]">
                 {/* Notes Section */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                  <label className="text-base font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
                     Notes
                   </label>
                   <Textarea
@@ -1121,9 +1227,9 @@ export function LiveInvoicePreview({
               </div>
 
               {/* Right: Totals Section */}
-              <div className="flex flex-col flex-1 min-w-[280px] max-w-[400px] h-[152px] rounded-card overflow-hidden">
-                {/* Breakdown */}
-                <div className="flex flex-col gap-3 pt-2 pb-3 box-content">
+              <div className="flex flex-col flex-1 min-w-[220px] max-w-[400px] rounded-card overflow-hidden">
+                {/* Breakdown rows */}
+                <div className="flex flex-col gap-3 pt-3 pb-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                       Subtotal
@@ -1134,7 +1240,7 @@ export function LiveInvoicePreview({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                      VAT (Rate)
+                      VAT (20%)
                     </span>
                     <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                       {formatCurrency(vatAmount)}
@@ -1142,17 +1248,7 @@ export function LiveInvoicePreview({
                   </div>
                 </div>
 
-                {/* Total */}
-                <div className="flex items-center justify-between py-2.5 border-t border-hw-border">
-                  <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                    Total
-                  </span>
-                  <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                    {formatCurrency(total)}
-                  </span>
-                </div>
-
-                {/* Amount Due */}
+                {/* Amount due row */}
                 <div className="flex items-center justify-between py-3 border-t border-hw-border">
                   <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
                     Amount due
@@ -1166,19 +1262,16 @@ export function LiveInvoicePreview({
 
             {/* Terms & Conditions Section - only visible when enabled in settings */}
             {invoice.showTcs && (
-              <>
-                <div className="h-px bg-hw-border" />
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                    Terms & Conditions
-                  </label>
-                  <div className="p-3 bg-hw-surface-subtle rounded-card border border-hw-border">
-                    <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">
-                      Payment is due within 30 days of the invoice date. Late payments may be subject to interest charges at the rate of 2% per month. All goods remain the property of the seller until payment is received in full. Any disputes must be raised within 14 days of receipt of this invoice.
-                    </p>
-                  </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px] leading-5">
+                  Terms & Conditions
+                </label>
+                <div className="p-4 bg-hw-surface-subtle rounded-card">
+                  <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">
+                    Payment is due within 30 days of the invoice date. Late payments may be subject to interest charges at the rate of 2% per month. All goods remain the property of the seller until payment is received in full. Any disputes must be raised within 14 days of receipt of this invoice.
+                  </p>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -1191,6 +1284,7 @@ export function LiveInvoicePreview({
         jobs={invoice.jobs}
         selectedJobIds={invoice.selectedJobIds}
         levelOfDetail={invoice.levelOfDetail}
+        defaultFinance={invoice.defaultFinance}
         onSave={handleEditJobsSave}
         onChange={handleEditJobsSave}
       />

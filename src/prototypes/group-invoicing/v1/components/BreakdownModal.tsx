@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { X, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft, Building2, MapPin, FileMinus, FileSpreadsheet, FileText, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -108,11 +108,13 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
       description: summary.parentContacts.length === 1 
         ? "1 Overall invoice with merged totals."
         : `${summary.parentContacts.length} Overall invoices with merged totals.`,
+      icon: <Building2 className="h-4 w-4" />,
     },
     {
       id: "site" as BreakdownLevel,
       title: "Site level",
       description: `${summary.siteCount} invoice${summary.siteCount !== 1 ? "s" : ""} (1 per site)`,
+      icon: <MapPin className="h-4 w-4" />,
     },
   ];
 
@@ -121,16 +123,19 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
       id: "summary" as LevelOfDetail,
       title: "Summary",
       description: "1 Line for all jobs (combined totals)",
+      icon: <FileMinus className="h-4 w-4" />,
     },
     {
       id: "partial" as LevelOfDetail,
       title: "Partial",
       description: "Separate lines for labour vs materials per job",
+      icon: <FileSpreadsheet className="h-4 w-4" />,
     },
     {
       id: "detailed" as LevelOfDetail,
       title: "Detailed",
       description: "Every line from every job",
+      icon: <FileText className="h-4 w-4" />,
     },
   ];
 
@@ -228,32 +233,43 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
                   return (
                     <button
                       key={option.id}
+                      type="button"
                       onClick={() => setBreakdownLevel(option.id)}
                       className={cn(
-                        "w-[226px] flex gap-3 p-4 rounded-[10px] transition-all text-left border",
+                        "flex-1 flex items-start gap-3 p-3 rounded-lg border-[0.5px] text-left transition-all",
                         isSelected
-                          ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                          : "border-[#E5E5E5] bg-white hover:border-gray-300"
+                          ? "border-transparent bg-hw-brand/5 ring-1 ring-hw-brand"
+                          : "border-hw-border bg-hw-surface hover:border-hw-border-hover hover:bg-hw-surface-subtle"
                       )}
                     >
-                      <div className={cn(
-                        "size-4 shrink-0 rounded-full border flex items-center justify-center",
-                        isSelected
-                          ? "border-[rgba(2,136,209,0.2)] bg-white"
-                          : "border-[#E5E5E5] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-                      )}>
-                        {isSelected && (
-                          <div className="size-2 rounded-full bg-[#086DFF]" />
+                      <div
+                        className={cn(
+                          "shrink-0 mt-0.5 p-1.5 rounded-md",
+                          isSelected ? "bg-hw-brand/10 text-hw-brand" : "bg-hw-surface-subtle text-hw-text-secondary"
                         )}
+                      >
+                        {option.icon}
                       </div>
-                      <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-px">
-                        <p className={cn(
-                          "text-sm font-medium tracking-[-0.14px] leading-5",
-                          isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
-                        )}>
-                          {option.title}
-                        </p>
-                        <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px] leading-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={cn(
+                              "text-sm font-medium tracking-[-0.14px] leading-5",
+                              isSelected ? "text-hw-brand" : "text-hw-text"
+                            )}
+                          >
+                            {option.title}
+                          </span>
+                          <div
+                            className={cn(
+                              "shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
+                              isSelected ? "border-hw-brand bg-hw-brand" : "border-hw-border"
+                            )}
+                          >
+                            {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                          </div>
+                        </div>
+                        <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4 mt-0.5">
                           {option.description}
                         </p>
                       </div>
@@ -269,38 +285,49 @@ export function BreakdownModal({ open, onOpenChange, selectedJobs, onCreateInvoi
             <div className="px-6 pb-5">
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-normal text-[#0B2642] tracking-[-0.14px]">Choose your invoice structure</p>
-                <div className="flex gap-6">
+                <div className="flex gap-3">
                   {levelOfDetailOptions.map((option) => {
                     const isSelected = levelOfDetail === option.id;
                     return (
                       <button
                         key={option.id}
+                        type="button"
                         onClick={() => setLevelOfDetail(option.id)}
                         className={cn(
-                          "flex-1 flex gap-3 p-4 rounded-[10px] transition-all text-left border",
+                          "flex-1 flex items-start gap-3 p-3 rounded-lg border-[0.5px] text-left transition-all",
                           isSelected
-                            ? "border-[#086DFF] bg-[rgba(8,109,255,0.16)]"
-                            : "border-[#E5E5E5] bg-white hover:border-gray-300"
+                            ? "border-transparent bg-hw-brand/5 ring-1 ring-hw-brand"
+                            : "border-hw-border bg-hw-surface hover:border-hw-border-hover hover:bg-hw-surface-subtle"
                         )}
                       >
-                        <div className={cn(
-                          "size-4 shrink-0 rounded-full border flex items-center justify-center",
-                          isSelected
-                            ? "border-[rgba(2,136,209,0.2)] bg-white"
-                            : "border-[#E5E5E5] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
-                        )}>
-                          {isSelected && (
-                            <div className="size-2 rounded-full bg-[#086DFF]" />
+                        <div
+                          className={cn(
+                            "shrink-0 mt-0.5 p-1.5 rounded-md",
+                            isSelected ? "bg-hw-brand/10 text-hw-brand" : "bg-hw-surface-subtle text-hw-text-secondary"
                           )}
+                        >
+                          {option.icon}
                         </div>
-                        <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-px">
-                          <p className={cn(
-                            "text-sm font-medium tracking-[-0.14px] leading-5",
-                            isSelected ? "text-[#086DFF]" : "text-[#1A1C2E]"
-                          )}>
-                            {option.title}
-                          </p>
-                          <p className="text-xs font-normal text-[#73777D] tracking-[-0.12px] leading-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className={cn(
+                                "text-sm font-medium tracking-[-0.14px] leading-5",
+                                isSelected ? "text-hw-brand" : "text-hw-text"
+                              )}
+                            >
+                              {option.title}
+                            </span>
+                            <div
+                              className={cn(
+                                "shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
+                                isSelected ? "border-hw-brand bg-hw-brand" : "border-hw-border"
+                              )}
+                            >
+                              {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                            </div>
+                          </div>
+                          <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4 mt-0.5">
                             {option.description}
                           </p>
                         </div>
