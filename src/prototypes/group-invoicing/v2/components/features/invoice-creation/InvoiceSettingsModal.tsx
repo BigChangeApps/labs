@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Check, ChevronDown, X, AlertTriangle, Minus, List, ListTree, Building2, MapPin } from "lucide-react";
+import { Check, ChevronDown, X, AlertTriangle, FileMinus, FileSpreadsheet, FileText, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
@@ -52,19 +52,19 @@ const levelOfDetailOptions: RadioCardOption<LevelOfDetail>[] = [
     id: "summary", 
     label: "Summary",
     description: "One combined total per job",
-    icon: <Minus className="h-4 w-4" />,
+    icon: <FileMinus className="h-4 w-4" />,
   },
   { 
     id: "partial", 
     label: "Partial",
     description: "Groups by category (Labour, Materials, Other)",
-    icon: <List className="h-4 w-4" />,
+    icon: <FileSpreadsheet className="h-4 w-4" />,
   },
   { 
     id: "detailed", 
     label: "Detailed",
     description: "Every individual line item",
-    icon: <ListTree className="h-4 w-4" />,
+    icon: <FileText className="h-4 w-4" />,
   },
 ];
 
@@ -191,9 +191,9 @@ function SettingsRadioCard<T extends string>({
       type="button"
       onClick={() => onChange(option.id)}
       className={cn(
-        "w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+        "w-full flex items-start gap-3 p-3 rounded-lg border-[0.5px] text-left transition-all",
         selected
-          ? "border-hw-brand bg-hw-brand/5 ring-1 ring-hw-brand"
+          ? "border-transparent bg-hw-brand/5 ring-1 ring-hw-brand"
           : "border-hw-border bg-hw-surface hover:border-hw-border-hover hover:bg-hw-surface-subtle"
       )}
     >

@@ -642,9 +642,9 @@ function LogoUploader({
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border border-hw-border hover:bg-[#F0F2F5] transition-colors cursor-pointer"
+          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border-0 hover:bg-[#F0F2F5] transition-colors cursor-pointer"
         >
-          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px]">Add logo</span>
+          <span className="text-xs font-semibold text-hw-brand tracking-[-0.12px]">Add logo</span>
         </button>
       )}
     </div>
@@ -1472,89 +1472,6 @@ export function InvoicePreview() {
                 </span>
               </div>
 
-              {/* Jobs Section */}
-              <div className="flex flex-col gap-4">
-                
-                {/* Job Detail View Selector - horizontal cards */}
-                <RadioGroup
-                  value={levelOfDetail}
-                  onValueChange={(value) => {
-                    setInvoiceData((prev) => ({ ...prev, levelOfDetail: value as "summary" | "partial" | "detailed" }));
-                    setViewMode(invoiceData.id, value as "summary" | "partial" | "detailed");
-                  }}
-                  className="flex gap-4 h-[91px]"
-                >
-                  <Label
-                    htmlFor="level-summary"
-                    className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
-                      levelOfDetail === "summary"
-                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
-                        : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
-                    )}
-                  >
-                    <RadioGroupItem
-                      value="summary"
-                      id="level-summary"
-                      className="shrink-0 mt-0.5"
-                    />
-                    <div className="flex flex-col gap-1.5">
-                      <span className={cn(
-                        "text-sm font-medium tracking-[-0.14px] leading-5",
-                        levelOfDetail === "summary" ? "text-hw-brand" : "text-[#1A1C2E]"
-                      )}>Summary</span>
-                      <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">1 Line for all jobs (combined totals)</p>
-                    </div>
-                  </Label>
-                  
-                  <Label
-                    htmlFor="level-partial"
-                    className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
-                      levelOfDetail === "partial"
-                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
-                        : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
-                    )}
-                  >
-                    <RadioGroupItem
-                      value="partial"
-                      id="level-partial"
-                      className="shrink-0 mt-0.5"
-                    />
-                    <div className="flex flex-col gap-1.5">
-                      <span className={cn(
-                        "text-sm font-medium tracking-[-0.14px] leading-5",
-                        levelOfDetail === "partial" ? "text-hw-brand" : "text-[#1A1C2E]"
-                      )}>Partial</span>
-                      <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">Separate lines for labour vs materials per job</p>
-                    </div>
-                  </Label>
-                  
-                  <Label
-                    htmlFor="level-detailed"
-                    className={cn(
-                      "flex-1 p-4 rounded-[10px] border text-left transition-colors flex gap-3 items-start cursor-pointer font-normal",
-                      levelOfDetail === "detailed"
-                        ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
-                        : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
-                    )}
-                  >
-                    <RadioGroupItem
-                      value="detailed"
-                      id="level-detailed"
-                      className="shrink-0 mt-0.5"
-                    />
-                    <div className="flex flex-col gap-1.5">
-                      <span className={cn(
-                        "text-sm font-medium tracking-[-0.14px] leading-5",
-                        levelOfDetail === "detailed" ? "text-hw-brand" : "text-[#1A1C2E]"
-                      )}>Detailed</span>
-                      <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">Every line from every job</p>
-                    </div>
-                  </Label>
-                </RadioGroup>
-              </div>
-
               {/* Job List */}
               <div className="space-y-2">
               {levelOfDetail === "summary" ? (
@@ -1759,27 +1676,112 @@ export function InvoicePreview() {
             </div>
           </div>
 
+          {/* Display Settings - Level of Detail Selector */}
+          <div className="w-[592px] shrink-0">
+            <RadioGroup
+              value={levelOfDetail}
+              onValueChange={(value) => {
+                setInvoiceData((prev) => ({ ...prev, levelOfDetail: value as "summary" | "partial" | "detailed" }));
+                setViewMode(invoiceData.id, value as "summary" | "partial" | "detailed");
+              }}
+              className="flex gap-3"
+            >
+              <Label
+                htmlFor="level-summary-preview"
+                className={cn(
+                  "flex-1 p-3 rounded-lg border text-left transition-colors flex gap-2.5 items-start cursor-pointer font-normal",
+                  levelOfDetail === "summary"
+                    ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                    : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
+                )}
+              >
+                <RadioGroupItem
+                  value="summary"
+                  id="level-summary-preview"
+                  className="shrink-0 mt-0.5"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className={cn(
+                    "text-sm font-medium tracking-[-0.14px] leading-5",
+                    levelOfDetail === "summary" ? "text-hw-brand" : "text-[#1A1C2E]"
+                  )}>Summary</span>
+                  <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">1 line for all jobs</p>
+                </div>
+              </Label>
+              
+              <Label
+                htmlFor="level-partial-preview"
+                className={cn(
+                  "flex-1 p-3 rounded-lg border text-left transition-colors flex gap-2.5 items-start cursor-pointer font-normal",
+                  levelOfDetail === "partial"
+                    ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                    : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
+                )}
+              >
+                <RadioGroupItem
+                  value="partial"
+                  id="level-partial-preview"
+                  className="shrink-0 mt-0.5"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className={cn(
+                    "text-sm font-medium tracking-[-0.14px] leading-5",
+                    levelOfDetail === "partial" ? "text-hw-brand" : "text-[#1A1C2E]"
+                  )}>Partial</span>
+                  <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">Labour vs materials per job</p>
+                </div>
+              </Label>
+              
+              <Label
+                htmlFor="level-detailed-preview"
+                className={cn(
+                  "flex-1 p-3 rounded-lg border text-left transition-colors flex gap-2.5 items-start cursor-pointer font-normal",
+                  levelOfDetail === "detailed"
+                    ? "bg-[rgba(8,109,255,0.16)] border-[#086DFF]"
+                    : "bg-white border-[#E5E5E5] hover:bg-hw-surface-subtle"
+                )}
+              >
+                <RadioGroupItem
+                  value="detailed"
+                  id="level-detailed-preview"
+                  className="shrink-0 mt-0.5"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className={cn(
+                    "text-sm font-medium tracking-[-0.14px] leading-5",
+                    levelOfDetail === "detailed" ? "text-hw-brand" : "text-[#1A1C2E]"
+                  )}>Detailed</span>
+                  <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4">Every line from every job</p>
+                </div>
+              </Label>
+            </RadioGroup>
+          </div>
+
           {/* Invoice Preview Card */}
-          <div className="bg-white w-[592px] shadow-[0px_0px_0px_1px_rgba(26,28,46,0.08),0px_16px_32px_0px_rgba(26,28,46,0.08),0px_2px_24px_0px_rgba(26,28,46,0.08)] relative">
+          <div className="bg-white w-[592px] rounded-modal border border-hw-border shadow-modal relative">
             {/* Inner border effect - z-0 to stay behind content */}
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0px_0px_0px_1px_white,inset_0px_0px_0px_2px_rgba(229,231,235,0.4)] z-0" />
             
             {/* Invoice Header - z-10 to be above border effect */}
-            <div className="p-6 space-y-6 relative z-10">
-              {/* Logo Section */}
-              <LogoUploader
-                logo={invoiceData.logo}
-                onLogoChange={(logo) => setInvoiceData((prev) => ({ ...prev, logo }))}
-              />
-              
-              <div className="flex justify-between items-start">
-                {/* Left side - Company info */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-hw-text-secondary tracking-[-0.14px]">From:</p>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-hw-text tracking-[-0.14px]">BigChange Ltd</p>
-                    <p className="text-xs text-[#62748E] tracking-[-0.12px]">123 Business Street</p>
-                  </div>
+            <div className="p-10 flex flex-col gap-6 relative z-10">
+              {/* Draft Badge */}
+              <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#E6F3FA] border border-[rgba(2,136,209,0.2)] w-fit">
+                <span className="text-xs font-medium text-hw-text tracking-[-0.12px]">Draft</span>
+              </div>
+
+              {/* Top Section - Logo/Company and Dates */}
+              <div className="flex items-start justify-between">
+                {/* Left side - Logo and Company name */}
+                <div className="flex flex-col gap-4">
+                  {/* Logo Section */}
+                  <LogoUploader
+                    logo={invoiceData.logo}
+                    onLogoChange={(logo) => setInvoiceData((prev) => ({ ...prev, logo }))}
+                  />
+                  {/* Company name */}
+                  <span className="text-base font-semibold text-hw-text">
+                    BigChange Ltd
+                  </span>
                 </div>
                 
                 {/* Right side - Invoice details with editable dates */}

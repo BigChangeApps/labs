@@ -307,7 +307,7 @@ export function InvoiceCardList({
               <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
                 Jobs selected
               </span>
-              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+              <span className="text-sm font-semibold text-hw-text tracking-[-0.14px]">
                 {selectionStats.totalJobs}
               </span>
             </div>
@@ -315,7 +315,7 @@ export function InvoiceCardList({
               <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
                 Left to invoice
               </span>
-              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+              <span className="text-sm font-semibold text-hw-text tracking-[-0.14px]">
                 {formatCurrency(totals.subtotal)}
               </span>
             </div>
@@ -331,7 +331,7 @@ export function InvoiceCardList({
               <span className="text-xs text-hw-text-secondary tracking-[-0.12px]">
                 Sites
               </span>
-              <span className="text-base font-semibold text-hw-text tracking-[-0.16px]">
+              <span className="text-sm font-semibold text-hw-text tracking-[-0.14px]">
                 {selectionStats.sitesCount}
               </span>
             </div>
@@ -404,36 +404,41 @@ export function InvoiceCardList({
 
       {/* Sticky footer with totals and CTA */}
       <div className="shrink-0 p-8 pt-0 flex flex-col gap-6">
-        {/* Totals Section */}
-        <div className="flex flex-col rounded-card overflow-hidden">
-          {/* Breakdown rows */}
-          <div className="flex flex-col gap-3 pt-3 pb-3 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                Subtotal
-              </span>
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(totals.subtotal)}
-              </span>
+        {/* Batch Totals Section */}
+        <div className="flex flex-col gap-3">
+          <span className="text-sm font-medium text-hw-text tracking-[-0.14px]">
+            Total ({invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"})
+          </span>
+          <div className="bg-hw-surface-subtle rounded-lg p-4 flex flex-col rounded-card overflow-hidden">
+            {/* Breakdown rows */}
+            <div className="flex flex-col gap-3 pb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  Subtotal
+                </span>
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(totals.subtotal)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  VAT (Rate)
+                </span>
+                <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                  {formatCurrency(totals.vatAmount)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                VAT (Rate)
-              </span>
-              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-                {formatCurrency(totals.vatAmount)}
-              </span>
-            </div>
-          </div>
 
-          {/* Amount due row */}
-          <div className="flex items-center justify-between py-3 border-t border-gray-100">
-            <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
-              Amount due
-            </span>
-            <span className="text-xl font-bold text-hw-text tracking-[-0.2px] leading-6">
-              {formatCurrency(totals.total)}
-            </span>
+            {/* Amount due row */}
+            <div className="flex items-center justify-between pt-3 border-t border-hw-border">
+              <span className="text-sm font-medium text-hw-text tracking-[-0.14px] leading-5">
+                Amount due
+              </span>
+              <span className="text-xl font-bold text-hw-text tracking-[-0.2px] leading-6">
+                {formatCurrency(totals.total)}
+              </span>
+            </div>
           </div>
         </div>
 

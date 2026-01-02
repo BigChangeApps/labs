@@ -110,9 +110,9 @@ function LogoUploader({
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border border-hw-border hover:bg-hw-surface-hover transition-colors cursor-pointer"
+          className="w-[160px] h-[68px] flex items-center justify-center rounded-sm bg-hw-surface-subtle border-0 hover:bg-hw-surface-hover transition-colors cursor-pointer"
         >
-          <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px]">Add logo</span>
+          <span className="text-xs font-semibold text-hw-brand tracking-[-0.12px]">Add logo</span>
         </button>
       )}
     </div>
@@ -777,11 +777,27 @@ export function LiveInvoicePreview({
 
         {/* Header Row - Title and Quick Actions */}
         <div className="w-full max-w-[900px] flex items-center justify-between">
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            <Building2 className="h-4 w-4 text-hw-text-secondary" />
-            <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px]">
-              {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
-            </span>
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="flex items-center gap-1 min-w-0">
+              <Building2 className="h-4 w-4 text-hw-text-secondary shrink-0" />
+              <span className="text-xs font-medium text-hw-text-secondary tracking-[-0.12px] truncate">
+                {invoice.name} ({selectedJobCount} {selectedJobCount === 1 ? "Job" : "Jobs"}) - {formatCurrency(total)}
+              </span>
+            </div>
+            {/* Status Badge */}
+            <div className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-full border shrink-0",
+              isSent 
+                ? "bg-green-50 border-green-200" 
+                : "bg-[#E6F3FA] border-[rgba(2,136,209,0.2)]"
+            )}>
+              <span className={cn(
+                "text-xs font-medium tracking-[-0.12px]",
+                isSent ? "text-green-700" : "text-hw-text"
+              )}>
+                {isSent ? "Sent" : "Draft"}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Per-invoice Settings button - only shown when flag is enabled */}
@@ -918,11 +934,6 @@ export function LiveInvoicePreview({
         {/* Invoice Document */}
         <div className="w-full max-w-[900px] bg-white rounded-modal border border-hw-border shadow-modal">
           <div className="p-10 flex flex-col gap-6">
-            {/* Draft Badge */}
-            <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#E6F3FA] border border-[rgba(2,136,209,0.2)] w-fit">
-              <span className="text-xs font-medium text-hw-text tracking-[-0.12px]">Draft</span>
-            </div>
-
             {/* Top Section - Logo/Company and Dates */}
             <div className="flex items-start justify-between">
               {/* Left side - Logo and Company name */}
@@ -1076,8 +1087,8 @@ export function LiveInvoicePreview({
                   type="text"
                   value={invoice.title || ""}
                   onChange={(e) => onUpdateInvoice({ title: e.target.value })}
-                  placeholder="Fire extinguisher service"
-                  className="text-sm font-medium text-hw-text tracking-[-0.14px] bg-transparent border-none outline-none w-full placeholder:text-hw-text-secondary"
+                  placeholder="Invoice from last month..."
+                  className="text-sm font-medium text-hw-text tracking-[-0.14px] bg-transparent border-none outline-none w-full placeholder:text-gray-400 placeholder:font-normal"
                 />
               </div>
             </div>

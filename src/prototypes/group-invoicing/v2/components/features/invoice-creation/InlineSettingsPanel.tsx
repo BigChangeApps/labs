@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Check, ChevronDown, AlertTriangle, Minus, List, ListTree, Building2, MapPin } from "lucide-react";
+import { Check, ChevronDown, AlertTriangle, FileMinus, FileSpreadsheet, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/registry/ui/button";
 import { Switch } from "@/registry/ui/switch";
@@ -16,8 +16,31 @@ import {
   AccordionTrigger,
 } from "@/registry/ui/accordion";
 import { cn } from "@/registry/lib/utils";
+import { SectionHeader, SettingsRadioGroup, type RadioCardOption } from "../../ui/settings-controls";
 import { ApplySettingsConfirmationDialog } from "./ApplySettingsConfirmationDialog";
 import type { UniversalSettings, LevelOfDetail } from "../../pages/UnifiedInvoiceWorkspace";
+
+// Level of detail options
+const levelOfDetailOptions: RadioCardOption<LevelOfDetail>[] = [
+  { 
+    id: "summary", 
+    label: "Summary",
+    description: "One combined total per job",
+    icon: <FileMinus className="h-4 w-4" />,
+  },
+  { 
+    id: "partial", 
+    label: "Partial",
+    description: "Groups by category (Labour, Materials, Other)",
+    icon: <FileSpreadsheet className="h-4 w-4" />,
+  },
+  { 
+    id: "detailed", 
+    label: "Detailed",
+    description: "Every individual line item",
+    icon: <FileText className="h-4 w-4" />,
+  },
+];
 
 interface InlineSettingsPanelProps {
   settings: UniversalSettings;
@@ -25,56 +48,8 @@ interface InlineSettingsPanelProps {
   showApplyToAllCheckbox?: boolean;
   financeOverrideCount?: number;
   onResetFinanceOverrides?: () => void;
-  invoiceCountByGrouping?: {
-    contact: number;
-    site: number;
-  };
   invoiceCount?: number;
 }
-
-interface RadioCardOption<T extends string> {
-  id: T;
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-  badge?: string;
-}
-
-const levelOfDetailOptions: RadioCardOption<LevelOfDetail>[] = [
-  { 
-    id: "summary", 
-    label: "Summary",
-    description: "One combined total per job",
-    icon: <Minus className="h-4 w-4" />,
-  },
-  { 
-    id: "partial", 
-    label: "Partial",
-    description: "Groups by category (Labour, Materials, Other)",
-    icon: <List className="h-4 w-4" />,
-  },
-  { 
-    id: "detailed", 
-    label: "Detailed",
-    description: "Every individual line item",
-    icon: <ListTree className="h-4 w-4" />,
-  },
-];
-
-const contactLevelOptions: RadioCardOption<string>[] = [
-  { 
-    id: "contact", 
-    label: "Contact",
-    description: "Combine all jobs into a single invoice",
-    icon: <Building2 className="h-4 w-4" />,
-  },
-  { 
-    id: "site", 
-    label: "Site",
-    description: "Separate invoice for each site location",
-    icon: <MapPin className="h-4 w-4" />,
-  },
-];
 
 const bankAccountOptions = [
   { id: "barclays", label: "Barclays 1234" },
@@ -170,121 +145,12 @@ function SettingsToggle({
   );
 }
 
-function SettingsRadioCard<T extends string>({
-  option,
-  selected,
-  onChange,
-}: {
-  option: RadioCardOption<T>;
-  selected: boolean;
-  onChange: (id: T) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(option.id)}
-      className={cn(
-        "w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
-        selected
-          ? "border-hw-brand bg-hw-brand/5 ring-1 ring-hw-brand"
-          : "border-hw-border bg-hw-surface hover:border-hw-border-hover hover:bg-hw-surface-subtle"
-      )}
-    >
-      <div
-        className={cn(
-          "shrink-0 mt-0.5 p-1.5 rounded-md",
-          selected ? "bg-hw-brand/10 text-hw-brand" : "bg-hw-surface-subtle text-hw-text-secondary"
-        )}
-      >
-        {option.icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={cn(
-              "text-sm font-medium tracking-[-0.14px] leading-5",
-              selected ? "text-hw-brand" : "text-hw-text"
-            )}
-          >
-            {option.label}
-          </span>
-          <div
-            className={cn(
-              "shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
-              selected ? "border-hw-brand bg-hw-brand" : "border-hw-border"
-            )}
-          >
-            {selected && <Check className="h-2.5 w-2.5 text-white" />}
-          </div>
-        </div>
-        <p className="text-xs text-hw-text-secondary tracking-[-0.12px] leading-4 mt-0.5">
-          {option.description}
-        </p>
-        {option.badge && (
-          <span className="inline-block mt-1.5 text-xs font-medium text-hw-text-secondary bg-hw-surface-subtle px-1.5 py-0.5 rounded">
-            {option.badge}
-          </span>
-        )}
-      </div>
-    </button>
-  );
-}
-
-function SettingsRadioGroup<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-  warning,
-}: {
-  label: string;
-  options: RadioCardOption<T>[];
-  value: T;
-  onChange: (value: T) => void;
-  warning?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium text-hw-text tracking-[-0.12px] leading-4">
-        {label}
-      </span>
-      <div className="flex flex-col gap-2">
-        {options.map((option) => (
-          <SettingsRadioCard
-            key={option.id}
-            option={option}
-            selected={value === option.id}
-            onChange={onChange}
-          />
-        ))}
-      </div>
-      {warning && (
-        <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md border border-amber-200 mt-1">
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-          <span className="text-xs font-medium text-amber-800 tracking-[-0.12px] leading-4">
-            {warning}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionHeader({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-xs font-medium text-hw-text-secondary uppercase tracking-wide mb-6">
-      {children}
-    </h3>
-  );
-}
-
 export function InlineSettingsPanel({
   settings,
   onSettingsChange,
   showApplyToAllCheckbox = false,
   financeOverrideCount = 0,
   onResetFinanceOverrides,
-  invoiceCountByGrouping = { contact: 1, site: 1 },
   invoiceCount = 1,
 }: InlineSettingsPanelProps) {
   const [localSettings, setLocalSettings] = useState<UniversalSettings>(settings);
@@ -295,26 +161,10 @@ export function InlineSettingsPanel({
     setLocalSettings(settings);
   }, [settings]);
 
-  // Check if changing contact level will restructure invoices
-  const willRestructure = localSettings.contactLevel !== settings.contactLevel;
-  const currentInvoiceCount = settings.contactLevel === "contact" 
-    ? invoiceCountByGrouping.contact 
-    : invoiceCountByGrouping.site;
-  const newInvoiceCount = localSettings.contactLevel === "contact"
-    ? invoiceCountByGrouping.contact
-    : invoiceCountByGrouping.site;
-
-  // Build contact level options with dynamic badges
-  const contactLevelOptionsWithBadges = contactLevelOptions.map((option) => ({
-    ...option,
-    badge: `Creates ${option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site} invoice${(option.id === "contact" ? invoiceCountByGrouping.contact : invoiceCountByGrouping.site) === 1 ? "" : "s"}`,
-  }));
-
   // Check if settings have changed from the original
   const hasChanges = useMemo(() => {
     return (
       localSettings.levelOfDetail !== settings.levelOfDetail ||
-      localSettings.contactLevel !== settings.contactLevel ||
       localSettings.bankAccount !== settings.bankAccount ||
       localSettings.currency !== settings.currency ||
       localSettings.nominalCode !== settings.nominalCode ||
@@ -351,32 +201,17 @@ export function InlineSettingsPanel({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-8">
         <div className="flex flex-col gap-6">
-          {/* Breakdown Settings Section */}
+          {/* Level of Detail Section */}
           <div>
-            <SectionHeader>Breakdown Settings</SectionHeader>
-            <div className="flex flex-col gap-6">
-              <SettingsRadioGroup
-                label="Level of detail"
-                options={levelOfDetailOptions}
-                value={localSettings.levelOfDetail}
-                onChange={(value) =>
-                  setLocalSettings((prev) => ({ ...prev, levelOfDetail: value }))
-                }
-              />
-              <SettingsRadioGroup
-                label="Invoice grouping"
-                options={contactLevelOptionsWithBadges}
-                value={localSettings.contactLevel}
-                onChange={(value) =>
-                  setLocalSettings((prev) => ({ ...prev, contactLevel: value }))
-                }
-                warning={
-                  willRestructure && currentInvoiceCount !== newInvoiceCount
-                    ? `This will restructure invoices (${currentInvoiceCount} → ${newInvoiceCount})`
-                    : undefined
-                }
-              />
-            </div>
+            <SectionHeader>Invoice Detail</SectionHeader>
+            <SettingsRadioGroup
+              label="Level of detail"
+              options={levelOfDetailOptions}
+              value={localSettings.levelOfDetail}
+              onChange={(value) =>
+                setLocalSettings((prev) => ({ ...prev, levelOfDetail: value }))
+              }
+            />
           </div>
 
           {/* Divider */}

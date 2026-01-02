@@ -289,7 +289,7 @@ function generateInvoiceCards(
         address,
         jobs: jobsWithLines,
         originalJobIds: groupJobs.map((job) => job.id),
-        title: "Fire extinguisher service",
+        title: "",
         reference: `243452`,
         issueDate: new Date().toISOString().split("T")[0],
         dueDate: "",
@@ -803,6 +803,9 @@ export function UnifiedInvoiceWorkspace() {
           hasSentInvoices={hasSentInvoices}
           customerName={customerName}
           breakdownLevel={universalSettings.contactLevel as "contact" | "site" | "job"}
+          contactLevel={universalSettings.contactLevel}
+          onContactLevelChange={(value) => handleSettingsChange({ ...universalSettings, contactLevel: value }, true)}
+          invoiceCountByGrouping={invoiceCountByGrouping}
         />
 
         {/* Middle/Right Panel - Live Invoice Preview */}
@@ -822,7 +825,6 @@ export function UnifiedInvoiceWorkspace() {
             showApplyToAllCheckbox={showApplyToAllCheckbox}
             financeOverrideCount={financeOverrideCount}
             onResetFinanceOverrides={handleResetFinanceOverrides}
-            invoiceCountByGrouping={invoiceCountByGrouping}
             invoiceCount={invoices.length}
           />
         )}
